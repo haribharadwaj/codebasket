@@ -13,7 +13,7 @@ from scipy import integrate
 from scipy.optimize import minimize
 
 rootdir = '/home/hari/Documents/MATLAB/BW/'
-subj = 'I13'
+subj = 'I25'
 
 flist = glob(rootdir + subj + '/*.mat')
 bwlist = []
@@ -25,13 +25,14 @@ fc = 4000
 noisebw = (0.25 + 0.25)*fc
 spectralLevel_correction = 10*np.log10(noisebw)
 
+
 for k, fname in enumerate(flist):
     dat = io.loadmat(fname)   
     if(dat.has_key('bw')):
         bw = dat['bw'].ravel()[0]
         asymm = dat['asymm'].ravel()[0]
         thresh = dat['thresh'].ravel()[0] - spectralLevel_correction
-        
+        Ps = dat['soundLevel'].ravel()[0]
         bwlist = bwlist + [bw,]
         asymmlist = asymmlist + [asymm,]
         threshlist = threshlist + [thresh,] 
@@ -48,7 +49,7 @@ for k, fname in enumerate(flist):
             print 'Unknown notch shape!'
             
 bwlist = np.asarray(bwlist)
-threshlist = np.asarray(threshlist) 
+threshlist = np.asarray(threshlist)
 asymmlist = np.asarray(asymmlist)    
 
 pl.xlabel('Relative Notch Width',fontsize = 20)
@@ -102,6 +103,7 @@ def noiseEnergy(noiselevel,bw,asymm,pu,pd,w,t,onehighslope = True):
     t - factor of slopes
     noiselevel - spectral level in SPL of the masker (i.e per Hz)
     onehighslope - if True, then for the HF side, only the p-parameter is used
+    
     Returns
     -------
     N - Noise energy filtered through roex filter
@@ -136,12 +138,13 @@ def noiseEnergy(noiselevel,bw,asymm,pu,pd,w,t,onehighslope = True):
     else:
         print 'Unknown filter type!'
     
-    N = (Nu + Nl)*(10**(noiselevel/20))
+    fc = 4000
+    N = (Nu + Nl)*(10**(noiselevel/20))*fc
     return N
     
     
         
-def fitRoex(params,bwlist,threshlist,asymmlist):
+def fitRoex(params,Ps,bwlist,threshlist,asymmlist):
     """Calculates the squared error between the roex function fit and data
     
     Parameters
@@ -150,6 +153,7 @@ def fitRoex(params,bwlist,threshlist,asymmlist):
     params[1]: pd - Low frequency side slope parameter
     params[2]: w - relative weigths of slopes
     params[3]: t - factor of slopes
+    params[4]: K - Detector efficiency
     threshlist - list of noise levels at threshold
     bwlist - list of relative notchwidths (of the nearer edge)
     asymmlist - List of asymmetries (see noiseEnergy)
@@ -163,7 +167,7 @@ def fitRoex(params,bwlist,threshlist,asymmlist):
     pd = params[1]
     w = params[2]
     t = params[3]
-    
+    K = params[4]
     if((bwlist.shape[0] != threshlist.shape[0])
     or (bwlist.shape[0] != asymmlist.shape[0])):
         print 'Invalid Inputs! bwlist, threshlist and asymmlist sizes dont match!'
@@ -177,25 +181,27 @@ def fitRoex(params,bwlist,threshlist,asymmlist):
         bw = bwlist[k]
         asymm = asymmlist[k]
         thresh = threshlist[k]
-        Nlist[k] = noiseEnergy(thresh,bw,asymm,pu,pd,w,t)
+        Nlist[k] = noiseEnergy(thresh,bw,asymm,K,pu,pd,w,t)
         
-    sqerr = np.var(Nlist)
+    Ps_estim = 20*np.log10(Nlist) + K
+    Ps_true = Ps
+    sqerr = ((Ps_estim - Ps_true)**2).sum()
     return sqerr
         
         
         
-InitialGuess = np.asarray([44.0,33.8,10**(-1.28),2.0])
-bounds = ((0,None), (0, None), (0,0.05), (0, 10))
+InitialGuess = np.asarray([44.0,33.8,10**(-1.28),2.0,6])
+bounds = ((0,None), (0, None), (0,0.05), (0, 10),(-50,50))
         
         
 # Fit with w = 0, t = 1
-# InitialGuess = np.asarray([44.0,33.8,0,1])
-# bounds = ((0,None),(0,None),(0,0),(1,1))
+# InitialGuess = np.asarray([44.0,33.8,0,1,6])
+# bounds = ((0,None),(0,None),(0,0),(1,1), (-50,50))
 
 
 
-res = minimize(fitRoex,InitialGuess, args = (bwlist,threshlist,asymmlist),
-               method = 'L-BFGS-B', bounds = bounds)
+res = minimize(fitRoex,InitialGuess, args = (Ps,bwlist,threshlist,asymmlist),
+               method = 'SLSQP', bounds = bounds)
     
 params = res['x']
 pu = params[0]
