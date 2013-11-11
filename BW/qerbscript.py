@@ -83,12 +83,41 @@ def roex(g,p,w,t):
     ----
     
     To fit only a slope parameter, set w = 0 (t is immaterial then)
+    To fit a roex(p,r), set t = numpy.inf 
     
     """
     W = (1 - w)*(1 + p*g)*np.exp(-1*p*g) + w*(1 + p*g/t)*np.exp(-1*p*g/t)
     return W
     
-
+def intRoexp(g1,g2,p,r):
+    """Calculates the integral of the roex(p,r) function from g1 to g2
+    
+    See Patterson et al., (1982)
+    
+    Parameters
+    ----------
+    g1, g2 - Limits of the integral in normalized terms (eg.: g1=0.1,g2=0.35)
+    p - SLope parameter
+    r - parameter determining transition point
+    
+    Returns
+    --------
+    I - Integral under the curve
+    
+    Patterson, R. D., Nimmo-Smith, I., Weber, D. L., and Milroy, R. (1982)
+    “The deterioration of hearing with age: Frequency selectivity, the critical
+    ratio, the audiogram, and speech threshold,” J. Acoust. Soc. Am. 72,
+    1788–1803.
+    
+    """
+    uplimit = -(1 - r)*np.exp(-p*g2)*(2 + p*g2)/p + r
+    lowlimit = -(1 - r)*np.exp(-p*g1)*(2 + p*g1)/p + r
+    
+    I = uplimit - lowlimit
+    return I
+    
+    
+    
 def noiseEnergy(noiselevel,bw,asymm,pu,pd,w,t,onehighslope = True):
     """Calculates the noise energey leaking into the roex filter
     
@@ -189,55 +218,3 @@ def fitRoex(params,Ps,bwlist,threshlist,asymmlist):
     return sqerr
         
         
-        
-InitialGuess = np.asarray([44.0,33.8,10**(-1.28),2.0,6])
-bounds = ((0,None), (0, None), (0,0.05), (0, 10),(-50,50))
-        
-        
-# Fit with w = 0, t = 1
-# InitialGuess = np.asarray([44.0,33.8,0,1,6])
-# bounds = ((0,None),(0,None),(0,0),(1,1), (-50,50))
-
-
-
-res = minimize(fitRoex,InitialGuess, args = (Ps,bwlist,threshlist,asymmlist),
-               method = 'SLSQP', bounds = bounds)
-    
-params = res['x']
-pu = params[0]
-pd = params[1]
-w = params[2]
-t = params[3]
-g = np.arange(0,0.5,0.01)
-Wu = 20*np.log10(roex(g,pu,0,1))
-Wl = 20*np.log10(roex(g,pd,w,t))
-
-pl.figure()
-fu = fc + g*fc
-fl = fc - g*fc
-pl.semilogx(fu,Wu,'k',linewidth = 2)
-pl.hold(True)
-pl.semilogx(fl,Wl,'k',linewidth = 2)
-
-params = InitialGuess
-pu = params[0]
-pd = params[1]
-w = params[2]
-t = params[3]
-g = np.arange(0,0.5,0.01)
-Wu = 20*np.log10(roex(g,pu,0,1))
-Wl = 20*np.log10(roex(g,pd,w,t))
-
-fu = fc + g*fc
-fl = fc - g*fc
-pl.semilogx(fu,Wu,'r--',linewidth = 2)
-pl.hold(True)
-pl.semilogx(fl,Wl,'r--',linewidth = 2)
-pl.xlabel('Frequency (Hz)',fontsize = 20)
-pl.ylabel('Filter Gain (dB)',fontsize = 20)
-ax = pl.gca()
-for tick in ax.xaxis.get_major_ticks():
-    tick.label1.set_fontsize(20)
-for tick in ax.yaxis.get_major_ticks():
-    tick.label1.set_fontsize(20)
-pl.show()
