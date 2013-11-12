@@ -9,11 +9,261 @@ from scipy import io
 from glob import glob
 import pylab as pl
 import numpy as np
-from scipy import integrate
 from scipy.optimize import minimize
 
+
+
+def roexpwt(g,p,w,t):
+    """roex filter as described in Oxenham and Shera (2003) equation (3)
+    
+    Oxenham, A. J., & Shera, C. A. (2003). Estimates of human cochlear tuning
+    at low levels using forward and simultaneous masking. JARO, 4(4), 541-554.
+    
+    Parameters
+    ----------
+    g - Deviation from center frequency (relative)
+    p - slope parameter (different for upper and lower sides)
+    t - Factor by which second slope is shallower than first
+    w - relative weigths slopes (determines where 2nd starts to dominate)
+    
+    Returns
+    -------
+    W - filter weighting
+    
+    Note
+    ----
+    
+    To fit only a slope parameter, set w = 0 (t is immaterial then)
+    To fit a roex(p,r), set t = numpy.inf 
+    
+    """
+    W = (1 - w)*(1 + p*g)*np.exp(-1*p*g) + w*(1 + p*g/t)*np.exp(-1*p*g/t)
+    return W
+    
+def roexpr(g,p,r):
+    """roex(p,r) filter as in Patterson et al., (1982).
+    
+    Parameters
+    ----------
+    g - Deviation from center frequency (relative)
+    p - slope parameter (different for upper and lower sides)
+    r - Parameter detrmining transition point/skirt
+    
+    Returns
+    -------
+    W - filter weighting
+    
+    Note
+    ----
+    
+    To fit only a slope parameter, set w = 0 (t is immaterial then)
+    To fit a roex(p,r), set t = numpy.inf 
+    
+    """
+    W = (1 - r)*(1 + p*g)*np.exp(-1*p*g) + r
+    return W
+    
+def intRoexpwt(g1,g2,p,w,t):
+    """ Integral of the roexpwt filter Oxenham & Shera (2003) equation (3)
+    
+    Parameters
+    ----------
+    g1, g2 - Limits of the integral in normalized terms (eg.: g1=0.1,g2=0.35)
+    p - SLope parameter
+    t - Factor by which second slope is shallower than first
+    w - relative weigths slopes (determines where 2nd starts to dominate)
+    
+    Returns
+    -------
+    
+    I - Integral of the function
+    
+    """
+    uplimit = -(1 - w)*np.exp(-p*g2)*(2 + p*g2)/p 
+    - w*np.exp(-p*g2/t)*(2 + p*g2)/(p/t)
+    
+    lowlimit = -(1 - w)*np.exp(-p*g1)*(2 + p*g1)/p 
+    - w*np.exp(-p*g1/t)*(2 + p*g1)/(p/t)
+    
+    I = uplimit - lowlimit
+    return I
+    
+     
+     
+    
+def intRoexpr(g1,g2,p,r):
+    """Calculates the integral of the roex(p,r) function from g1 to g2
+    
+    See Patterson et al., (1982)
+    
+    Parameters
+    ----------
+    g1, g2 - Limits of the integral in normalized terms (eg.: g1=0.1,g2=0.35)
+    p - SLope parameter
+    r - parameter determining transition point
+    
+    Returns
+    --------
+    I - Integral under the curve
+    
+    Patterson, R. D., Nimmo-Smith, I., Weber, D. L., and Milroy, R. (1982)
+    “The deterioration of hearing with age: Frequency selectivity, the critical
+    ratio, the audiogram, and speech threshold,” J. Acoust. Soc. Am. 72,
+    1788–1803.
+    
+    """
+    uplimit = -(1 - r)*np.exp(-p*g2)*(2 + p*g2)/p + r*g2
+    lowlimit = -(1 - r)*np.exp(-p*g1)*(2 + p*g1)/p + r*g1
+    
+    I = uplimit - lowlimit
+    return I
+    
+
+def fitRoexpr(params,bwlist,threshlist,asymmlist):
+    """Calculates the squared error between the roex function fit and data
+    
+    Parameters
+    ----------
+    params[0]: pu - High frequency side slope parameter
+    params[1]: pd - Low frequency side slope parameter
+    params[2]: r - relative weigths of slopes
+    threshlist - list of noise levels at threshold
+    bwlist - list of relative notchwidths (of the nearer edge)
+    asymmlist - List of asymmetries (see noiseEnergy)
+    
+    Returns
+    -------
+    sqerr - Sum of squared errors between fit and data
+    
+    Note
+    ----
+    
+    Assumes that thresh is in dB re: 0 bw notch noise level
+    Also assumes that noise bands have a width of 0.25*f0 on each side
+    
+    """
+    pu = params[0]
+    pl = params[1]
+    r = params[2]
+    
+    
+    const = db(intRoexpr(0,0.25,pu,r) + intRoexpr(0,0.25,pl,r))
+    
+    # Assuming that filter centered at f0 is always used
+    
+    squerr = 0
+        
+    for k, bw in enumerate(bwlist):
+        
+        asymm = asymmlist[k]
+        thresh = threshlist[k]
+        
+        if(asymm == 0):
+            sigpow = intRoexpr(bw,bw+0.25,pu,r)+intRoexpr(bw,bw+0.25,pl,r)
+            squerr = squerr + (db(sigpow) + thresh - const)**2
+        elif(asymm == 1):
+            sigpow = intRoexpr(bw,bw+0.25,pu,r)+intRoexpr(bw+0.2,bw+0.45,pl,r)
+            squerr = squerr + (db(sigpow) + thresh - const)**2
+        else:
+            sigpow = intRoexpr(bw+0.2,bw+0.45,pu,r)+intRoexpr(bw,bw+0.25,pl,r)
+            squerr = squerr + (db(sigpow) + thresh - const)**2
+    
+        
+    return squerr
+    
+        
+def fitRoexpwt(params,bwlist,threshlist,asymmlist):
+    """Calculates the squared error between the roex function fit and data
+    
+    Parameters
+    ----------
+    params[0]: pu - High frequency side slope parameter
+    params[1]: pl - Low frequency side slope parameter
+    params[2]: w - relative weigths slopes
+    params[3]: t - Factor by which second slope is shallower than first
+    threshlist - list of noise levels at threshold
+    bwlist - list of relative notchwidths (of the nearer edge)
+    asymmlist - List of asymmetries (see noiseEnergy)
+    
+    Returns
+    -------
+    sqerr - Sum of squared errors between fit and data
+    
+    Note
+    ----
+    
+    Assumes that thresh is in dB re: 0 bw notch noise level
+    Also assumes that noise bands have a width of 0.25*f0 on each side
+    
+    """
+    pu = params[0]
+    pl = params[1]
+    w = params[2]
+    t = params[3]
+    
+    
+    const = db(intRoexpwt(0,0.25,pu,w,t) + intRoexpwt(0,0.25,pl,0,1))
+    
+    # Assuming that filter centered at f0 is always used
+    
+    squerr = 0
+            
+    for k, bw in enumerate(bwlist):
+        
+        asymm = asymmlist[k]
+        thresh = threshlist[k]
+        
+        if(asymm == 0):
+            sigpow = intRoexpwt(bw,bw+0.25,pu,w,t)+intRoexpwt(bw,bw+0.25,pl,0,1)
+            squerr = squerr + (db(sigpow) + thresh - const)**2
+        elif(asymm == 1):
+            sigpow = intRoexpwt(bw,bw+0.25,pu,w,t)+intRoexpwt(bw+0.2,bw+0.45,pl,0,1)
+            squerr = squerr + (db(sigpow) + thresh - const)**2
+        else:
+            sigpow = intRoexpwt(bw+0.2,bw+0.45,pu,w,t)+intRoexpwt(bw,bw+0.25,pl,0,1)
+            squerr = squerr + (db(sigpow) + thresh - const)**2
+                
+    return squerr
+        
+        
+def db2mag(x):
+    """ Converts from dB to magnitute ratio
+    
+    Parameters
+    ----------
+    
+    x - Input in dB
+    
+    Returns
+    -------
+    
+    m - magnitude ratio
+    """
+    
+    m = 10.0**(x/20.0)
+    return m
+    
+def db(x):
+    """ Converts to decibels
+    
+    Parameters
+    ----------
+    
+    x - Input in linear units
+    
+    Returns
+    -------
+    
+    y - Equivalend in decibel units
+    """
+    
+    y = 20*np.log10(x)
+    return y
+
+
+# Actual Code
 rootdir = '/home/hari/Documents/MATLAB/BW/'
-subj = 'I25'
+subj = 'I13'
 
 flist = glob(rootdir + subj + '/*.mat')
 bwlist = []
@@ -62,159 +312,42 @@ for tick in ax.yaxis.get_major_ticks():
     tick.label1.set_fontsize(20)
 pl.show()
 
-def roex(g,p,w,t):
-    """roex filter as described in Oxenham and Shera (2003) equation (3)
+bw_unique = np.asarray([0, 0.1, 0.2, 0.2 ,0.2])
+asymm_unique = np.asarray([0, 0, 0, 1, 2])
+thresh_unique = np.zeros(5)
+for k, bw in enumerate(bw_unique):
+    inds = np.logical_and(bwlist == bw, asymmlist == asymm_unique[k])
+    thresh_unique[k] = threshlist[inds].mean()
     
-    Oxenham, A. J., & Shera, C. A. (2003). Estimates of human cochlear tuning
-    at low levels using forward and simultaneous masking. JARO, 4(4), 541-554.
+K_surrogate = thresh_unique[0]
+thresh_unique = thresh_unique[1:] - K_surrogate
+bw_unique = bw_unique[1:]
+asymm_unique = asymm_unique[1:]
+
+
+# Code to actually minimize
+pwt = True
+if(not pwt):
+    initialGuess = np.asarray([30,30,0])
+    bnds = ((1,100),(1,100),(0,0.9))
+    data = (bw_unique, thresh_unique, asymm_unique)
+    fit = minimize(fitRoexpr,initialGuess,args = data,
+                   method = 'L-BFGS-B', bounds = bnds)
+    pu_best = fit['x'][0]
+    pl_best = fit['x'][1]
+    r_best = fit['x'][2]
+    ERB = intRoexpr(0,0.4,pu_best,r_best) + intRoexpr(0,0.4,pl_best,r_best)
+    print 'ERB = ', ERB*fc
+else:
+    initialGuess = np.asarray([50,100,0.002, 3.5])
+    bnds = ((10,100),(10,100),(0,0.1),(1,8))
+    data = (bw_unique, thresh_unique, asymm_unique)
+    fit = minimize(fitRoexpwt,initialGuess,args = data,
+                   method = 'L-BFGS-B', bounds = bnds)
     
-    Parameters
-    ----------
-    g - Deviation from center frequency (relative)
-    p - slope parameter (different for upper and lower sides)
-    t - Factor by which second slope is shallower than first
-    w - relative weigths slopes (determines where 2nd starts to dominate)
-    
-    Returns
-    -------
-    W - filter weighting
-    
-    Note
-    ----
-    
-    To fit only a slope parameter, set w = 0 (t is immaterial then)
-    To fit a roex(p,r), set t = numpy.inf 
-    
-    """
-    W = (1 - w)*(1 + p*g)*np.exp(-1*p*g) + w*(1 + p*g/t)*np.exp(-1*p*g/t)
-    return W
-    
-def intRoexp(g1,g2,p,r):
-    """Calculates the integral of the roex(p,r) function from g1 to g2
-    
-    See Patterson et al., (1982)
-    
-    Parameters
-    ----------
-    g1, g2 - Limits of the integral in normalized terms (eg.: g1=0.1,g2=0.35)
-    p - SLope parameter
-    r - parameter determining transition point
-    
-    Returns
-    --------
-    I - Integral under the curve
-    
-    Patterson, R. D., Nimmo-Smith, I., Weber, D. L., and Milroy, R. (1982)
-    “The deterioration of hearing with age: Frequency selectivity, the critical
-    ratio, the audiogram, and speech threshold,” J. Acoust. Soc. Am. 72,
-    1788–1803.
-    
-    """
-    uplimit = -(1 - r)*np.exp(-p*g2)*(2 + p*g2)/p + r
-    lowlimit = -(1 - r)*np.exp(-p*g1)*(2 + p*g1)/p + r
-    
-    I = uplimit - lowlimit
-    return I
-    
-    
-    
-def noiseEnergy(noiselevel,bw,asymm,pu,pd,w,t,onehighslope = True):
-    """Calculates the noise energey leaking into the roex filter
-    
-    Parameters
-    ----------
-    
-    bw - Notch width
-    asymm - Asymmetry - 0 (symmetric), 1 (farther on lowside) or 2 (high-side)
-    pu - Upside slope parameter
-    pd - lowside slope parameter
-    w - relative weigths of slopes
-    t - factor of slopes
-    noiselevel - spectral level in SPL of the masker (i.e per Hz)
-    onehighslope - if True, then for the HF side, only the p-parameter is used
-    
-    Returns
-    -------
-    N - Noise energy filtered through roex filter
-    
-    Note
-    ----
-    Notched noise is of bandwidth 0.25*fc
-    
-    """
-    
-    if(asymm == 0):
-        if(onehighslope):
-            (Nu, err1)  = integrate.quad(roex, bw, bw+0.25, args=(pu,0,1))
-        else:
-            (Nu, err1)  = integrate.quad(roex, bw, bw+0.25, args=(pu,w,t))
-            
-        (Nl, err2) = integrate.quad(roex, bw, bw+0.25, args=(pd,w,t))        
-    elif(asymm == 1):
-        if(onehighslope):
-            (Nu, err1)  = integrate.quad(roex, bw, bw+0.25, args=(pu,0,1))
-        else:
-            (Nu, err1)  = integrate.quad(roex, bw, bw+0.25, args=(pu,w,t))
-            
-        (Nl, err2) = integrate.quad(roex, bw + 0.2, bw+0.45, args=(pd,w,t))
-    elif(asymm == 2):
-        if(onehighslope):
-            (Nu, err1)  = integrate.quad(roex, bw+0.2, bw+0.45, args=(pu,0,1))
-        else:
-            (Nu, err1)  = integrate.quad(roex, bw+0.2, bw+0.45, args=(pu,w,t))
-            
-        (Nl, err2) = integrate.quad(roex, bw, bw+0.25, args=(pd,w,t))
-    else:
-        print 'Unknown filter type!'
-    
-    fc = 4000
-    N = (Nu + Nl)*(10**(noiselevel/20))*fc
-    return N
-    
-    
-        
-def fitRoex(params,Ps,bwlist,threshlist,asymmlist):
-    """Calculates the squared error between the roex function fit and data
-    
-    Parameters
-    ----------
-    params[0]: pu - High frequency side slope parameter
-    params[1]: pd - Low frequency side slope parameter
-    params[2]: w - relative weigths of slopes
-    params[3]: t - factor of slopes
-    params[4]: K - Detector efficiency
-    threshlist - list of noise levels at threshold
-    bwlist - list of relative notchwidths (of the nearer edge)
-    asymmlist - List of asymmetries (see noiseEnergy)
-    
-    Returns
-    -------
-    sqerr - Sum of squared errors between fit and data
-    
-    """
-    pu = params[0]
-    pd = params[1]
-    w = params[2]
-    t = params[3]
-    K = params[4]
-    if((bwlist.shape[0] != threshlist.shape[0])
-    or (bwlist.shape[0] != asymmlist.shape[0])):
-        print 'Invalid Inputs! bwlist, threshlist and asymmlist sizes dont match!'
-        return
-    else:
-        Npoints = bwlist.shape[0]
-        
-    
-    Nlist = np.zeros(Npoints)    
-    for k in np.arange(0,Npoints):
-        bw = bwlist[k]
-        asymm = asymmlist[k]
-        thresh = threshlist[k]
-        Nlist[k] = noiseEnergy(thresh,bw,asymm,K,pu,pd,w,t)
-        
-    Ps_estim = 20*np.log10(Nlist) + K
-    Ps_true = Ps
-    sqerr = ((Ps_estim - Ps_true)**2).sum()
-    return sqerr
-        
-        
+    pu_best = fit['x'][0]
+    pl_best = fit['x'][1]
+    w_best = fit['x'][2]
+    t_best = fit['x'][3]
+    ERB = intRoexpwt(0,0.4,pl_best,w_best,t_best) + intRoexpwt(0,0.4,pu_best,0,1)
+    print 'ERB = ', ERB*fc    
