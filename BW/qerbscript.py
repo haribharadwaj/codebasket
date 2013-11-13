@@ -160,7 +160,7 @@ def fitRoexpr(params,bwlist,threshlist,asymmlist):
         
         if(off_freq):
             argslist = (pu,pd,r,bw,asymm,thresh)
-            bndsf = ((-1*bw, bw),)
+            bndsf = ((-0.1, 0.1),)
             fitf = minimize(SNRroexpr,np.zeros(1),args = argslist,
                         method = 'L-BFGS-B', bounds = bndsf)
             SNR = fitf['fun']
@@ -215,7 +215,7 @@ def fitRoexpwt(params,bwlist,threshlist,asymmlist):
         
         if(off_freq):
             argslist = (pu,pd,w,t,bw,asymm,thresh)
-            bndsf = ((-1*bw, bw),)
+            bndsf = ((-0.1, 0.1),)
             fitf = minimize(SNRroexpwt,np.zeros(1),args = argslist,
                         method = 'L-BFGS-B', bounds = bndsf)
             SNR = fitf['fun']
@@ -379,7 +379,7 @@ def db(x):
 
 # Actual Code
 rootdir = '/home/hari/Documents/MATLAB/BW/'
-subj = 'I25'
+subj = 'I13'
 
 flist = glob(rootdir + subj + '/*.mat')
 bwlist = []
@@ -453,10 +453,10 @@ if(not pwt):
     pd_best = fit['x'][1]
     r_best = fit['x'][2]
     ERB = intRoexpr(0,0.4,pu_best,r_best) + intRoexpr(0,0.4,pd_best,r_best)
-    print 'ERB = ', ERB*fc
+    print 'ERB = ', ERB*fc, 'Hz'
 else:
     initialGuess = np.asarray([100,50,0.002, 3.5])
-    bnds = ((10,100),(10,100),(0,0.01),(1,8))
+    bnds = ((10,100),(10,100),(0.0001,0.01),(3,20))
     data = (bw_unique, thresh_unique, asymm_unique)
     fit = minimize(fitRoexpwt,initialGuess,args = data,
                    method = 'L-BFGS-B', bounds = bnds)
@@ -467,4 +467,4 @@ else:
     t_best = fit['x'][3]
     ERB = (intRoexpwt(0,0.4,pd_best,w_best,t_best) +
         intRoexpwt(0,0.4,pu_best,w_best,t_best))
-    print 'ERB = ', ERB*fc    
+    print 'ERB = ', ERB*fc, 'Hz'   
