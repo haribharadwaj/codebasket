@@ -147,30 +147,30 @@ def fitRoexpr(params,bwlist,threshlist,asymmlist):
     r = params[2]
     
     
-    const = db(intRoexpr(0,0.25,pu,r) + intRoexpr(0,0.25,pd,r))
+    constSNR = SNRroexpr(0,pu,pd,r,0,0,0)
     
-    # Assuming that filter centered at f0 is always used
-    
+    # Whether or not to assume that filter centered at fc is always used
+    off_freq = True
     squerr = 0
-        
+           
     for k, bw in enumerate(bwlist):
         
         asymm = asymmlist[k]
         thresh = threshlist[k]
         
-        if(asymm == 0):
-            sigpow = intRoexpr(bw,bw+0.25,pu,r)+intRoexpr(bw,bw+0.25,pd,r)
-            squerr = squerr + (db(sigpow) + thresh - const)**2
-        elif(asymm == 1):
-            sigpow = intRoexpr(bw,bw+0.25,pu,r)+intRoexpr(bw+0.2,bw+0.45,pd,r)
-            squerr = squerr + (db(sigpow) + thresh - const)**2
+        if(off_freq):
+            argslist = (pu,pd,r,bw,asymm,thresh)
+            bndsf = ((-1*bw, bw),)
+            fitf = minimize(SNRroexpr,np.zeros(1),args = argslist,
+                        method = 'L-BFGS-B', bounds = bndsf)
+            SNR = fitf['fun']
+            
         else:
-            sigpow = intRoexpr(bw+0.2,bw+0.45,pu,r)+intRoexpr(bw,bw+0.25,pd,r)
-            squerr = squerr + (db(sigpow) + thresh - const)**2
-    
+            SNR = SNRroexpr(0,pu,pd,r,bw,asymm,thresh)
         
+    squerr = squerr + (SNR - constSNR)**2
+                
     return squerr
-    
         
 def fitRoexpwt(params,bwlist,threshlist,asymmlist):
     """Calculates the squared error between the roex function fit and data
@@ -202,8 +202,7 @@ def fitRoexpwt(params,bwlist,threshlist,asymmlist):
     t = params[3]
     
     
-    const = db(intRoexpwt(0,0.25,pu,w,t) + intRoexpwt(0,0.25,pd,0,1))
-    
+    constSNR = SNRroexpwt(0,pu,pd,w,t,0,0,0)
     
     # Whether or not to assume that filter centered at fc is always used
     off_freq = True
@@ -215,33 +214,22 @@ def fitRoexpwt(params,bwlist,threshlist,asymmlist):
         thresh = threshlist[k]
         
         if(off_freq):
-            argslist = (pu,pd,w,t,bw,asymm)
+            argslist = (pu,pd,w,t,bw,asymm,thresh)
             bndsf = ((-1*bw, bw),)
             fitf = minimize(SNRroexpwt,np.zeros(1),args = argslist,
                         method = 'L-BFGS-B', bounds = bndsf)
-            bestf = fitf['x'][0]
+            SNR = fitf['fun']
+            
         else:
-            bestf = 0
+            SNR = SNRroexpwt(0,pu,pd,w,t,bw,asymm,thresh)
         
-                               
-        if(asymm == 0):
-            sigpow = (intRoexpwt(bw - bestf,bw+0.25 - bestf,pu,w,t) +
-                intRoexpwt(bw + bestf,bw+0.25 + bestf,pd,0,1))
-            squerr = squerr + (db(sigpow) + thresh - const)**2
-        elif(asymm == 1):
-            sigpow = (intRoexpwt(bw - bestf,bw + 0.25 - bestf, pu,w,t) + 
-                intRoexpwt(bw + 0.2 + bestf,bw + 0.45 + bestf,pd,0,1))
-            squerr = squerr + (db(sigpow) + thresh - const)**2
-        else:
-            sigpow = (intRoexpwt(bw+0.2 - bestf,bw+0.45 - bestf,pu,w,t) + 
-                intRoexpwt(bw + bestf,bw+0.25 + bestf, pd,0,1))              
-            squerr = squerr + (db(sigpow) + thresh - const)**2
+    squerr = squerr + (SNR - constSNR)**2
                 
     return squerr
         
 
-def SNRroexpwt(f,pu,pd,w,t,bw,asymm):
-    """Calculates the SNR of roex(p,w,t) filter when not centeres at signal 
+def SNRroexpwt(f,pu,pd,w,t,bw,asymm,thresh):
+    """Calculates the SNR of roex(p,w,t,p) filter (even if off-frequency)
     
     Parameters
     ----------
@@ -255,6 +243,7 @@ def SNRroexpwt(f,pu,pd,w,t,bw,asymm):
     w - relative weigths slopes (determines where 2nd starts to dominate)
     bw - Notch width
     asymm - Asymmetry 0, 1 or 2
+    thresh - Noise level relative to bw = 0 case in dB
     
     Returns
     -------
@@ -270,7 +259,7 @@ def SNRroexpwt(f,pu,pd,w,t,bw,asymm):
     """
     
     if( f < 0):
-        sig_attenuation = roexpwt(-f,pu,0,1)
+        sig_attenuation = roexpwt(-f,pu,w,t)
     else:
         sig_attenuation = roexpwt(f,pd,w,t)
         
@@ -291,12 +280,68 @@ def SNRroexpwt(f,pu,pd,w,t,bw,asymm):
         g1l = bw
         g2l = bw + 0.25
         
-    noisepow = intRoexpwt(g1u-f,g2u-f,pu,0,1) + intRoexpwt(g1l+f,g2l+f,pd,w,t)
+    noisepow = intRoexpwt(g1u-f,g2u-f,pu,w,t) + intRoexpwt(g1l+f,g2l+f,pd,w,t)
     
-    negSNR =  db(noisepow) - db(sig_attenuation)
+    negSNR =  thresh + db(noisepow) - db(sig_attenuation)
     return negSNR
     
-       
+def SNRroexpr(f,pu,pd,r,bw,asymm,thresh):
+    """Calculates the SNR of roex(p,r) filter (even if off-frequency)
+    
+    Parameters
+    ----------
+    
+    f - center frequency relative to fc (can be negative or positive)
+        eg.: If fc = 4000, 3500 Hz is specified as f=(3500-4000)/4000=-0.125
+        This is the filter sitting at 3500 Hz.
+    pu, pd - slope parameters (different for upper and lower sides)
+    
+    r - Weighting function 
+    
+    bw - Notch width
+    asymm - Asymmetry 0, 1 or 2
+    thresh - Noise level relative to bw = 0 case in dB
+    
+    Returns
+    -------
+    
+    negSNR - Negative of SNR of the filter (in dB)
+    
+    Notes
+    -----
+    
+    Assumes noise bands are 0.25*fc wide on each side.
+    Also assumes that noise bands lie fully on upper/lower side respectively.
+    This routine is useful to select filter in off-frequency listening case.
+    """
+    
+    if( f < 0):
+        sig_attenuation = roexpr(-f,pu,r)
+    else:
+        sig_attenuation = roexpr(f,pd,r)
+        
+    
+    if(asymm == 0):
+        g1u = bw
+        g2u = bw + 0.25
+        g1l = bw
+        g2l = bw + 0.25
+    elif(asymm == 1):
+        g1u = bw
+        g2u = bw + 0.25
+        g1l = bw + 0.2
+        g2l = bw + 0.45
+    elif(asymm == 2):
+        g1u = bw + 0.2
+        g2u = bw + 0.45
+        g1l = bw
+        g2l = bw + 0.25
+        
+    noisepow = intRoexpr(g1u-f,g2u-f,pu,r) + intRoexpr(g1l+f,g2l+f,pd,r)
+    
+    negSNR =  thresh + db(noisepow) - db(sig_attenuation)
+    return negSNR
+     
 def db2mag(x):
     """ Converts from dB to magnitute ratio
     
@@ -333,7 +378,7 @@ def db(x):
 
 
 # Actual Code
-rootdir = '/home/hari/Documents/PythonCodes/research/BW/'
+rootdir = '/home/hari/Documents/MATLAB/BW/'
 subj = 'I25'
 
 flist = glob(rootdir + subj + '/*.mat')
@@ -405,12 +450,12 @@ if(not pwt):
     fit = minimize(fitRoexpr,initialGuess,args = data,
                    method = 'L-BFGS-B', bounds = bnds)
     pu_best = fit['x'][0]
-    pl_best = fit['x'][1]
+    pd_best = fit['x'][1]
     r_best = fit['x'][2]
-    ERB = intRoexpr(0,0.4,pu_best,r_best) + intRoexpr(0,0.4,pl_best,r_best)
+    ERB = intRoexpr(0,0.4,pu_best,r_best) + intRoexpr(0,0.4,pd_best,r_best)
     print 'ERB = ', ERB*fc
 else:
-    initialGuess = np.asarray([50,100,0.002, 3.5])
+    initialGuess = np.asarray([100,50,0.002, 3.5])
     bnds = ((10,100),(10,100),(0,0.01),(1,8))
     data = (bw_unique, thresh_unique, asymm_unique)
     fit = minimize(fitRoexpwt,initialGuess,args = data,
@@ -421,5 +466,5 @@ else:
     w_best = fit['x'][2]
     t_best = fit['x'][3]
     ERB = (intRoexpwt(0,0.4,pd_best,w_best,t_best) +
-        intRoexpwt(0,0.4,pu_best,0,1))
+        intRoexpwt(0,0.4,pu_best,w_best,t_best))
     print 'ERB = ', ERB*fc    
