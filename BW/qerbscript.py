@@ -143,11 +143,11 @@ def fitRoexpr(params,bwlist,threshlist,asymmlist):
     
     """
     pu = params[0]
-    pl = params[1]
+    pd = params[1]
     r = params[2]
     
     
-    const = db(intRoexpr(0,0.25,pu,r) + intRoexpr(0,0.25,pl,r))
+    const = db(intRoexpr(0,0.25,pu,r) + intRoexpr(0,0.25,pd,r))
     
     # Assuming that filter centered at f0 is always used
     
@@ -159,13 +159,13 @@ def fitRoexpr(params,bwlist,threshlist,asymmlist):
         thresh = threshlist[k]
         
         if(asymm == 0):
-            sigpow = intRoexpr(bw,bw+0.25,pu,r)+intRoexpr(bw,bw+0.25,pl,r)
+            sigpow = intRoexpr(bw,bw+0.25,pu,r)+intRoexpr(bw,bw+0.25,pd,r)
             squerr = squerr + (db(sigpow) + thresh - const)**2
         elif(asymm == 1):
-            sigpow = intRoexpr(bw,bw+0.25,pu,r)+intRoexpr(bw+0.2,bw+0.45,pl,r)
+            sigpow = intRoexpr(bw,bw+0.25,pu,r)+intRoexpr(bw+0.2,bw+0.45,pd,r)
             squerr = squerr + (db(sigpow) + thresh - const)**2
         else:
-            sigpow = intRoexpr(bw+0.2,bw+0.45,pu,r)+intRoexpr(bw,bw+0.25,pl,r)
+            sigpow = intRoexpr(bw+0.2,bw+0.45,pu,r)+intRoexpr(bw,bw+0.25,pd,r)
             squerr = squerr + (db(sigpow) + thresh - const)**2
     
         
@@ -178,7 +178,7 @@ def fitRoexpwt(params,bwlist,threshlist,asymmlist):
     Parameters
     ----------
     params[0]: pu - High frequency side slope parameter
-    params[1]: pl - Low frequency side slope parameter
+    params[1]: pd - Low frequency side slope parameter
     params[2]: w - relative weigths slopes
     params[3]: t - Factor by which second slope is shallower than first
     threshlist - list of noise levels at threshold
@@ -197,35 +197,106 @@ def fitRoexpwt(params,bwlist,threshlist,asymmlist):
     
     """
     pu = params[0]
-    pl = params[1]
+    pd = params[1]
     w = params[2]
     t = params[3]
     
     
-    const = db(intRoexpwt(0,0.25,pu,w,t) + intRoexpwt(0,0.25,pl,0,1))
+    const = db(intRoexpwt(0,0.25,pu,w,t) + intRoexpwt(0,0.25,pd,0,1))
     
-    # Assuming that filter centered at f0 is always used
     
+    # Whether or not to assume that filter centered at fc is always used
+    off_freq = True
     squerr = 0
-            
+           
     for k, bw in enumerate(bwlist):
         
         asymm = asymmlist[k]
         thresh = threshlist[k]
         
+        if(off_freq):
+            argslist = (pu,pd,w,t,bw,asymm)
+            bndsf = ((-1*bw, bw),)
+            fitf = minimize(SNRroexpwt,np.zeros(1),args = argslist,
+                        method = 'L-BFGS-B', bounds = bndsf)
+            bestf = fitf['x'][0]
+        else:
+            bestf = 0
+        
+                               
         if(asymm == 0):
-            sigpow = intRoexpwt(bw,bw+0.25,pu,w,t)+intRoexpwt(bw,bw+0.25,pl,0,1)
+            sigpow = (intRoexpwt(bw - bestf,bw+0.25 - bestf,pu,w,t) +
+                intRoexpwt(bw + bestf,bw+0.25 + bestf,pd,0,1))
             squerr = squerr + (db(sigpow) + thresh - const)**2
         elif(asymm == 1):
-            sigpow = intRoexpwt(bw,bw+0.25,pu,w,t)+intRoexpwt(bw+0.2,bw+0.45,pl,0,1)
+            sigpow = (intRoexpwt(bw - bestf,bw + 0.25 - bestf, pu,w,t) + 
+                intRoexpwt(bw + 0.2 + bestf,bw + 0.45 + bestf,pd,0,1))
             squerr = squerr + (db(sigpow) + thresh - const)**2
         else:
-            sigpow = intRoexpwt(bw+0.2,bw+0.45,pu,w,t)+intRoexpwt(bw,bw+0.25,pl,0,1)
+            sigpow = (intRoexpwt(bw+0.2 - bestf,bw+0.45 - bestf,pu,w,t) + 
+                intRoexpwt(bw + bestf,bw+0.25 + bestf, pd,0,1))              
             squerr = squerr + (db(sigpow) + thresh - const)**2
                 
     return squerr
         
+
+def SNRroexpwt(f,pu,pd,w,t,bw,asymm):
+    """Calculates the SNR of roex(p,w,t) filter when not centeres at signal 
+    
+    Parameters
+    ----------
+    
+    f - center frequency relative to fc (can be negative or positive)
+        eg.: If fc = 4000, 3500 Hz is specified as f=(3500-4000)/4000=-0.125
+        This is the filter sitting at 3500 Hz.
+    pu, pd - slope parameters (different for upper and lower sides)
+    
+    t - Factor by which second slope is shallower than first
+    w - relative weigths slopes (determines where 2nd starts to dominate)
+    bw - Notch width
+    asymm - Asymmetry 0, 1 or 2
+    
+    Returns
+    -------
+    
+    negSNR - Negative of SNR of the filter (in dB)
+    
+    Notes
+    -----
+    
+    Assumes noise bands are 0.25*fc wide on each side.
+    Also assumes that noise bands lie fully on upper/lower side respectively.
+    This routine is useful to select filter in off-frequency listening case.
+    """
+    
+    if( f < 0):
+        sig_attenuation = roexpwt(-f,pu,0,1)
+    else:
+        sig_attenuation = roexpwt(f,pd,w,t)
         
+    
+    if(asymm == 0):
+        g1u = bw
+        g2u = bw + 0.25
+        g1l = bw
+        g2l = bw + 0.25
+    elif(asymm == 1):
+        g1u = bw
+        g2u = bw + 0.25
+        g1l = bw + 0.2
+        g2l = bw + 0.45
+    elif(asymm == 2):
+        g1u = bw + 0.2
+        g2u = bw + 0.45
+        g1l = bw
+        g2l = bw + 0.25
+        
+    noisepow = intRoexpwt(g1u-f,g2u-f,pu,0,1) + intRoexpwt(g1l+f,g2l+f,pd,w,t)
+    
+    negSNR =  db(noisepow) - db(sig_attenuation)
+    return negSNR
+    
+       
 def db2mag(x):
     """ Converts from dB to magnitute ratio
     
@@ -262,8 +333,8 @@ def db(x):
 
 
 # Actual Code
-rootdir = '/home/hari/Documents/MATLAB/BW/'
-subj = 'I13'
+rootdir = '/home/hari/Documents/PythonCodes/research/BW/'
+subj = 'I25'
 
 flist = glob(rootdir + subj + '/*.mat')
 bwlist = []
@@ -340,14 +411,15 @@ if(not pwt):
     print 'ERB = ', ERB*fc
 else:
     initialGuess = np.asarray([50,100,0.002, 3.5])
-    bnds = ((10,100),(10,100),(0,0.1),(1,8))
+    bnds = ((10,100),(10,100),(0,0.01),(1,8))
     data = (bw_unique, thresh_unique, asymm_unique)
     fit = minimize(fitRoexpwt,initialGuess,args = data,
                    method = 'L-BFGS-B', bounds = bnds)
     
     pu_best = fit['x'][0]
-    pl_best = fit['x'][1]
+    pd_best = fit['x'][1]
     w_best = fit['x'][2]
     t_best = fit['x'][3]
-    ERB = intRoexpwt(0,0.4,pl_best,w_best,t_best) + intRoexpwt(0,0.4,pu_best,0,1)
+    ERB = (intRoexpwt(0,0.4,pd_best,w_best,t_best) +
+        intRoexpwt(0,0.4,pu_best,0,1))
     print 'ERB = ', ERB*fc    
