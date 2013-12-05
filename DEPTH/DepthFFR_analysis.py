@@ -12,7 +12,7 @@ froot = '/home/hari/Documents/MATLAB/Depth_Clean/'
 # Could be different for edf, fiff, eve etc.
 # Use list [] and enumerate over if filenames are weird
 
-subj = 'I13'
+subj = 'I08'
 namestem = subj + '_depth'
 
 fpath = froot + subj + '/'
@@ -58,7 +58,8 @@ for  condind, cond in enumerate(condlist):
             x = np.concatenate((x,xtemp),axis = 1)
 
 
-    params = dict(Fs=4096,fpass=[5,600],tapers=[1, 1],pad=1,Npairs = 2000, itc = 1)
+    params = dict(Fs=4096,fpass=[5,600],tapers=[1, 1],pad=1,Npairs = 2000,
+                  itc = 1)
     nPerDraw = 400
     nDraws = 100
     
@@ -78,7 +79,8 @@ for  condind, cond in enumerate(condlist):
     
 
     # Saving Results
-    res = dict(pS = pS,selectedEve = selectedEve, Sraw = Sraw, f = f)
+    res = dict(pS = pS,selectedEve = selectedEve, cplv = cplv,
+               Sraw = Sraw, f = f)
     save_name = subj + condstem + '.mat'
     save_raw_name = subj + condstem + '_alltrial.mat'
     io.savemat(respath + save_name,res)
@@ -86,7 +88,7 @@ for  condind, cond in enumerate(condlist):
     io.savemat(respath + save_raw_name,
                dict(x = x, selectedEve = selectedEve, subj = subj))
 
-pl.ylabel('Pairwise Power')
+pl.ylabel('Pairwise Power', fontsize = 20)
 pl.xlabel('Frequency (Hz)',fontsize = 20)
 pl.show()
 ax = pl.gca()
