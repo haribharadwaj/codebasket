@@ -4,6 +4,7 @@ import numpy as np
 from anlffr import spectral
 import pylab as pl
 from scipy import io
+import os
 
 # Adding Files and locations
 froot = '/home/hari/Documents/MATLAB/Depth_Clean/'
@@ -12,7 +13,7 @@ froot = '/home/hari/Documents/MATLAB/Depth_Clean/'
 # Could be different for edf, fiff, eve etc.
 # Use list [] and enumerate over if filenames are weird
 
-subj = 'I08'
+subj = 'I15'
 namestem = subj + '_depth'
 
 fpath = froot + subj + '/'
@@ -20,7 +21,7 @@ fpath = froot + subj + '/'
 # These are so that the generated files are organized better
 respath = fpath + 'RES/'
 
-nruns = 5
+nruns = 3
 condlist = [[1,7],[2,8],[3,9],[4,10]]
 condstemlist = ['_0dB','_m4dB','_m8dB','_m12dB']
 
@@ -83,6 +84,10 @@ for  condind, cond in enumerate(condlist):
                Sraw = Sraw, f = f)
     save_name = subj + condstem + '.mat'
     save_raw_name = subj + condstem + '_alltrial.mat'
+    
+    if (not os.path.isdir(respath)):
+        os.mkdir(respath)
+        
     io.savemat(respath + save_name,res)
 
     io.savemat(respath + save_raw_name,
