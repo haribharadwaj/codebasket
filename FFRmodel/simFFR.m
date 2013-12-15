@@ -4,7 +4,7 @@ addpath('./Zilany2014_new/');
 fs = 100e3;
 fc = 4000;
 fm = 100;
-m = 0.4;
+m = 0.5;
 bw = 200;
 dur = 0.4;
 rise = 0.025;
