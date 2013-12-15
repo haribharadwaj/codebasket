@@ -3,3 +3,8 @@
 *.zip
 *.tar.gz
 *.mat
+!FFRmode/vFreq.mat
+!FFRmodel/UR_CE.mat
+!FFRmodel/Zilany2014_new/*.mat
+
+
