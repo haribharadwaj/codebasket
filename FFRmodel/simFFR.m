@@ -10,7 +10,9 @@ dur = 1.0;
 rise = 0.025;
 phi = 0;
 isi = 0.025;
-
+SAM = 1;
+notch = 1;
+modulated = 0;
 
 plotting = 0;
 fiblist = {'Low-SR','Med-SR','High-SR'};
@@ -21,23 +23,34 @@ for fibertype = 1:3; % 1- LS, 2- MS, 3-HS
     stimdb = 80;
     
     
-    notch = 1;
+    
     synout = 0;
     Ric = 0;
     Rcn = 0;
     
-    Ntrials = 1000;
-    pin = maketranstone(fc,fm,m,bw,fs,dur,rise,phi);
+    Ntrials = 100;
+    if(SAM)
+        pin = makesamtone(fc,fm,m,fs,dur,rise,phi);
+    else
+        pin = maketranstone(fc,fm,m,bw,fs,dur,rise,phi);
+    end
+    
     stimrms = sqrt(mean(pin.^2));
     
     for trial = 1:Ntrials
         fprintf (1,'\n########### Doing Trial # %d/%d ############\n',...
             trial, Ntrials);
         if(notch)
-            SNR = 30;
+            SNR = 15;
             noise = makeNotchNoiseFFT(400,0,fc,dur,fs,rise,0)';
             noiserms = sqrt(mean(noise.^2));
             noise = (noise*stimrms/noiserms)*db2mag(-1*SNR);
+            
+            if(modulated)
+                fmask = 130;
+                tmask = (0:(numel(noise)-1))/fs;
+                noise = (1+sin(2*pi*fmask*tmask)).*noise;
+            end
             pin = pin + noise;
         end
         
