@@ -4,9 +4,9 @@ addpath('./Zilany2014_new/');
 fs = 100e3;
 fc = 4000;
 fm = 100;
-m = 0.5;
+m = 0.6;
 bw = 200;
-dur = 1.0;
+dur = 2.0;
 rise = 0.025;
 phi = 0;
 isi = 0.025;
@@ -28,7 +28,7 @@ for fibertype = 1:3; % 1- LS, 2- MS, 3-HS
     Ric = 0;
     Rcn = 0;
     
-    Ntrials = 2;
+    Ntrials = 8;
     if(SAM)
         pin = makesamtone(fc,fm,m,fs,dur,rise,phi);
     else
@@ -41,8 +41,8 @@ for fibertype = 1:3; % 1- LS, 2- MS, 3-HS
         fprintf (1,'\n########### Doing Trial # %d/%d ############\n',...
             trial, Ntrials);
         if(notch)
-            SNR = 25;
-            noise = makeNotchNoiseFFT(400,0,fc,dur,fs,rise,0)';
+            SNR = 30;
+            noise = makeNotchNoiseFFT(800,0,fc,dur,fs,rise,0)';
             noiserms = sqrt(mean(noise.^2));
             noise = (noise*stimrms/noiserms)*db2mag(-1*SNR);
             
@@ -67,7 +67,7 @@ for fibertype = 1:3; % 1- LS, 2- MS, 3-HS
         f = vFreq(15:CF_step:end);
         for nCF = 1:numel(f)
             CF = f(nCF);
-            nrep = 1;
+            nrep = 2;
             vihc = model_IHC(pin,CF,nrep,1/fs,dur+isi,1,1,tuningType);
             [synout_trial(nCF,:),synoutvar,psth] = ...
                 model_Synapse(vihc,CF,nrep,1/fs,fibertype,1,0);
