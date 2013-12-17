@@ -6,7 +6,7 @@ fc = 4000;
 fm = 100;
 m = 0.6;
 bw = 200;
-dur = 2.0;
+dur = 4.0;
 rise = 0.025;
 phi = 0;
 isi = 0.025;
@@ -20,7 +20,7 @@ for fibertype = 1:3; % 1- LS, 2- MS, 3-HS
     fib = fiblist{fibertype};
     fprintf(1,'\n ------------Simulating %s fibers :)-----------\n',fib);
     SR = [0.1, 15, 100];
-    stimdb = 70;
+    stimdb = 90;
     
     
     
@@ -28,7 +28,7 @@ for fibertype = 1:3; % 1- LS, 2- MS, 3-HS
     Ric = 0;
     Rcn = 0;
     
-    Ntrials = 8;
+    Ntrials = 2;
     if(SAM)
         pin = makesamtone(fc,fm,m,fs,dur,rise,phi);
     else
