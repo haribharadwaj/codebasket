@@ -20,7 +20,7 @@ for fibertype = 1:3; % 1- LS, 2- MS, 3-HS
     fib = fiblist{fibertype};
     fprintf(1,'\n ------------Simulating %s fibers :)-----------\n',fib);
     SR = [0.1, 15, 100];
-    stimdb = 80;
+    stimdb = 70;
     
     
     
@@ -28,7 +28,7 @@ for fibertype = 1:3; % 1- LS, 2- MS, 3-HS
     Ric = 0;
     Rcn = 0;
     
-    Ntrials = 100;
+    Ntrials = 2;
     if(SAM)
         pin = makesamtone(fc,fm,m,fs,dur,rise,phi);
     else
@@ -41,7 +41,7 @@ for fibertype = 1:3; % 1- LS, 2- MS, 3-HS
         fprintf (1,'\n########### Doing Trial # %d/%d ############\n',...
             trial, Ntrials);
         if(notch)
-            SNR = 15;
+            SNR = 25;
             noise = makeNotchNoiseFFT(400,0,fc,dur,fs,rise,0)';
             noiserms = sqrt(mean(noise.^2));
             noise = (noise*stimrms/noiserms)*db2mag(-1*SNR);
