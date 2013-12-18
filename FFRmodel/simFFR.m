@@ -4,7 +4,7 @@ addpath('./Zilany2014_new/');
 fs = 100e3;
 fc = 4000;
 fm = 100;
-m = 0.6;
+m = 1.0;
 bw = 200;
 dur = 4.0;
 rise = 0.025;
@@ -20,7 +20,7 @@ for fibertype = 1:3; % 1- LS, 2- MS, 3-HS
     fib = fiblist{fibertype};
     fprintf(1,'\n ------------Simulating %s fibers :)-----------\n',fib);
     SR = [0.1, 15, 100];
-    stimdb = 90;
+    stimdb = 80;
     
     
     
