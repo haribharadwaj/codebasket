@@ -103,9 +103,7 @@ for  condind, cond in enumerate(condlist):
     io.savemat(respath + save_name,res)
     
     if not os.path.isfile(respath + save_raw_name):
-        io.savemat(respath + save_raw_name,dict(x = x,
-                                                selectedEve = selectedEve,
-                                                subj = subj))
+        io.savemat(respath + save_raw_name,dict(x = x,subj = subj))
 
 pl.ylabel('Pairwise Power', fontsize = 20)
 pl.xlabel('Frequency (Hz)',fontsize = 20)
