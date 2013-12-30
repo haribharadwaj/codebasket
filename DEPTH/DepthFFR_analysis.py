@@ -93,8 +93,7 @@ for  condind, cond in enumerate(condlist):
     
 
     # Saving Results
-    res = dict(pS = pS,selectedEve = selectedEve, cplv = cplv,
-               Sraw = Sraw, f = f, S = S, N = N)
+    res = dict(pS = pS,cplv = cplv,Sraw = Sraw, f = f, S = S, N = N)
     save_name = subj + condstem + '.mat'
     
     
