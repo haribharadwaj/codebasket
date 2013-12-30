@@ -6,6 +6,7 @@ Created on Mon Dec 30 12:43:34 2013
 """
 import numpy as np
 from scipy.special import iv
+# from scipy import floor,ceil
 import pylab as pl
 
 def db2mag(x):
@@ -60,8 +61,15 @@ def pspec(z,Npairs):
     ntrials = z.shape[0]
     trial_pairs = np.random.randint(0,ntrials,(Npairs,2))
     trial_pairs = trial_pairs[np.not_equal(trial_pairs[:,0],trial_pairs[:,1])]
-    xw_1 = z[trial_pairs[:,0]]
-    xw_2 = z[trial_pairs[:,1]]
+    first = trial_pairs[:,0]
+    second = trial_pairs[:,1]
+    
+    #first = np.arange(0,np.int(floor(ntrials/2.0)))
+    #second = np.arange(np.int(ceil(ntrials/2.0)),ntrials)
+    
+    
+    xw_1 = z[first]
+    xw_2 = z[second]
     pS = np.real((xw_1*xw_2.conj()).mean(axis = 0))
     
     return pS
@@ -81,7 +89,7 @@ def setcafontsize(fontsize = 20):
         tick.label1.set_fontsize(20)
         
     
-Ntrials = 400
+Ntrials = 100
 Nsims = 5000
 # Draw signal phase from von mises density
 kappa = 1
@@ -91,7 +99,7 @@ PLV_true = iv(1,kappa)/iv(0,kappa)
 phi_n = np.random.rand(Ntrials,Nsims)*2*np.pi
 
 
-SNRlist = np.arange(-10.0,10.0,1.0) #dB
+SNRlist = np.arange(-6.0,6.2,0.2) #dB
 
 pS_mu = np.zeros(SNRlist.shape)
 pS_std = np.zeros(SNRlist.shape)
@@ -107,7 +115,7 @@ for nSNR, SNR in enumerate(SNRlist):
     # Measurement
     z = S*np.exp(1j*phi_sig) + (S/A)*np.exp(1j*phi_n)
     
-    Npairs = 2000
+    Npairs = 4000
     pS = pspec(z,Npairs)
     pS_mu[nSNR] = pS.mean()
     pS_std[nSNR] = pS.std()
@@ -115,16 +123,25 @@ for nSNR, SNR in enumerate(SNRlist):
     S_std[nSNR] = (np.abs(z.mean(axis=0))**2).std()
     
 
+pl.subplot(2,1,1)
 pl.plot(SNRlist,pS_mu,'k-',linewidth = 2)
 pl.hold(True)
-pl.plot(SNRlist,pS_std+pS_mu,'r--',linewidth = 2)
-pl.plot(SNRlist,pS_mu - pS_std,'r--',linewidth = 2)
 pl.plot(SNRlist,S_mu,'g-',linewidth = 2)
-pl.plot(SNRlist,np.ones(SNRlist.shape)*(S**2)*(PLV_true**2),'b--',linewidth = 2)
+pl.plot(SNRlist,np.ones(SNRlist.shape)*(S**2)*(PLV_true**2),'r-',linewidth = 2)
 pl.xlabel('SNR (dB)',fontsize = 20)
-pl.ylabel('Pairwise Power Estimate',fontsize = 20)
-pl.legend(('Mean Estimate','+1 sigma','-1 sigma',
-          'Spectral Estimate','Ground Truth'))
+pl.ylabel('Power Estimate',fontsize = 20)
+pl.xlim((np.min(SNRlist),np.max(SNRlist)))
+pl.legend(('Mean Pairwise Estimate','Mean Spectral Estimate','Ground Truth'))
+setcafontsize()
+
+pl.subplot(2,1,2)
+pl.plot(SNRlist,pS_std,'k',linewidth = 2)
+pl.hold(True)
+pl.plot(SNRlist,S_std,'g',linewidth = 2)
+pl.xlabel('SNR (dB)',fontsize = 20)
+pl.ylabel('Estimator standard deviation',fontsize = 20)
+pl.xlim((np.min(SNRlist),np.max(SNRlist)))
+pl.legend(('Pairwise Estimate','Spectral Estimate'))
 setcafontsize()
 pl.show()
 
