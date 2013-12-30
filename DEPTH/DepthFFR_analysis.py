@@ -74,7 +74,7 @@ for  condind, cond in enumerate(condlist):
     
     
     print 'Running Pairwise Spectrum Estimation'
-    (pS,f) = spectral.mtpspec(x, params, verbose = True)
+    (pS,f) = spectral.mtpspec(x, params, verbose = 'DEBUG')
     
     print 'Running Raw Spectrum Estimation'
     (Sraw,f) = spectral.mtspecraw(x, params, verbose = True)
