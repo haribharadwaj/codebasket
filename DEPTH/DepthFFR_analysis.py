@@ -2,9 +2,9 @@ from anlffr.helper import biosemi2mne as bs
 import mne
 import numpy as np
 from anlffr import spectral
-import pylab as pl
 from scipy import io
 import os
+import fnmatch
 
 # Adding Files and locations
 froot = '/home/hari/Documents/MATLAB/Depth_Clean/'
@@ -13,105 +13,105 @@ froot = '/home/hari/Documents/MATLAB/Depth_Clean/'
 # Could be different for edf, fiff, eve etc.
 # Use list [] and enumerate over if filenames are weird
 
-subj = 'I13'
-namestem = subj + '_depth'
-
-fpath = froot + subj + '/'
-
-# These are so that the generated files are organized better
-respath = fpath + 'RES/'
-
-nruns = 5
-condlist = [[1,7],[2,8],[3,9],[4,10]]
-condstemlist = ['_0dB','_m4dB','_m8dB','_m12dB']
-
-for  condind, cond in enumerate(condlist):
-    condstem = condstemlist[condind]
-    print 'Running Subject', subj, 'Condition', condind
-    
-    save_raw_name = subj + condstem + '_alltrial.mat'
-    
-    if os.path.isfile(respath + save_raw_name):
-        print 'Epoched data is already available on disk!'
-        print 'Loading data from:', respath+save_raw_name
-        x = io.loadmat(respath+save_raw_name)['x']
-    else:       
-        for k in np.arange(0,nruns):
-            # Load data and read event channel
-            edfname = fpath + namestem + '_0' + str(k+1) + '.bdf'
-            (raw,eves) = bs.importbdf(edfname)
+# I02, I13 and I37 done, I36 was recorded with wrong sampling rate
+subjlist = ['I01','I03','I06','I07','I08','I09','I11','I14','I15','I16',
+            'I17_redo','I18','I19','I20','I25','I26','I27','I28','I29','I30',
+            'I32','I33','I34','I35','I39','I05']
             
-            # Filter the data
-            raw.filter(l_freq = 70, h_freq = 1500, picks = np.arange(0,32,1))
             
-            # Here events 1 and 7 represent a particular stimulus in each polarity
-            selectedEve = dict(up = cond[0], down = cond[1])
-            
-            # Epoching events of type 1 and 7
-            epochs = mne.Epochs(raw,eves,selectedEve,tmin = -0.05, proj = False,
-                                tmax = 0.45, baseline = (-0.05, 0),
-                                reject = dict(eeg=100e-6))
-            # Combining both polarities so I can get envelope related FFR responses
-            epochs = mne.epochs.combine_event_ids(epochs,['up','down'],
-                                                  dict(all= 101))
-            # Getting the epoched data out, this step will also perform rejection
-            xtemp = epochs.get_data()
-            
-            # Reshaping to the format needed by spectral.mtcpca() and calling it
-            xtemp = xtemp.transpose((1,0,2))
-            xtemp = xtemp[0:32,:,:]
-            
-            if(k==0):
-                x = xtemp
-            else:
-                x = np.concatenate((x,xtemp),axis = 1)
-
-
-    params = dict(Fs=4096,fpass=[5,600],tapers=[1, 1],pad=1,Npairs = 2000,
-                  itc = 1)
-    nPerDraw = 400
-    nDraws = 100
+for subj in subjlist:
     
+    fpath = froot + subj + '/'
     
-    print 'Running Pairwise Spectrum Estimation'
-    (pS,f) = spectral.mtpspec(x, params, verbose = 'DEBUG')
+    # These are so that the generated files are organized better
+    respath = fpath + 'RES/'
     
-    print 'Running Raw Spectrum Estimation'
-    (Sraw,f) = spectral.mtspecraw(x, params, verbose = True)
+    # Saving all the results (only) in a separate directory
+    resonly_backup = '/home/hari/Documents/DepthResults' + subj + '/'
     
-    print 'Running Mean Spectrum Estimation'
-    (S,N,f) = spectral.mtspec(x,params,verbose = True)
+    condlist = [[1,7],[2,8],[3,9],[4,10]]
+    condstemlist = ['_0dB','_m4dB','_m8dB','_m12dB']
     
-    print 'Running CPCA PLV Estimation'
-    (cplv,f)  = spectral.mtcpca(x, params, verbose = True)
-    
-    
-
-    # Plotting results
-    pl.plot(f,pS[30,:],linewidth = 2)
-    pl.hold(True)
-    
-
-    # Saving Results
-    res = dict(pS = pS,cplv = cplv,Sraw = Sraw, f = f, S = S, N = N)
-    save_name = subj + condstem + '.mat'
-    
-    
-    if (not os.path.isdir(respath)):
-        os.mkdir(respath)
+    for  condind, cond in enumerate(condlist):
+        condstem = condstemlist[condind]
+        print 'Running Subject', subj, 'Condition', condind
         
-    io.savemat(respath + save_name,res)
+        save_raw_name = subj + condstem + '_alltrial.mat'
+        
+        if os.path.isfile(respath + save_raw_name):
+            print 'Epoched data is already available on disk!'
+            print 'Loading data from:', respath+save_raw_name
+            x = io.loadmat(respath+save_raw_name)['x']
+        else:
+            bdfs = fnmatch.filter(os.listdir(fpath),subj+'*.bdf')
+            print 'No pre-epoched data found, looking for BDF files'
+            print 'Viola!', len(bdfs),  'files found!'
+            
+            for k, edfname in enumerate(bdfs):
+                # Load data and read event channel
+                (raw,eves) = bs.importbdf(fpath + edfname)
+                
+                # Filter the data
+                raw.filter(l_freq = 70, h_freq = 1500, picks = np.arange(0,32,1))
+                
+                # Here events 1 and 7 represent a particular stimulus in each polarity
+                selectedEve = dict(up = cond[0], down = cond[1])
+                
+                # Epoching events of type 1 and 7
+                epochs = mne.Epochs(raw,eves,selectedEve,tmin = -0.05, proj = False,
+                                    tmax = 0.45, baseline = (-0.05, 0),
+                                    reject = dict(eeg=100e-6))
+                # Combining both polarities so I can get envelope related FFR responses
+                epochs = mne.epochs.combine_event_ids(epochs,['up','down'],
+                                                      dict(all= 101))
+                # Getting the epoched data out, this step will also perform rejection
+                xtemp = epochs.get_data()
+                
+                # Reshaping to the format needed by spectral.mtcpca() and calling it
+                xtemp = xtemp.transpose((1,0,2))
+                xtemp = xtemp[0:32,:,:]
+                
+                if(k==0):
+                    x = xtemp
+                else:
+                    x = np.concatenate((x,xtemp),axis = 1)
     
-    if not os.path.isfile(respath + save_raw_name):
-        io.savemat(respath + save_raw_name,dict(x = x,subj = subj))
-
-pl.ylabel('Pairwise Power', fontsize = 20)
-pl.xlabel('Frequency (Hz)',fontsize = 20)
-pl.show()
-ax = pl.gca()
-for tick in ax.xaxis.get_major_ticks():
-    tick.label1.set_fontsize(20)
-for tick in ax.yaxis.get_major_ticks():
-    tick.label1.set_fontsize(20)         
+    
+        params = dict(Fs=4096,fpass=[5,600],tapers=[1, 1],pad=1,Npairs = 2000,
+                      itc = 1)
+        nPerDraw = 400
+        nDraws = 100
+        
+        
+        print 'Running Pairwise Spectrum Estimation'
+        (pS,f) = spectral.mtpspec(x, params, verbose = 'DEBUG')
+        
+        print 'Running Raw Spectrum Estimation'
+        (Sraw,f) = spectral.mtspecraw(x, params, verbose = True)
+        
+        print 'Running Mean Spectrum Estimation'
+        (S,N,f) = spectral.mtspec(x,params,verbose = True)
+        
+        print 'Running CPCA PLV Estimation'
+        (cplv,f)  = spectral.mtcpca(x, params, verbose = True)
+        
+        
+    
+        
+    
+        # Saving Results
+        res = dict(pS = pS,cplv = cplv,Sraw = Sraw, f = f, S = S, N = N)
+        save_name = subj + condstem + '.mat'
+        
+        
+        if (not os.path.isdir(respath)):
+            os.mkdir(respath)
+        if (not os.path.isdir(resonly_backup)):
+            os.mkdir(resonly_backup)    
+        io.savemat(respath + save_name,res)
+        io.savemat(resonly_backup + save_name,res)
+        
+        if not os.path.isfile(respath + save_raw_name):
+            io.savemat(respath + save_raw_name,dict(x = x,subj = subj))
            
 
