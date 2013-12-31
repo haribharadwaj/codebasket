@@ -27,7 +27,7 @@ for subj in subjlist:
     respath = fpath + 'RES/'
     
     # Saving all the results (only) in a separate directory
-    resonly_backup = '/home/hari/Documents/DepthResults' + subj + '/'
+    resonly_backup = '/home/hari/Documents/DepthResults/' + subj + '/'
     
     condlist = [[1,7],[2,8],[3,9],[4,10]]
     condstemlist = ['_0dB','_m4dB','_m8dB','_m12dB']
