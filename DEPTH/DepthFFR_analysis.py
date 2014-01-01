@@ -13,9 +13,11 @@ froot = '/home/hari/Documents/MATLAB/Depth_Clean/'
 # Could be different for edf, fiff, eve etc.
 # Use list [] and enumerate over if filenames are weird
 
-# I02, I13 and I37 done, I36 was recorded with wrong sampling rate
-subjlist = ['I01','I03','I06','I07','I08','I09','I11','I14','I15','I16',
-            'I17_redo','I18','I19','I20','I25','I26','I27','I28','I29','I30',
+
+# Done:
+# 'I01','I02','I03','I06','I07','I08','I09','I11','I13','I14','I15','I37'
+# I36 was recorded with wrong sampling rate
+subjlist = ['I17_redo','I18','I19','I20','I25','I26','I27','I28','I29','I30',
             'I32','I33','I34','I35','I39','I05']
             
             
@@ -68,13 +70,17 @@ for subj in subjlist:
                 xtemp = epochs.get_data()
                 
                 # Reshaping to the format needed by spectral.mtcpca() and calling it
-                xtemp = xtemp.transpose((1,0,2))
-                xtemp = xtemp[0:32,:,:]
-                
-                if(k==0):
-                    x = xtemp
+                if(xtemp.shape[0] > 0):                 
+                    xtemp = xtemp.transpose((1,0,2))
+                    xtemp = xtemp[0:32,:,:]
+                    
+                    if(k==0):
+                        x = xtemp
+                    else:
+                        x = np.concatenate((x,xtemp),axis = 1)
                 else:
-                    x = np.concatenate((x,xtemp),axis = 1)
+                    continue
+                
     
     
         params = dict(Fs=4096,fpass=[5,600],tapers=[1, 1],pad=1,Npairs = 2000,
