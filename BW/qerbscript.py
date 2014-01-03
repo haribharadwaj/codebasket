@@ -37,6 +37,7 @@ def roexpwt(g,p,w,t):
     To fit a roex(p,r), set t = numpy.inf 
     
     """
+    w = 10.0**(w/10.0)
     W = (1 - w)*(1 + p*g)*np.exp(-1*p*g) + w*(1 + p*g/t)*np.exp(-1*p*g/t)
     return W
     
@@ -79,6 +80,7 @@ def intRoexpwt(g1,g2,p,w,t):
     I - Integral of the function
     
     """
+    w = 10.0**(w/10.0)
     uplimit = -(1 - w)*np.exp(-p*g2)*(2 + p*g2)/p 
     - w*np.exp(-p*g2/t)*(2 + p*g2)/(p/t)
     
@@ -168,7 +170,7 @@ def fitRoexpr(params,bwlist,threshlist,asymmlist):
         else:
             SNR = SNRroexpr(0,pu,pd,r,bw,asymm,thresh)
         
-    squerr = squerr + (SNR - constSNR)**2
+        squerr = squerr + (SNR - constSNR)**2
                 
     return squerr
         
@@ -203,7 +205,6 @@ def fitRoexpwt(params,bwlist,threshlist,asymmlist):
     
     
     constSNR = SNRroexpwt(0,pu,pd,w,t,0,0,0)
-    
     # Whether or not to assume that filter centered at fc is always used
     off_freq = True
     squerr = 0
@@ -212,18 +213,19 @@ def fitRoexpwt(params,bwlist,threshlist,asymmlist):
         
         asymm = asymmlist[k]
         thresh = threshlist[k]
-        
+           
         if(off_freq):
             argslist = (pu,pd,w,t,bw,asymm,thresh)
             bndsf = ((-0.1, 0.1),)
             fitf = minimize(SNRroexpwt,np.zeros(1),args = argslist,
                         method = 'L-BFGS-B', bounds = bndsf)
+            
             SNR = fitf['fun']
             
         else:
             SNR = SNRroexpwt(0,pu,pd,w,t,bw,asymm,thresh)
         
-    squerr = squerr + (SNR - constSNR)**2
+        squerr = squerr + (SNR - constSNR)**2
                 
     return squerr
         
@@ -263,22 +265,22 @@ def SNRroexpwt(f,pu,pd,w,t,bw,asymm,thresh):
     else:
         sig_attenuation = roexpwt(f,pd,w,t)
         
-    
+    notchband = 0.25
     if(asymm == 0):
         g1u = bw
-        g2u = bw + 0.25
+        g2u = bw + notchband
         g1l = bw
-        g2l = bw + 0.25
+        g2l = bw + notchband
     elif(asymm == 1):
         g1u = bw
-        g2u = bw + 0.25
+        g2u = bw + notchband
         g1l = bw + 0.2
-        g2l = bw + 0.45
+        g2l = bw + 0.2 + notchband
     elif(asymm == 2):
         g1u = bw + 0.2
-        g2u = bw + 0.45
+        g2u = bw + 0.2 + notchband
         g1l = bw
-        g2l = bw + 0.25
+        g2l = bw + notchband
         
     noisepow = intRoexpwt(g1u-f,g2u-f,pu,w,t) + intRoexpwt(g1l+f,g2l+f,pd,w,t)
     
@@ -320,24 +322,25 @@ def SNRroexpr(f,pu,pd,r,bw,asymm,thresh):
     else:
         sig_attenuation = roexpr(f,pd,r)
         
-    
+    notchband = 0.25
     if(asymm == 0):
         g1u = bw
-        g2u = bw + 0.25
+        g2u = bw + notchband
         g1l = bw
-        g2l = bw + 0.25
+        g2l = bw + notchband
     elif(asymm == 1):
         g1u = bw
-        g2u = bw + 0.25
+        g2u = bw + notchband
         g1l = bw + 0.2
-        g2l = bw + 0.45
+        g2l = bw + 0.2 + notchband
     elif(asymm == 2):
         g1u = bw + 0.2
-        g2u = bw + 0.45
+        g2u = bw + 0.2 + notchband
         g1l = bw
-        g2l = bw + 0.25
+        g2l = bw + notchband
         
     noisepow = intRoexpr(g1u-f,g2u-f,pu,r) + intRoexpr(g1l+f,g2l+f,pd,r)
+    
     
     negSNR =  thresh + db(noisepow) - db(sig_attenuation)
     return negSNR
@@ -378,7 +381,7 @@ def db(x):
 
 
 # Actual Code
-rootdir = '/home/hari/Documents/MATLAB/BW/'
+rootdir = '/home/hari/Documents/PythonCodes/research/BW/'
 subj = 'I13'
 
 flist = glob(rootdir + subj + '/*.mat')
@@ -455,11 +458,12 @@ if(not pwt):
     ERB = intRoexpr(0,0.4,pu_best,r_best) + intRoexpr(0,0.4,pd_best,r_best)
     print 'ERB = ', ERB*fc, 'Hz'
 else:
-    initialGuess = np.asarray([100,50,0.002, 3.5])
-    bnds = ((10,100),(10,100),(0.0001,0.01),(3,20))
+    initialGuess = np.asarray([100,50,-25, 3.5])
+    bnds = ((50,120),(35,80),(-50,-20),(3,6))
+    cons = {'type': 'ineq', 'fun': lambda x:  x[0] - x[1]}
     data = (bw_unique, thresh_unique, asymm_unique)
-    fit = minimize(fitRoexpwt,initialGuess,args = data,
-                   method = 'L-BFGS-B', bounds = bnds)
+    fit = minimize(fitRoexpwt,initialGuess,args = data,method = 'SLSQP',
+                   bounds = bnds, constraints = cons)
     
     pu_best = fit['x'][0]
     pd_best = fit['x'][1]
