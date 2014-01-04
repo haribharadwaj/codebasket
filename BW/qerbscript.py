@@ -10,7 +10,7 @@ from glob import glob
 import pylab as pl
 import numpy as np
 from scipy.optimize import minimize
-
+from scipy.integrate import quad
 
 
 def roexpwt(g,p,w,t):
@@ -80,6 +80,29 @@ def intRoexpwt(g1,g2,p,w,t):
     I - Integral of the function
     
     """
+    
+    (I,err) = quad(roexpwt,g1,g2,args = (p,w,t))
+    
+    return I
+    
+def intRoexpwt2(g1,g2,p,w,t):
+    """ Integral of the roexpwt filter Oxenham & Shera (2003) equation (3)
+    
+    Parameters
+    ----------
+    g1, g2 - Limits of the integral in normalized terms (eg.: g1=0.1,g2=0.35)
+    p - SLope parameter
+    t - Factor by which second slope is shallower than first
+    w - relative weigths slopes (determines where 2nd starts to dominate)
+    
+    Returns
+    -------
+    
+    I - Integral of the function
+    
+    """
+    
+    
     w = 10.0**(w/10.0)
     uplimit = -(1 - w)*np.exp(-p*g2)*(2 + p*g2)/p 
     - w*np.exp(-p*g2/t)*(2 + p*g2)/(p/t)
@@ -88,9 +111,9 @@ def intRoexpwt(g1,g2,p,w,t):
     - w*np.exp(-p*g1/t)*(2 + p*g1)/(p/t)
     
     I = uplimit - lowlimit
-    return I
-    
-     
+
+
+    return I    
      
     
 def intRoexpr(g1,g2,p,r):
@@ -198,16 +221,18 @@ def fitRoexpwt(params,bwlist,threshlist,asymmlist):
     Also assumes that noise bands have a width of 0.25*f0 on each side
     
     """
-    pu = params[0]
-    pd = params[1]
+    pu = abs(params[0])
+    pd = abs(params[1])
     w = params[2]
     t = params[3]
     
-    
+   
+        
     constSNR = SNRroexpwt(0,pu,pd,w,t,0,0,0)
     # Whether or not to assume that filter centered at fc is always used
     off_freq = True
     squerr = 0
+    
            
     for k, bw in enumerate(bwlist):
         
@@ -226,9 +251,86 @@ def fitRoexpwt(params,bwlist,threshlist,asymmlist):
             SNR = SNRroexpwt(0,pu,pd,w,t,bw,asymm,thresh)
         
         squerr = squerr + (SNR - constSNR)**2
+    
+         # Adding some constraints so unconstrained minimization can bu used
+    if (pu > 200 or pd > 200 or pu < 60 or pd < 50 or w > -15
+        or t < 0.1 or t > 10):
+            squerr +=1e3
+            return squerr
+    else:
                 
-    return squerr
+        print 'Error = ',squerr           
+        return squerr
         
+def fitRoexpwtGA(genome):
+    """Calculates the squared error between the roex function fit and data
+    
+    Parameters
+    ----------
+    genome[0]: pu - High frequency side slope parameter
+    genome[1]: pd - Low frequency side slope parameter
+    genome[2]: w - relative weigths slopes
+    genome[3]: t - Factor by which second slope is shallower than first
+    
+    genome should have these params set through setParams(.)
+        threshlist - list of noise levels at threshold
+        bwlist - list of relative notchwidths (of the nearer edge)
+        asymmlist - List of asymmetries (see noiseEnergy)
+    
+    Returns
+    -------
+    sqerr - Sum of squared errors between fit and data
+    
+    Note
+    ----
+    
+    Assumes that thresh is in dB re: 0 bw notch noise level
+    Also assumes that noise bands have a width of 0.25*f0 on each side
+    
+    """
+    pu = abs(genome[0])
+    pd = abs(genome[1])
+    w = genome[2]
+    t = genome[3]
+    
+    bwlist = genome.getParam('bwlist')
+    threshlist = genome.getParam('threshlist')
+    asymmlist = genome.getParam('asymmlist')
+   
+        
+    constSNR = SNRroexpwt(0,pu,pd,w,t,0,0,0)
+    # Whether or not to assume that filter centered at fc is always used
+    off_freq = True
+    squerr = 0
+    
+           
+    for k, bw in enumerate(bwlist):
+        
+        asymm = asymmlist[k]
+        thresh = threshlist[k]
+           
+        if(off_freq):
+            argslist = (pu,pd,w,t,bw,asymm,thresh)
+            bndsf = ((-0.1, 0.1),)
+            fitf = minimize(SNRroexpwt,np.zeros(1),args = argslist,
+                        method = 'L-BFGS-B', bounds = bndsf)
+            
+            SNR = fitf['fun']
+            
+        else:
+            SNR = SNRroexpwt(0,pu,pd,w,t,bw,asymm,thresh)
+        
+        squerr = squerr + (SNR - constSNR)**2
+    
+         # Adding some constraints so unconstrained minimization can bu used
+    if (pu > 200 or pd > 200 or pu < 60 or pd < 40 or w > -10
+        or t < 0.1 or t > 10):
+            squerr +=1e3
+            return squerr
+    else:
+                
+        print 'Error = ',squerr           
+        return squerr
 
 def SNRroexpwt(f,pu,pd,w,t,bw,asymm,thresh):
     """Calculates the SNR of roex(p,w,t,p) filter (even if off-frequency)
@@ -260,6 +362,10 @@ def SNRroexpwt(f,pu,pd,w,t,bw,asymm,thresh):
     This routine is useful to select filter in off-frequency listening case.
     """
     
+    # Scales slopes as proportional to center frequency
+    pu = pu*(1+f)
+    pd = pd*(1+f)
+    
     if( f < 0):
         sig_attenuation = roexpwt(-f,pu,w,t)
     else:
@@ -281,9 +387,10 @@ def SNRroexpwt(f,pu,pd,w,t,bw,asymm,thresh):
         g2u = bw + 0.2 + notchband
         g1l = bw
         g2l = bw + notchband
-        
-    noisepow = intRoexpwt(g1u-f,g2u-f,pu,w,t) + intRoexpwt(g1l+f,g2l+f,pd,w,t)
     
+       
+    noisepow = intRoexpwt(g1u-f,g2u-f,pu,w,t) + intRoexpwt(g1l+f,g2l+f,pd,w,t)
+         
     negSNR =  thresh + db(noisepow) - db(sig_attenuation)
     return negSNR
     
@@ -338,7 +445,8 @@ def SNRroexpr(f,pu,pd,r,bw,asymm,thresh):
         g2u = bw + 0.2 + notchband
         g1l = bw
         g2l = bw + notchband
-        
+    
+     
     noisepow = intRoexpr(g1u-f,g2u-f,pu,r) + intRoexpr(g1l+f,g2l+f,pd,r)
     
     
@@ -380,91 +488,103 @@ def db(x):
     return y
 
 
-# Actual Code
-rootdir = '/home/hari/Documents/PythonCodes/research/BW/'
-subj = 'I13'
-
-flist = glob(rootdir + subj + '/*.mat')
-bwlist = []
-threshlist = []
-asymmlist = []
-
-# Convert from SPL RMS to spectral level SPL
-fc = 4000
-noisebw = (0.25 + 0.25)*fc
-spectralLevel_correction = 10*np.log10(noisebw)
-
-
-for k, fname in enumerate(flist):
-    dat = io.loadmat(fname)   
-    if(dat.has_key('bw')):
-        bw = dat['bw'].ravel()[0]
-        asymm = dat['asymm'].ravel()[0]
-        thresh = dat['thresh'].ravel()[0] - spectralLevel_correction
-        Ps = dat['soundLevel'].ravel()[0]
-        bwlist = bwlist + [bw,]
-        asymmlist = asymmlist + [asymm,]
-        threshlist = threshlist + [thresh,] 
-        if(asymm == 0):
-            pl.plot(bw,thresh,'ok',linewidth = 3, ms = 10)
-            pl.hold(True)
-        elif(asymm == 1):
-            pl.plot(bw,thresh,'<b',linewidth = 3, ms = 10)
-            pl.hold(True)
-        elif(asymm == 2):
-            pl.plot(bw,thresh, '>r',linewidth = 3, ms = 10)
-            pl.hold(True)
-        else:
-            print 'Unknown notch shape!'
-            
-bwlist = np.asarray(bwlist)
-threshlist = np.asarray(threshlist)
-asymmlist = np.asarray(asymmlist)    
-
-pl.xlabel('Relative Notch Width',fontsize = 20)
-pl.ylabel('Masker Spectrum Level at Threshold (dB SPL)',fontsize = 20)
-pl.xlim((-0.02, 0.22))
-ax = pl.gca()
-for tick in ax.xaxis.get_major_ticks():
-    tick.label1.set_fontsize(20)
-for tick in ax.yaxis.get_major_ticks():
-    tick.label1.set_fontsize(20)
-pl.show()
-
-bw_unique = np.asarray([0, 0.1, 0.2, 0.2 ,0.2])
-asymm_unique = np.asarray([0, 0, 0, 1, 2])
-thresh_unique = np.zeros(5)
-for k, bw in enumerate(bw_unique):
-    inds = np.logical_and(bwlist == bw, asymmlist == asymm_unique[k])
-    thresh_unique[k] = threshlist[inds].mean()
+def loadData(subj, rootdir, plotOrNot = True):
+    """
+    Local data organization specific loading function
+    """
     
-K_surrogate = thresh_unique[0]
-thresh_unique = thresh_unique[1:] - K_surrogate
-bw_unique = bw_unique[1:]
-asymm_unique = asymm_unique[1:]
+    
+    flist = glob(rootdir + subj + '/*.mat')
+    bwlist = []
+    threshlist = []
+    asymmlist = []
+    
+    # Convert from SPL RMS to spectral level SPL
+    fc = 4000
+    noisebw = (0.25 + 0.25)*fc
+    spectralLevel_correction = 10*np.log10(noisebw)
+    
+    
+    for k, fname in enumerate(flist):
+        dat = io.loadmat(fname)   
+        if(dat.has_key('bw')):
+            bw = dat['bw'].ravel()[0]
+            asymm = dat['asymm'].ravel()[0]
+            thresh = dat['thresh'].ravel()[0] - spectralLevel_correction
+            # Ps = dat['soundLevel'].ravel()[0]
+            bwlist = bwlist + [bw,]
+            asymmlist = asymmlist + [asymm,]
+            threshlist = threshlist + [thresh,] 
+            if(asymm == 0):
+                pl.plot(bw,thresh,'ok',linewidth = 3, ms = 10)
+                pl.hold(True)
+            elif(asymm == 1):
+                pl.plot(bw,thresh,'<b',linewidth = 3, ms = 10)
+                pl.hold(True)
+            elif(asymm == 2):
+                pl.plot(bw,thresh, '>r',linewidth = 3, ms = 10)
+                pl.hold(True)
+            else:
+                print 'Unknown notch shape!'
+                
+    bwlist = np.asarray(bwlist)
+    threshlist = np.asarray(threshlist)
+    asymmlist = np.asarray(asymmlist)    
+    
+    pl.xlabel('Relative Notch Width',fontsize = 20)
+    pl.ylabel('Masker Spectrum Level at Threshold (dB SPL)',fontsize = 20)
+    pl.xlim((-0.02, 0.22))
+    ax = pl.gca()
+    for tick in ax.xaxis.get_major_ticks():
+        tick.label1.set_fontsize(20)
+    for tick in ax.yaxis.get_major_ticks():
+        tick.label1.set_fontsize(20)
+    pl.show()
+    
+    bw_unique = np.asarray([0, 0.1, 0.2, 0.2 ,0.2])
+    asymm_unique = np.asarray([0, 0, 0, 1, 2])
+    thresh_unique = np.zeros(5)
+    for k, bw in enumerate(bw_unique):
+        inds = np.logical_and(bwlist == bw, asymmlist == asymm_unique[k])
+        thresh_unique[k] = threshlist[inds].mean()
+        
+    K_surrogate = thresh_unique[0]
+    thresh_unique = thresh_unique[1:] - K_surrogate
+    bw_unique = bw_unique[1:]
+    asymm_unique = asymm_unique[1:]
+    
+    data = (bw_unique, thresh_unique, asymm_unique)
+    return data
 
 
 # Code to actually minimize
+
+rootdir = '/home/hari/Documents/PythonCodes/research/BW/'
+
+# subj = 'I13'
+
+# data = loadData(subj,rootdir)
+
+OxenhamShera = io.loadmat(rootdir + 'OxenhamSheraData_4k_10dBSL_ForwardMasking'
+                          '.mat')
+data = (OxenhamShera['bw'],OxenhamShera['thresh'],OxenhamShera['asymm'])
+fc = 4000
+
 pwt = True
+minimizerOptions = dict(maxiter = 2000, disp = True, maxfev = 2000)
 if(not pwt):
     initialGuess = np.asarray([30,30,0])
-    bnds = ((1,100),(1,100),(0,0.9))
-    data = (bw_unique, thresh_unique, asymm_unique)
-    fit = minimize(fitRoexpr,initialGuess,args = data,
-                   method = 'L-BFGS-B', bounds = bnds)
+    fit = minimize(fitRoexpr,initialGuess,args = data,method = 'Nelder-Mead',
+                   options = minimizerOptions)
     pu_best = fit['x'][0]
     pd_best = fit['x'][1]
     r_best = fit['x'][2]
     ERB = intRoexpr(0,0.4,pu_best,r_best) + intRoexpr(0,0.4,pd_best,r_best)
     print 'ERB = ', ERB*fc, 'Hz'
 else:
-    initialGuess = np.asarray([100,50,-25, 3.5])
-    bnds = ((50,120),(35,80),(-50,-20),(3,6))
-    cons = {'type': 'ineq', 'fun': lambda x:  x[0] - x[1]}
-    data = (bw_unique, thresh_unique, asymm_unique)
-    fit = minimize(fitRoexpwt,initialGuess,args = data,method = 'SLSQP',
-                   bounds = bnds, constraints = cons)
-    
+    initialGuess = np.asarray([130,70,-30, 3.5])
+    fit = minimize(fitRoexpwt,initialGuess,args = data,method = 'Nelder-Mead',
+                   options = minimizerOptions)
     pu_best = fit['x'][0]
     pd_best = fit['x'][1]
     w_best = fit['x'][2]
