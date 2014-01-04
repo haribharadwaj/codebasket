@@ -64,7 +64,7 @@ def roexpr(g,p,r):
     W = (1 - r)*(1 + p*g)*np.exp(-1*p*g) + r
     return W
     
-def intRoexpwt(g1,g2,p,w,t):
+def intRoexpwt2(g1,g2,p,w,t):
     """ Integral of the roexpwt filter Oxenham & Shera (2003) equation (3)
     
     Parameters
@@ -85,7 +85,7 @@ def intRoexpwt(g1,g2,p,w,t):
     
     return I
     
-def intRoexpwt2(g1,g2,p,w,t):
+def intRoexpwt(g1,g2,p,w,t):
     """ Integral of the roexpwt filter Oxenham & Shera (2003) equation (3)
     
     Parameters
@@ -105,10 +105,12 @@ def intRoexpwt2(g1,g2,p,w,t):
     
     w = 10.0**(w/10.0)
     uplimit = -(1 - w)*np.exp(-p*g2)*(2 + p*g2)/p 
-    - w*np.exp(-p*g2/t)*(2 + p*g2)/(p/t)
+    - w*np.exp(-p*g2/t)*(2 + p*g2/t)/(p/t)
+    
     
     lowlimit = -(1 - w)*np.exp(-p*g1)*(2 + p*g1)/p 
-    - w*np.exp(-p*g1/t)*(2 + p*g1)/(p/t)
+    - w*np.exp(-p*g1/t)*(2 + p*g1/t)/(p/t)
+    
     
     I = uplimit - lowlimit
 
@@ -253,9 +255,10 @@ def fitRoexpwt(params,bwlist,threshlist,asymmlist):
         squerr = squerr + (SNR - constSNR)**2
     
          # Adding some constraints so unconstrained minimization can bu used
-    if (pu > 200 or pd > 200 or pu < 60 or pd < 50 or w > -15
+    if (pu > 200 or pd > 200 or pu < 60 or pd < 30 or w > -15
         or t < 0.1 or t > 10):
-            squerr +=1e3
+            squerr +=1e5
+            print 'Error = ',squerr
             return squerr
     else:
                 
@@ -325,7 +328,7 @@ def fitRoexpwtGA(genome):
          # Adding some constraints so unconstrained minimization can bu used
     if (pu > 200 or pd > 200 or pu < 60 or pd < 40 or w > -10
         or t < 0.1 or t > 10):
-            squerr +=1e3
+            squerr +=1e5
             return squerr
     else:
                 
@@ -567,11 +570,12 @@ rootdir = '/home/hari/Documents/PythonCodes/research/BW/'
 
 OxenhamShera = io.loadmat(rootdir + 'OxenhamSheraData_4k_10dBSL_ForwardMasking'
                           '.mat')
+#OxenhamShera['asymm'] = np.asarray([0,0,1,2,0,0])
 data = (OxenhamShera['bw'],OxenhamShera['thresh'],OxenhamShera['asymm'])
 fc = 4000
 
 pwt = True
-minimizerOptions = dict(maxiter = 2000, disp = True, maxfev = 2000)
+minimizerOptions = dict(maxiter = 2000, disp = True) #, maxfev = 2000)
 if(not pwt):
     initialGuess = np.asarray([30,30,0])
     fit = minimize(fitRoexpr,initialGuess,args = data,method = 'Nelder-Mead',
@@ -582,7 +586,7 @@ if(not pwt):
     ERB = intRoexpr(0,0.4,pu_best,r_best) + intRoexpr(0,0.4,pd_best,r_best)
     print 'ERB = ', ERB*fc, 'Hz'
 else:
-    initialGuess = np.asarray([130,70,-30, 3.5])
+    initialGuess = np.asarray([130,40,-30, 3.5])
     fit = minimize(fitRoexpwt,initialGuess,args = data,method = 'Nelder-Mead',
                    options = minimizerOptions)
     pu_best = fit['x'][0]
