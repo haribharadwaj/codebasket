@@ -64,27 +64,6 @@ def roexpr(g,p,r):
     W = (1 - r)*(1 + p*g)*np.exp(-1*p*g) + r
     return W
     
-def intRoexpwt2(g1,g2,p,w,t):
-    """ Integral of the roexpwt filter Oxenham & Shera (2003) equation (3)
-    
-    Parameters
-    ----------
-    g1, g2 - Limits of the integral in normalized terms (eg.: g1=0.1,g2=0.35)
-    p - SLope parameter
-    t - Factor by which second slope is shallower than first
-    w - relative weigths slopes (determines where 2nd starts to dominate)
-    
-    Returns
-    -------
-    
-    I - Integral of the function
-    
-    """
-    
-    (I,err) = quad(roexpwt,g1,g2,args = (p,w,t))
-    
-    return I
-    
 def intRoexpwt(g1,g2,p,w,t):
     """ Integral of the roexpwt filter Oxenham & Shera (2003) equation (3)
     
@@ -101,7 +80,29 @@ def intRoexpwt(g1,g2,p,w,t):
     I - Integral of the function
     
     """
+    p = abs(p)
     
+    (I,err) = quad(roexpwt,g1,g2,args = (p,w,t))
+    
+    return I
+    
+def intRoexpwt2(g1,g2,p,w,t):
+    """ Integral of the roexpwt filter Oxenham & Shera (2003) equation (3)
+    
+    Parameters
+    ----------
+    g1, g2 - Limits of the integral in normalized terms (eg.: g1=0.1,g2=0.35)
+    p - SLope parameter
+    t - Factor by which second slope is shallower than first
+    w - relative weigths slopes (determines where 2nd starts to dominate)
+    
+    Returns
+    -------
+    
+    I - Integral of the function
+    
+    """
+    p = abs(p)
     
     w = 10.0**(w/10.0)
     uplimit = -(1 - w)*np.exp(-p*g2)*(2 + p*g2)/p 
@@ -255,8 +256,8 @@ def fitRoexpwt(params,bwlist,threshlist,asymmlist):
         squerr = squerr + (SNR - constSNR)**2
     
          # Adding some constraints so unconstrained minimization can bu used
-    if (pu > 200 or pd > 200 or pu < 60 or pd < 30 or w > -15
-        or t < 0.1 or t > 10):
+    if (pu > 200 or pd > 200 or pu < pd or pd < 30 or w > -15
+        or t < 0.1 or t > 100):
             squerr +=1e5
             print 'Error = ',squerr
             return squerr
@@ -470,7 +471,7 @@ def db2mag(x):
     m - magnitude ratio
     """
     
-    m = 10.0**(x/20.0)
+    m = 10.0**(x/10.0)
     return m
     
 def db(x):
@@ -487,7 +488,7 @@ def db(x):
     y - Equivalend in decibel units
     """
     
-    y = 20*np.log10(x)
+    y = 10*np.log10(x)
     return y
 
 
@@ -564,18 +565,18 @@ def loadData(subj, rootdir, plotOrNot = True):
 
 rootdir = '/home/hari/Documents/PythonCodes/research/BW/'
 
-# subj = 'I13'
+subj = 'I14'
 
-# data = loadData(subj,rootdir)
+data = loadData(subj,rootdir)
 
-OxenhamShera = io.loadmat(rootdir + 'OxenhamSheraData_4k_10dBSL_ForwardMasking'
-                          '.mat')
+# OxenhamShera = io.loadmat(rootdir + 'OxenhamSheraData_4k_10dBSL_ForwardMasking'
+#                        '.mat')
 #OxenhamShera['asymm'] = np.asarray([0,0,1,2,0,0])
-data = (OxenhamShera['bw'],OxenhamShera['thresh'],OxenhamShera['asymm'])
+# data = (OxenhamShera['bw'],OxenhamShera['thresh'],OxenhamShera['asymm'])
 fc = 4000
 
 pwt = True
-minimizerOptions = dict(maxiter = 2000, disp = True) #, maxfev = 2000)
+minimizerOptions = dict(maxiter = 2000, disp = True, maxfev = 2000)
 if(not pwt):
     initialGuess = np.asarray([30,30,0])
     fit = minimize(fitRoexpr,initialGuess,args = data,method = 'Nelder-Mead',
