@@ -246,7 +246,7 @@ def fitRoexpwt(params, threshlist, lowNoiseEdge, highNoiseEdge, midear = None,
     
     squerr = np.var(SNRbest)
     
-    if (pu > 150 or pd > 150 or pu < pd or pd < 30 or w > -15
+    if (pu > 150 or pd > 150 or pu < 20 or pd < 20 or w > -15
         or t < 0.1 or t > 40):
             squerr +=1e3
             print 'Error = ',squerr
@@ -336,7 +336,7 @@ def loadData(subj, rootdir, plotOrNot = True):
     """
     
     
-    flist = glob(rootdir + subj + '/*.mat')
+    flist = glob(rootdir + subj + '/*_Block_??_BW_*.mat')
     bwlist = []
     threshlist = []
     asymmlist = []
@@ -397,17 +397,21 @@ def loadData(subj, rootdir, plotOrNot = True):
     
     lowNoiseEdge = []
     highNoiseEdge = []
+    nanIndex = []
     for k, asymm in enumerate(asymm_unique):
-        if(asymm == 0):
-            lowNoiseEdge = lowNoiseEdge + [bw_unique[k],]
-            highNoiseEdge = highNoiseEdge + [bw_unique[k],]
-        elif(asymm == 1.0):
-            lowNoiseEdge = lowNoiseEdge + [bw_unique[k]+0.2,]
-            highNoiseEdge = highNoiseEdge + [bw_unique[k],]
-        elif(asymm == 2.0):
-            lowNoiseEdge = lowNoiseEdge + [bw_unique[k],]
-            highNoiseEdge = highNoiseEdge + [bw_unique[k]+0.2,]
-                
+        if not np.isnan(thresh_unique[k]):
+            if(asymm == 0):
+                lowNoiseEdge = lowNoiseEdge + [bw_unique[k],]
+                highNoiseEdge = highNoiseEdge + [bw_unique[k],]
+            elif(asymm == 1.0):
+                lowNoiseEdge = lowNoiseEdge + [bw_unique[k]+0.2,]
+                highNoiseEdge = highNoiseEdge + [bw_unique[k],]
+            elif(asymm == 2.0):
+                lowNoiseEdge = lowNoiseEdge + [bw_unique[k],]
+                highNoiseEdge = highNoiseEdge + [bw_unique[k]+0.2,]
+        else:            
+            nanIndex += [k,]
+    thresh_unique = np.delete(thresh_unique,np.asarray(nanIndex))            
     return (thresh_unique, lowNoiseEdge, highNoiseEdge)
 
  
@@ -416,9 +420,10 @@ def loadData(subj, rootdir, plotOrNot = True):
 rootdir = '/home/hari/Documents/PythonCodes/research/BW/'
 mefname = '/home/hari/codebasket/BW/midear_Moore_et_al_1997.mat'
 
-subj = 'I13'
+subj = 'I25'
 
 data = loadData(subj,rootdir)
+
 
 mef = io.loadmat(mefname)['midear_spline']
 
@@ -430,7 +435,7 @@ fc = 4000
 
 minimizerOptions = dict(maxiter = 2000, disp = True,maxfev = 2000)
 
-initialGuess = np.asarray([40,40,-30, 3.5])
+initialGuess = np.asarray([120,40,-30, 3.5])
 
 # Data is taken in as a tuple of 4 items:
 #  (thresholds, lowNoiseEdge, highNoiseEdge, mef)
