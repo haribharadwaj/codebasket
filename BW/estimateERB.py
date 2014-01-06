@@ -11,6 +11,7 @@ import pylab as pl
 import numpy as np
 from scipy.optimize import minimize
 from scipy.integrate import quad
+from scipy.interpolate import interp1d
 
 def roexpwt(g,p,w,t):
     """roex filter as described in Oxenham and Shera (2003) equation (3)
@@ -145,8 +146,8 @@ def intRoexpr(g1,g2,p,r):
     return I
     
 
-def fitRoexpwt(params,threshlist, lowNoiseEdge, highNoiseEdge, fc = 4000,
-               noisebw = 0.25, offFreq = True):
+def fitRoexpwt(params, threshlist, lowNoiseEdge, highNoiseEdge, midear = None,
+               fc = 4000, noisebw = 0.25, offFreq = True):
     """Calculates the squared error between the roex function fit and data
     
     Parameters
@@ -168,6 +169,9 @@ def fitRoexpwt(params,threshlist, lowNoiseEdge, highNoiseEdge, fc = 4000,
     highNoiseEdge - Distance of near edge of noise band on high frequency side
                     as a fraction of fc (+ve number)
     
+    midear - 2D array with first column being frequency and second being filter
+                filter gain (dB) (if not specified, fit is done without it)
+    
     fc  - Signal Frequency (default is 4 kHz), needed for middle-ear filter
     
     noisebw - Bandwidth on noise bands as a fraction of fc (default is 0.25)
@@ -181,8 +185,7 @@ def fitRoexpwt(params,threshlist, lowNoiseEdge, highNoiseEdge, fc = 4000,
     Note
     ----
     
-    Middle Ear filter yet to be implemented
-    
+    Does not return the detector efficiency - To be implemented later
     
     """
     pu = params[0]
@@ -190,7 +193,7 @@ def fitRoexpwt(params,threshlist, lowNoiseEdge, highNoiseEdge, fc = 4000,
     w = params[2]
     t = params[3]
     
-    gvec = np.arange(-1.0,1.0,0.002) # 0.2% frequency steps
+    gvec = np.arange(-0.998,1.0,0.002) # 0.2% frequency steps
     
     npoints = len(threshlist) # Number of data points
     
@@ -213,8 +216,18 @@ def fitRoexpwt(params,threshlist, lowNoiseEdge, highNoiseEdge, fc = 4000,
             filterWts[k,:] = getAudFilterPWT(gvec + offset, paramsOffset)
     else:
         filterWts = getAudFilterPWT(gvec, params)
-                     
-                      
+    
+    # If middle ear filter is specified, use it               
+    if mef is not None:
+        gvec_Hz = fc*(1+gvec)
+        
+        # Construct interpolant so that arbitrary frequencies can be queried
+        getMidEarGain = interp1d(mef[:,0],mef[:,1])
+        
+        # Get gain in dB for our main frequency buffer
+        mefGain = getMidEarGain(gvec_Hz)
+        filterWts = filterWts*db2pow(mefGain)
+                 
     for k, thresh in enumerate(threshlist):
         fd = lowNoiseEdge[k]
         fu = highNoiseEdge[k]      
@@ -401,10 +414,18 @@ def loadData(subj, rootdir, plotOrNot = True):
 # Code to actually minimize
 
 rootdir = '/home/hari/Documents/PythonCodes/research/BW/'
+mefname = '/home/hari/codebasket/BW/midear_Moore_et_al_1997.mat'
 
-subj = 'I25'
+subj = 'I13'
 
 data = loadData(subj,rootdir)
+
+mef = io.loadmat(mefname)['midear_spline']
+
+mef[:,1] = -mef[:,1] # Change sensitivity to gain
+
+data = data + (mef,)
+
 fc = 4000
 
 minimizerOptions = dict(maxiter = 2000, disp = True,maxfev = 2000)
