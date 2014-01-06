@@ -434,6 +434,8 @@ initialGuess = np.asarray([40,40,-30, 3.5])
 
 # Data is taken in as a tuple of 4 items:
 #  (thresholds, lowNoiseEdge, highNoiseEdge, mef)
+# If the last item is left out, no middle ear filter is used for fitting
+
 
 fit = minimize(fitRoexpwt,initialGuess,args = data,method = 'Nelder-Mead',
                options = minimizerOptions)
