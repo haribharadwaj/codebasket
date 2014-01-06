@@ -7,6 +7,9 @@ Created on Mon Dec 30 12:43:34 2013
 import numpy as np
 from scipy.special import iv
 # from scipy import floor,ceil
+import matplotlib
+matplotlib.use('PS')   # generate postscript output by default
+
 import pylab as pl
 
 def db2mag(x):
@@ -122,12 +125,13 @@ for nSNR, SNR in enumerate(SNRlist):
     S_mu[nSNR] = (np.abs(z.mean(axis=0))**2).mean()
     S_std[nSNR] = (np.abs(z.mean(axis=0))**2).std()
     
+trueVal = (S**2)*(PLV_true**2)
 
 pl.subplot(2,1,1)
-pl.plot(SNRlist,pS_mu,'k-',linewidth = 2)
+pl.plot(SNRlist,pS_mu*100/trueVal,'k-',linewidth = 2)
 pl.hold(True)
-pl.plot(SNRlist,S_mu,'g-',linewidth = 2)
-pl.plot(SNRlist,np.ones(SNRlist.shape)*(S**2)*(PLV_true**2),'r-',linewidth = 2)
+pl.plot(SNRlist,S_mu*100/trueVal,'g-',linewidth = 2)
+pl.plot(SNRlist,np.ones(SNRlist.shape)*100,'r-',linewidth = 2)
 pl.xlabel('SNR (dB)',fontsize = 20)
 pl.ylabel('Power Estimate',fontsize = 20)
 pl.xlim((np.min(SNRlist),np.max(SNRlist)))
@@ -135,9 +139,9 @@ pl.legend(('Mean Pairwise Estimate','Mean Spectral Estimate','Ground Truth'))
 setcafontsize()
 
 pl.subplot(2,1,2)
-pl.plot(SNRlist,pS_std,'k',linewidth = 2)
+pl.plot(SNRlist,pS_std*100/trueVal,'k',linewidth = 2)
 pl.hold(True)
-pl.plot(SNRlist,S_std,'g',linewidth = 2)
+pl.plot(SNRlist,S_std*100/trueVal,'g',linewidth = 2)
 pl.xlabel('SNR (dB)',fontsize = 20)
 pl.ylabel('Estimator standard deviation',fontsize = 20)
 pl.xlim((np.min(SNRlist),np.max(SNRlist)))
