@@ -208,27 +208,11 @@ def fitRoexpwt(params,threshlist, lowNoiseEdge, highNoiseEdge, fc = 4000,
         ng = gvec.shape[0]
         
         filterWts = np.zeros((noffsets,ng))
-        for k, offset in enumerate(offsets):
-            # Making indicator functions for each side       
-            lowSide = np.zeros(gvec.shape)
-            lowSide[(gvec + offset) < 0.0] = 1.0
-            
-            highSide = np.zeros(gvec.shape)
-            highSide[(gvec + offset) >= 0.0] = 1.0
-            
-            filterWts[k,:] = (
-                         roexpwt(abs(gvec+offset),pu*scale[k],w,t)*highSide+ 
-                         roexpwt(abs(gvec+offset),pd*scale[k],w,t)*lowSide)
-                         
+        for k, offset in enumerate(offsets):           
+            paramsOffset = [pu*scale[k], pd*scale[k],w,t]
+            filterWts[k,:] = getAudFilterPWT(gvec + offset, paramsOffset)
     else:
-        # Making indicator functions for each side       
-        lowSide = np.zeros(gvec.shape)
-        lowSide[gvec < 0.0] = 1.0
-        
-        highSide = np.zeros(gvec.shape)
-        highSide[gvec >= 0.0] = 1.0
-        filterWts = (roexpwt(abs(gvec),pu,w,t)*highSide + 
-                     roexpwt(abs(gvec),pd,w,t)*lowSide)
+        filterWts = getAudFilterPWT(gvec, params)
                      
                       
     for k, thresh in enumerate(threshlist):
@@ -249,8 +233,8 @@ def fitRoexpwt(params,threshlist, lowNoiseEdge, highNoiseEdge, fc = 4000,
     
     squerr = np.var(SNRbest)
     
-    if (pu > 150 or pd > 150 or pu < 40 or pd < 40 or w > -15
-        or t < 0.1 or t > 100):
+    if (pu > 150 or pd > 150 or pu < pd or pd < 30 or w > -15
+        or t < 0.1 or t > 40):
             squerr +=1e3
             print 'Error = ',squerr
             return squerr
@@ -258,7 +242,46 @@ def fitRoexpwt(params,threshlist, lowNoiseEdge, highNoiseEdge, fc = 4000,
                 
         print 'Error = ',squerr           
         return squerr
-        
+
+def getAudFilterPWT(gvec, params):
+    """ Get the auditory filter weights given parameters for roex(pu,pd,w,t)
+    
+    Parameters
+    ----------
+    
+    gvec - Frequency vector in units of fc 
+    
+    params[0]: pu - High frequency side slope parameter
+    
+    params[1]: pd - Low frequency side slope parameter
+    
+    params[2]: w - relative weigths slopes
+    
+    params[3]: t - Factor by which second slope is shallower than first
+    
+    Returns
+    -------
+    
+    wts - Filter wts, same shape as gvec
+    
+    """
+    
+    pu = params[0]
+    pd = params[1]
+    w = params[2]
+    t = params[3]
+    
+    # Making indicator functions for each side       
+    lowSide = np.zeros(gvec.shape)
+    lowSide[gvec < 0.0] = 1.0
+    
+    highSide = np.zeros(gvec.shape)
+    highSide[gvec >= 0.0] = 1.0
+    wts = (roexpwt(abs(gvec),pu,w,t)*highSide + 
+                 roexpwt(abs(gvec),pd,w,t)*lowSide)
+                 
+    return wts
+
 def db2pow(x):
     """ Converts from dB to power ratio
     
@@ -273,7 +296,7 @@ def db2pow(x):
     m - magnitude ratio
     """
     
-    m = 10.0**(x/20.0)
+    m = 10.0**(x/10.0)
     return m
     
 def db(x):
@@ -379,14 +402,14 @@ def loadData(subj, rootdir, plotOrNot = True):
 
 rootdir = '/home/hari/Documents/PythonCodes/research/BW/'
 
-subj = 'I29'
+subj = 'I25'
 
 data = loadData(subj,rootdir)
 fc = 4000
 
 minimizerOptions = dict(maxiter = 2000, disp = True,maxfev = 2000)
 
-initialGuess = np.asarray([130,40,-30, 3.5])
+initialGuess = np.asarray([40,40,-30, 3.5])
 fit = minimize(fitRoexpwt,initialGuess,args = data,method = 'Nelder-Mead',
                options = minimizerOptions)
 pu_best = fit['x'][0]
@@ -396,3 +419,20 @@ t_best = fit['x'][3]
 ERB = (intRoexpwt(0,0.4,pd_best,w_best,t_best) +
     intRoexpwt(0,0.4,pu_best,w_best,t_best))
 print 'ERB = ', ERB*fc, 'Hz'   
+
+# Plot the filter
+gvec = np.arange(-1.0, 1.0, 0.002)
+wts = getAudFilterPWT(gvec, fit['x'])
+pl.figure()
+pl.plot((1+gvec)*fc, db(wts), linewidth = 2)
+pl.xlim((1000, 6000))
+pl.ylim( (-60.0, 0.0))
+ax = pl.gca()
+for tick in ax.xaxis.get_major_ticks():
+    tick.label1.set_fontsize(20)
+for tick in ax.yaxis.get_major_ticks():
+    tick.label1.set_fontsize(20)
+pl.grid(True)
+pl.xlabel('Frequency (Hz)', fontsize = 20)
+pl.ylabel('Filter Gain (dB)', fontsize = 20)
+pl.show()
