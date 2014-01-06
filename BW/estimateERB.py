@@ -431,6 +431,10 @@ fc = 4000
 minimizerOptions = dict(maxiter = 2000, disp = True,maxfev = 2000)
 
 initialGuess = np.asarray([40,40,-30, 3.5])
+
+# Data is taken in as a tuple of 4 items:
+#  (thresholds, lowNoiseEdge, highNoiseEdge, mef)
+
 fit = minimize(fitRoexpwt,initialGuess,args = data,method = 'Nelder-Mead',
                options = minimizerOptions)
 pu_best = fit['x'][0]
