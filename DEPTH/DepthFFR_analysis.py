@@ -15,10 +15,11 @@ froot = '/home/hari/Documents/MATLAB/Depth_Clean/'
 
 
 # Done:
-# 'I01','I02','I03','I06','I07','I08','I09','I11','I13','I14','I15','I37'
+# 'I01','I02','I03','I06','I07','I08','I09','I11','I13','I14','I15','I37',
+# 'I17_redo','I18','I19','I20','I25','I26','I27','I28','I29','I30',
+# 'I16','I32','I33','I34','I35','I39','I05'
 # I36 was recorded with wrong sampling rate
-subjlist = ['I17_redo','I18','I19','I20','I25','I26','I27','I28','I29','I30',
-            'I32','I33','I34','I35','I39','I05']
+subjlist = ['I36']
             
             
 for subj in subjlist:
@@ -83,7 +84,7 @@ for subj in subjlist:
                 
     
     
-        params = dict(Fs=4096,fpass=[5,600],tapers=[1, 1],pad=1,Npairs = 2000,
+        params = dict(Fs=4096.0,fpass=[5,600],tapers=[1, 1],pad=1,Npairs = 2000,
                       itc = 1)
         nPerDraw = 400
         nDraws = 100

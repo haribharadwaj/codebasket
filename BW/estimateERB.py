@@ -246,8 +246,8 @@ def fitRoexpwt(params, threshlist, lowNoiseEdge, highNoiseEdge, midear = None,
     
     squerr = np.var(SNRbest)
     
-    if (pu > 150 or pd > 150 or pu < 20 or pd < 20 or w > -15
-        or t < 0.1 or t > 40):
+    if (pu > 150 or pd > 150 or pu < 20 or pd < 20 or w > -5
+        or t < 0.1 or t > 20):
             squerr +=1e3
             print 'Error = ',squerr
             return squerr
@@ -389,7 +389,12 @@ def loadData(subj, rootdir, plotOrNot = True):
     thresh_unique = np.zeros(5)
     for k, bw in enumerate(bw_unique):
         inds = np.logical_and(bwlist == bw, asymmlist == asymm_unique[k])
-        thresh_unique[k] = threshlist[inds].mean()
+        
+        
+        if inds.sum()>0 and abs(np.diff(threshlist[inds])).max() > 4:
+            thresh_unique[k] = threshlist[inds].max()
+        else:
+            thresh_unique[k] = threshlist[inds].mean()
         
         
     K_surrogate = thresh_unique[0]
@@ -417,10 +422,10 @@ def loadData(subj, rootdir, plotOrNot = True):
  
 # Code to actually minimize
 
-rootdir = '/home/hari/Documents/PythonCodes/research/BW/'
+rootdir = '/home/hari/Documents/MATLAB/BW/'
 mefname = '/home/hari/codebasket/BW/midear_Moore_et_al_1997.mat'
 
-subj = 'I25'
+subj = 'I14'
 
 data = loadData(subj,rootdir)
 
@@ -435,7 +440,7 @@ fc = 4000
 
 minimizerOptions = dict(maxiter = 2000, disp = True,maxfev = 2000)
 
-initialGuess = np.asarray([120,40,-30, 3.5])
+initialGuess = np.asarray([100,40,-30, 3.5])
 
 # Data is taken in as a tuple of 4 items:
 #  (thresholds, lowNoiseEdge, highNoiseEdge, mef)
