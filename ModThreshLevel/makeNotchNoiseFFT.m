@@ -53,7 +53,7 @@ if(blobs)
     fmax = CutOffHP + blob*fc; % Max frequency in kiloherz
     fmin = CutOffLP - blob*fc;
 else
-    fmax = 15e3;
+    fmax = 20e3;
     fmin = 200;
 end
 
