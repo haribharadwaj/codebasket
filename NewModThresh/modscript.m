@@ -27,13 +27,14 @@ level = 45;
 globalBonus = globalBonus + bonus;
 currBlock = currBlock + 2;
 
-while(diff(thresh) > 0.05)
+while(std(thresh,1) > 0.05)
     globalBlocks = globalBlocks + 2;
     
-    [resp, m ,thresh, bonus] = ...
+    [resp, m ,thresh_extra, bonus] = ...
         getModThresh(sID,bw,level,nBlocksPerLevel,1,0.4,0.4,useButtons);
     globalBonus = globalBonus + bonus;
     currBlock = currBlock + 2;
+    thresh = [thresh, thresh_extra];
 end
 
 % Level 55
@@ -43,13 +44,14 @@ level = 55;
 globalBonus = globalBonus + bonus;
 currBlock = currBlock + 2;
 
-while(diff(thresh) > 0.05)
+while(std(thresh,1) > 0.05)
     globalBlocks = globalBlocks + 2;
     
-    [resp, m ,thresh, bonus] = ...
+    [resp, m ,thresh_extra, bonus] = ...
         getModThresh(sID,bw,level,nBlocksPerLevel,1,0.4,0.4,useButtons);
     globalBonus = globalBonus + bonus;
     currBlock = currBlock + 2;
+    thresh = [thresh, thresh_extra];
 end
 
 % Level 65
@@ -59,13 +61,14 @@ level = 65;
 globalBonus = globalBonus + bonus;
 currBlock = currBlock + 2;
 
-while(diff(thresh) > 0.05)
+while(std(thresh,1) > 0.05)
     globalBlocks = globalBlocks + 2;
     
-    [resp, m ,thresh, bonus] = ...
+    [resp, m ,thresh_extra, bonus] = ...
         getModThresh(sID,bw,level,nBlocksPerLevel,1,0.4,0.4,useButtons);
     globalBonus = globalBonus + bonus;
     currBlock = currBlock + 2;
+    thresh = [thresh, thresh_extra];
 end
 
 % Level 75
@@ -75,11 +78,12 @@ level = 75;
 globalBonus = globalBonus + bonus;
 currBlock = currBlock + 2;
 
-while(diff(thresh) > 0.05)
+while(std(thresh,1) > 0.05)
     globalBlocks = globalBlocks + 2;
     
-    [resp, m ,thresh, bonus] = ...
+    [resp, m ,thresh_extra, bonus] = ...
         getModThresh(sID,bw,level,nBlocksPerLevel,1,0.4,0.4,useButtons);
     globalBonus = globalBonus + bonus;
     currBlock = currBlock + 2;
+    thresh = [thresh, thresh_extra];
 end
