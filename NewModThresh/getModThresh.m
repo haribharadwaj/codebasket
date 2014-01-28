@@ -11,13 +11,13 @@ global currBlock
 global globalBonus
 
 
-paraDir = 'C:\Experiments\Hari\NewModThresh';
+paraDir = '/home/hari/codebasket/NewModThresh';
 % whichScreen = 1;
 addpath(genpath(paraDir));
-if(~exist(strcat(paraDir,'\subjResponses\',sID),'dir'))
-    mkdir(strcat(paraDir,'\subjResponses\',sID));
+if(~exist(strcat(paraDir,'/subjResponses/',sID),'dir'))
+    mkdir(strcat(paraDir,'/subjResponses/',sID));
 end
-respDir = strcat(paraDir,'\subjResponses\',sID,'\');
+respDir = strcat(paraDir,'/subjResponses/',sID,'/');
 
 FsampTDT = 3; % 48828 Hz
 useTrigs = 0;

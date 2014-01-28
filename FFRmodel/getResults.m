@@ -15,4 +15,4 @@ for damage = 0:0.2:1
 end
 
 damage = 100*(0:0.2:1);
-power = P/P(1);
+power = P; %/P(1);
