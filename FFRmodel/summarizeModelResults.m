@@ -33,7 +33,7 @@ for j = 1:numel(sorted_ind)
 end
 legend(num2str(sorted_m'))
 xlabel('% Neuropathy','FontSize',20);
-ylabel('EFR (arbitrary units)','FontSize',20);
+ylabel('EFR (dB arbitrary units)','FontSize',20);
 set(gca,'FontSize',20);
 
 
@@ -56,7 +56,7 @@ xlabel('% Neuropathy','FontSize',20);
 ylabel('EFR (dB re: average)','FontSize',20);
 set(gca,'FontSize',20);
 
-% Plot self-normalized iso-m curves
+% Plot self-normalized curves
 figure;
 lev80_ind = (level == 80);
 d = d(1,:);
@@ -73,6 +73,25 @@ legend(num2str(d'))
 set(gca,'FontSize',20);
 xlabel('Modulation Depth','FontSize',20);
 ylabel('EFR (dB re: 100% modulation)','FontSize',20);
+set(gca,'FontSize',20);
+
+% Plot unnormalized versus depth
+figure;
+lev80_ind = (level == 80);
+d = d(1,:);
+p_mod = p(lev80_ind,:);
+symblist = 'soxd*<>';
+[sorted_m,sorted_ind] = sort(m(lev80_ind));
+
+for j = 1:numel(d)
+    plot(sorted_m,db(p_mod(sorted_ind,j)),strcat('k-',symblist(j)),...
+        'linew',2,'MarkerSize',8);
+    hold on;
+end
+legend(num2str(d'))
+set(gca,'FontSize',20);
+xlabel('Modulation Depth','FontSize',20);
+ylabel('EFR (dB arbitrary units)','FontSize',20);
 set(gca,'FontSize',20);
 
 % Get sensitivity versus m
@@ -122,7 +141,7 @@ end
 legend(num2str(d'))
 set(gca,'FontSize',20);
 xlabel('Sound Level (dB SPL)','FontSize',20);
-ylabel('EFR (arbirtray units)','FontSize',20);
+ylabel('EFR (dB arbitrary units)','FontSize',20);
 
 
 % Get sensitivity versus level
