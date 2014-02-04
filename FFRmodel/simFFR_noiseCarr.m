@@ -11,7 +11,7 @@ rise = 0.025;
 phi = 0;
 isi = 0.025;
 type = 0;
-SNR = 10;
+SNR = 40;
 
 plotting = 1;
 saveResults = 0;
