@@ -13,7 +13,7 @@ function y = makeModThreshStim(fc,fm,m,type,SNR,bw,fs,dur,rise,playplot)
 %   bw - Bandwidth of the noise (same is used for notch of masker) (Hz)
 %   fs - Sampling rate
 %   dur - Length of the thing (s)
-%   rise - Ramp risetime (same is used a falltime at the end) (s)
+%   rise - Ramp risetime (same is used as falltime at the end) (s)
 %   playplot - Whether to play the sounds and plot the signals/spectra
 %
 % Returns
@@ -31,9 +31,10 @@ else
 end
 n = makeNotchNoiseFFT(bw/2,0,fc,dur,fs,rise,0);
 
+% To scale SNR to spectral-level, bandwidths are used..
 xrms = rms(x)*sqrt(1e3/bw);
 
-% To scale everything to spectral level, bandwidths are used..
+
 % The noise spans 200 Hz to 20 kHz => 19.8 kHz
 % It has a notch of width "bw"
 
