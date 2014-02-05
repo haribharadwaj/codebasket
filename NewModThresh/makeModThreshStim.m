@@ -1,7 +1,7 @@
 function y = makeModThreshStim(fc,fm,m,type,SNR,bw,fs,dur,rise,playplot)
 % USAGE:
 %-------
-%  x = makeModThreshStim(fc,fm,m,SNR,bw,fs,dur,rise,playplot);
+%  y = makeModThreshStim(fc,fm,m,type,SNR,bw,fs,dur,rise,playplot);
 %
 % Parameters
 %------------
@@ -19,6 +19,8 @@ function y = makeModThreshStim(fc,fm,m,type,SNR,bw,fs,dur,rise,playplot)
 % Returns
 %-----------
 %   y - Sound vector
+%-----------
+% Hari Bharadwaj - 06/21/2012
 
 if(type == 0)
     x = makesamnoise(fc,fm,m,fs,bw,dur,rise,0);
@@ -31,6 +33,7 @@ n = makeNotchNoiseFFT(bw/2,0,fc,dur,fs,rise,0);
 
 xrms = rms(x)*sqrt(1e3/bw);
 
+% To scale everything to spectral level, bandwidths are used..
 % The noise spans 200 Hz to 20 kHz => 19.8 kHz
 % It has a notch of width "bw"
 
