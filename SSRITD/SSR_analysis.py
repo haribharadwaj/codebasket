@@ -53,7 +53,7 @@ for subj in subjlist:
                 raw.filter(l_freq = 10, h_freq = 200, picks = np.arange(0,32,1))
                 
                 conds = {'50us':8,'100us':9,'200us':10,'400us':11,'800us':12}
-                selectedEves = ['50us','100us','200us','400us','800us']
+                selectedEves = ['8','9','10','11','12'] # MNE bug??
                
                 # Epoching events of type 1 and 7
                 epochs = mne.Epochs(raw,eves,cond,tmin = 1.2, proj = False,
