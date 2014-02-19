@@ -7,7 +7,7 @@ import os
 import fnmatch
 
 # Adding Files and locations
-froot = '/home/hari/Documents/MATLAB/SSRITD/'
+froot = '/home/hari/Documents/MATLAB/SSRITD/EEG/'
 
 # List of files stems, each will be appended by run number 
 # Could be different for edf, fiff, eve etc.
