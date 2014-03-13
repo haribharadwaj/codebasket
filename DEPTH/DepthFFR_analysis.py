@@ -14,12 +14,9 @@ froot = '/home/hari/Documents/MATLAB/Depth_Clean/'
 # Use list [] and enumerate over if filenames are weird
 
 
-# Done:
-# 'I01','I02','I03','I06','I07','I08','I09','I11','I13','I14','I15','I37',
-# 'I17_redo','I18','I19','I20','I25','I26','I27','I28','I29','I30',
-# 'I16','I32','I33','I34','I35','I39','I05'
-# I36 was recorded with wrong sampling rate
-subjlist = ['I36']
+subjlist =['I01','I02','I03','I06','I07','I08','I09','I11','I13','I14','I15',
+'I17_redo','I18','I19','I20','I25','I26','I27','I28','I29','I30','I37',
+'I16','I32','I33','I34','I35','I39','I05','I36']
             
             
 for subj in subjlist:
@@ -90,25 +87,28 @@ for subj in subjlist:
         nDraws = 100
         
         
-        print 'Running Pairwise Spectrum Estimation'
-        (pS,f) = spectral.mtpspec(x, params, verbose = 'DEBUG')
-        
-        print 'Running Raw Spectrum Estimation'
-        (Sraw,f) = spectral.mtspecraw(x, params, verbose = True)
-        
-        print 'Running Mean Spectrum Estimation'
-        (S,N,f) = spectral.mtspec(x,params,verbose = True)
+#        print 'Running Pairwise Spectrum Estimation'
+#        (pS,f) = spectral.mtpspec(x, params, verbose = 'DEBUG')
+#        
+#        print 'Running Raw Spectrum Estimation'
+#        (Sraw,f) = spectral.mtspecraw(x, params, verbose = True)
+#        
+#        print 'Running Mean Spectrum Estimation'
+#        (S,N,f) = spectral.mtspec(x,params,verbose = True)
+#        
+#        print 'Running CPCA PLV Estimation'
+#        (cplv,f)  = spectral.mtcpca(x, params, verbose = True)
         
         print 'Running CPCA PLV Estimation'
-        (cplv,f)  = spectral.mtcpca(x, params, verbose = True)
-        
+        (cpow,f)  = spectral.mtcspec(x, params, verbose = True)
         
     
         
     
         # Saving Results
-        res = dict(pS = pS,cplv = cplv,Sraw = Sraw, f = f, S = S, N = N)
-        save_name = subj + condstem + '.mat'
+        # res = dict(pS = pS,cplv = cplv,Sraw = Sraw, f = f, S = S, N = N)
+        res = dict(cpow = cpow, f = f)
+        save_name = subj + condstem + 'cpow.mat'
         
         
         if (not os.path.isdir(respath)):
