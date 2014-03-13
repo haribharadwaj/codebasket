@@ -425,7 +425,7 @@ def loadData(subj, rootdir, plotOrNot = True):
 rootdir = '/home/hari/Documents/MATLAB/BW/'
 mefname = '/home/hari/codebasket/BW/midear_Moore_et_al_1997.mat'
 
-subj = 'I14'
+subj = 'I18'
 
 data = loadData(subj,rootdir)
 
