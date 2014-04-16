@@ -3,24 +3,24 @@ clc;
 addpath('./Zilany2014_new/');
 fs = 100e3;
 fc = 4000;
-fm = 100;
-m = 0.6;
-bw = 200;
-dur = 4.0;
+fm = 113; %100;
+m = 1.0; %0.6;
+bw = 800; %200;
+dur = 0.7; %4.0;
 rise = 0.025;
 phi = 0;
 isi = 0.025;
-SAM = 1;
-notch = 1;
+SAM = 0; %1;
+notch = 0; %1;
 modulated = 0;
 
-plotting = 0;
+plotting = 1;
 fiblist = {'Low-SR','Med-SR','High-SR'};
 for fibertype = 1:3; % 1- LS, 2- MS, 3-HS
     fib = fiblist{fibertype};
     fprintf(1,'\n ------------Simulating %s fibers :)-----------\n',fib);
     SR = [0.1, 15, 100];
-    stimdb = 80;
+    stimdb = 75; %80;
     
     
     
@@ -110,7 +110,7 @@ for fibertype = 1:3; % 1- LS, 2- MS, 3-HS
         % Image plotting requires uniform grid, hence interpolating
         [tgrid,fgrid_orig] = meshgrid(t,f);
         
-        
+        f_uniform = linspace(min(f),max(f),100);
         
         [tgrid_new, fgrid] = meshgrid(t_gated,f_uniform);
         synout_new = interp2(tgrid,fgrid_orig,synout, tgrid_new, fgrid,'spline');
@@ -118,50 +118,53 @@ for fibertype = 1:3; % 1- LS, 2- MS, 3-HS
         Rcn_new = interp2(tgrid,fgrid_orig,Rcn, tgrid_new, fgrid,'spline');
         
         
-        figure;
-        subplot(2,2,1);
-        imagesc(t_gated,f_uniform,synout_new,...
-            [1.2*SR(fibertype), max(max(synout_new))]);
-        xlabel('Time (s)','FontSize',20);
-        ylabel('CF (Hz)','FontSize',20);
-        title('AN Output','FontSize',20);
-        
-        subplot(2,2,2);
-        imagesc(t_gated,f_uniform, Ric_new);
-        xlabel('Time (s)','FontSize',20);
-        ylabel('CF (Hz)','FontSize',20);
-        title('IC MF Cells','FontSize',20);
-        
-        subplot(2,2,3);
-        Ric_BR = ((Rcn_new - Ric_new) + abs(Rcn_new - Ric_new))/2;
-        imagesc(t_gated,f_uniform, Ric_BR);
-        xlabel('Time (s)','FontSize',20);
-        ylabel('CF (Hz)','FontSize',20);
-        title('IC Band Reject Cells','FontSize',20);
-        
-        subplot(2,2,4);
-        plot(f_uniform,mean(synout_new,2),'k--','linew',2);
-        hold on;
-        plot(f_uniform,mean(Ric_new,2),'b','linew',2);
-        hold on;
-        plot(f_uniform,mean(Ric_BR,2),'r','linew',2);
-        ylabel('Average rate','FontSize',20);
-        xlabel('CF (Hz)','FontSize',20);
-        
-        figure;
-        subplot(2,1,1);
-        
-        plot(t_gated, resp,'linewidth',2);
-        xlabel('Time (s)','FontSize',20);
-        subplot(2,1,2);
-        semilogy(fplot,Fresp,'linewidth',2); xlim([5, 1000]);
-        xlabel('Frequency (Hz)','FontSize',20);
+%         figure;
+%         subplot(2,2,1);
+%         imagesc(t_gated,f_uniform,synout_new,...
+%             [1.2*SR(fibertype), max(max(synout_new))]);
+%         xlabel('Time (s)','FontSize',20);
+%         ylabel('CF (Hz)','FontSize',20);
+%         title('AN Output','FontSize',20);
+%         
+%         subplot(2,2,2);
+%         imagesc(t_gated,f_uniform, Ric_new);
+%         xlabel('Time (s)','FontSize',20);
+%         ylabel('CF (Hz)','FontSize',20);
+%         title('IC MF Cells','FontSize',20);
+%         
+%         subplot(2,2,3);
+%         Ric_BR = ((Rcn_new - Ric_new) + abs(Rcn_new - Ric_new))/2;
+%         imagesc(t_gated,f_uniform, Ric_BR);
+%         xlabel('Time (s)','FontSize',20);
+%         ylabel('CF (Hz)','FontSize',20);
+%         title('IC Band Reject Cells','FontSize',20);
+%         
+%         subplot(2,2,4);
+%         plot(f_uniform,mean(synout_new,2),'k--','linew',2);
+%         hold on;
+%         plot(f_uniform,mean(Ric_new,2),'b','linew',2);
+%         hold on;
+%         plot(f_uniform,mean(Ric_BR,2),'r','linew',2);
+%         ylabel('Average rate','FontSize',20);
+%         xlabel('CF (Hz)','FontSize',20);
+%         
+%         figure;
+%         subplot(2,1,1);
+%         
+%         plot(t_gated, resp,'linewidth',2);
+%         xlabel('Time (s)','FontSize',20);
+%         subplot(2,1,2);
+%         semilogy(fplot,Fresp,'linewidth',2); xlim([5, 1000]);
+%         xlabel('Frequency (Hz)','FontSize',20);
     end
     
     pop_resp(fibertype,:) = resp;
     pop_resp_freq(fibertype,:) = Fresp;
+    IC_all(fibertype,:,:) = Ric_new;
+    AN_all(fibertype,:,:) = synout_new;  
+    
 end
-saveResults = 1;
+saveResults = 0; %1;
 
 if(saveResults)
     fname = strcat('RESULTS/SimFFR_results_SNR_',num2str(SNR),...
