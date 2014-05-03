@@ -2,16 +2,18 @@ clear;
 clc;
 addpath('./Zilany2014_new/');
 
-wavname = 'four_speakers.wav';
+%wavname = 'four_speakers.wav';
+%wavname = 'tone_4kHz.wav';
+wavname = 'SAM_4kHz_40Hz.wav';
 fs = 100e3;
 
 plotting = 1;
 fiblist = {'Low-SR','Med-SR','High-SR'};
-for fibertype = 1:3; % 1- LS, 2- MS, 3-HS
+for fibertype = 3:3; % 1- LS, 2- MS, 3-HS
     fib = fiblist{fibertype};
     fprintf(1,'\n ------------Simulating %s fibers :)-----------\n',fib);
     SR = [0.1, 15, 100];
-    stimdb = 75;
+    stimdb = 40;
     
     
     
@@ -19,7 +21,7 @@ for fibertype = 1:3; % 1- LS, 2- MS, 3-HS
     Ric = 0;
     Rcn = 0;
     
-    Ntrials = 1;
+    Ntrials = 10;
     [pin, fs_wav] = wavread(wavname);
     
     pin = resample(pin,fs,fs_wav)';
@@ -87,13 +89,16 @@ for fibertype = 1:3; % 1- LS, 2- MS, 3-HS
         % Image plotting requires uniform grid, hence interpolating
         [tgrid,fgrid_orig] = meshgrid(t,f);
         
-        f_uniform = linspace(min(f),max(f),100);
+        f_uniform = linspace(min(f),max(f),500);
         
         [tgrid_new, fgrid] = meshgrid(t_gated,f_uniform);
+        h_smooth = fspecial('gaussian',[5,5],5);
         synout_new = interp2(tgrid,fgrid_orig,synout, tgrid_new, fgrid,'spline');
-        Ric_new = interp2(tgrid,fgrid_orig,Ric, tgrid_new, fgrid,'spline');
-        Rcn_new = interp2(tgrid,fgrid_orig,Rcn, tgrid_new, fgrid,'spline');
-        
+        synout_new = imfilter(synout_new,h_smooth);
+%         Ric_new = interp2(tgrid,fgrid_orig,Ric, tgrid_new, fgrid,'spline');
+%         Ric_new = imfilter(Ric_new,h_smooth);
+%         Rcn_new = interp2(tgrid,fgrid_orig,Rcn, tgrid_new, fgrid,'spline');
+%         
         
         figure;
         imagesc(t_gated,f_uniform,synout_new,...
@@ -101,12 +106,13 @@ for fibertype = 1:3; % 1- LS, 2- MS, 3-HS
         xlabel('Time (s)','FontSize',20);
         ylabel('CF (Hz)','FontSize',20);
         title('AN Output','FontSize',20);
+        colormap gray;
         
-        figure;
-        imagesc(t_gated,f_uniform, Ric_new);
-        xlabel('Time (s)','FontSize',20);
-        ylabel('CF (Hz)','FontSize',20);
-        title('IC MF Cells','FontSize',20);
+%         figure;
+%         imagesc(t_gated,f_uniform, Ric_new);
+%         xlabel('Time (s)','FontSize',20);
+%         ylabel('CF (Hz)','FontSize',20);
+%         title('IC MF Cells','FontSize',20);
         
 %         figure;
 %         Ric_BR = ((Rcn_new - Ric_new) + abs(Rcn_new - Ric_new))/2;
@@ -126,7 +132,7 @@ for fibertype = 1:3; % 1- LS, 2- MS, 3-HS
 %         
     end
    
-    IC_all(fibertype,:,:) = Ric_new;
+%     IC_all(fibertype,:,:) = Ric_new;
     AN_all(fibertype,:,:) = synout_new;  
     
 end
