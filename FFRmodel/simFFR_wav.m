@@ -3,8 +3,8 @@ clc;
 addpath('./Zilany2014_new/');
 
 %wavname = 'four_speakers.wav';
-%wavname = 'tone_4kHz.wav';
-wavname = 'SAM_4kHz_40Hz.wav';
+wavname = 'tone_4kHz.wav';
+%wavname = 'SAM_4kHz_40Hz.wav';
 fs = 100e3;
 
 plotting = 1;
