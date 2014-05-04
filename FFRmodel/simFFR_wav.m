@@ -2,8 +2,8 @@ clear;
 clc;
 addpath('./Zilany2014_new/');
 
-%wavname = 'four_speakers.wav';
-wavname = 'tone_4kHz.wav';
+wavname = 'four_speakers.wav';
+%wavname = 'tone_4kHz.wav';
 %wavname = 'SAM_4kHz_40Hz.wav';
 fs = 100e3;
 
@@ -13,7 +13,7 @@ for fibertype = 3:3; % 1- LS, 2- MS, 3-HS
     fib = fiblist{fibertype};
     fprintf(1,'\n ------------Simulating %s fibers :)-----------\n',fib);
     SR = [0.1, 15, 100];
-    stimdb = 40;
+    stimdb = 75;
     
     
     
@@ -21,7 +21,7 @@ for fibertype = 3:3; % 1- LS, 2- MS, 3-HS
     Ric = 0;
     Rcn = 0;
     
-    Ntrials = 10;
+    Ntrials = 1;
     [pin, fs_wav] = wavread(wavname);
     
     pin = resample(pin,fs,fs_wav)';
@@ -106,7 +106,7 @@ for fibertype = 3:3; % 1- LS, 2- MS, 3-HS
         xlabel('Time (s)','FontSize',20);
         ylabel('CF (Hz)','FontSize',20);
         title('AN Output','FontSize',20);
-        colormap gray;
+        
         
 %         figure;
 %         imagesc(t_gated,f_uniform, Ric_new);
