@@ -69,8 +69,8 @@ for subj in subjlist:
                     reject = dict(eeg=150e-6))
                 # Combining both polarities so I can get envelope related FFR
                 # responses
-                epochs = mne.epochs.combine_event_ids(epochs, ['up', 'down'],
-                                                      dict(all=101))
+                #epochs = mne.epochs.combine_event_ids(epochs, ['up', 'down'],
+                #                                      dict(all=101))
                 # Getting the epoched data out, this step will also perform
                 # rejection
                 xtemp = epochs.get_data()
@@ -90,7 +90,7 @@ for subj in subjlist:
         nPerDraw = 400
         nDraws = 100
         fs = 4096
-        params = dict(Fs=fs, fpass=[5, 2000], tapers=[15, 29], Npairs=2000,
+        params = dict(Fs=fs, fpass=[5, 1000], tapers=[15, 29], Npairs=2000,
                       itc=1)
 
         #        print 'Running Pairwise Spectrum Estimation'
