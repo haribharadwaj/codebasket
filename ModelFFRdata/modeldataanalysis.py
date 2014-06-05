@@ -50,30 +50,24 @@ for subj in subjlist:
                 (raw, eves) = bs.importbdf(fpath + edfname, nchans=35,
                                            refchans=['EXG1', 'EXG2'])
 
-                raw.info['bads'] += ['A14', 'A25']
+                #raw.info['bads'] += ['A14', 'A25']
                 # Filter the data
                 raw.filter(
-                    l_freq=70, h_freq=1500, picks=np.arange(0, 32, 1))
+                    l_freq=70, h_freq=1500, picks=np.arange(0, 34, 1))
 
                 # raw.apply_proj()
                 fs = raw.info['sfreq']
 
-                # Here events 1 and 7 represent a particular stimulus in each
-                # polarity
-                selectedEve = dict(up=cond[0], down=cond[1])
+                pos = dict(up=cond[0])
+                neg = dict(down=cond[1])
 
                 # Epoching events of type 1 and 7
-                epochs = mne.Epochs(
-                    raw, eves, selectedEve, tmin=-0.05, proj=False,
+                epochs_pos = mne.Epochs(
+                    raw, eves, pos, tmin=-0.05, proj=False,
                     tmax=0.75, baseline=(-0.05, 0),
                     reject = dict(eeg=150e-6))
-                # Combining both polarities so I can get envelope related FFR
-                # responses
-                #epochs = mne.epochs.combine_event_ids(epochs, ['up', 'down'],
-                #                                      dict(all=101))
-                # Getting the epoched data out, this step will also perform
-                # rejection
-                xtemp = epochs.get_data()
+
+                xtemp = epochs_pos.get_data()
 
                 # Reshaping to the format needed by spectral.mtcpca() and
                 # calling it
@@ -87,10 +81,26 @@ for subj in subjlist:
                 else:
                     continue
 
+                env = True  # Wheter to add negative polarities
+                if env:
+                    epochs_neg = mne.Epochs(
+                        raw, eves, pos, tmin=-0.05, proj=False,
+                        tmax=0.75, baseline=(-0.05, 0),
+                        reject = dict(eeg=150e-6))
+                    if(xtemp.shape[0] > 0):
+                        xtemp = xtemp.transpose((1, 0, 2))
+                        xtemp = xtemp[0:32, :, :]
+                        if(k == 0):
+                            x = xtemp
+                        else:
+                            x = np.concatenate((x, xtemp), axis=1)
+                    else:
+                        continue
+
         nPerDraw = 400
         nDraws = 100
         fs = 4096
-        params = dict(Fs=fs, fpass=[5, 1000], tapers=[15, 29], Npairs=2000,
+        params = dict(Fs=fs, fpass=[5, 1000], tapers=[1, 1], Npairs=2000,
                       itc=1)
 
         #        print 'Running Pairwise Spectrum Estimation'
@@ -111,9 +121,12 @@ for subj in subjlist:
         print 'Running CPCA Power Estimation'
         (cpow, f) = spectral.mtcspec(x, params, verbose=True)
 
+        print 'Running CPCA Power Estimation'
+        (Ph, f) = spectral.mtphase(x, params, verbose=True)
+
         # Saving Results
         res = dict(cpow=cpow, plv=plv, cplv=cplv,
-                   Sraw=Sraw, f=f, S=S, N=N)
+                   Sraw=Sraw, f=f, S=S, N=N, Ph=Ph)
 
         save_name = subj + condstem + '_results.mat'
 
