@@ -28,6 +28,7 @@ for subj in subjlist:
     respath = fpath + 'RES/'
 
     condlist = [[1, 7], [2, 8], [3, 9], [4, 10], [5, 11], [6, 12]]
+# condstemlist = ['_100Hz', '_130Hz', '_160Hz', '_190Hz', '_220Hz', '_250Hz']
     condstemlist = ['_400Hz', '_430Hz', '_460Hz', '_490Hz', '_520Hz', '_550Hz']
 
     for condind, cond in enumerate(condlist):
@@ -50,7 +51,7 @@ for subj in subjlist:
                 (raw, eves) = bs.importbdf(fpath + edfname, nchans=35,
                                            refchans=['EXG1', 'EXG2'])
 
-                #raw.info['bads'] += ['A14', 'A25']
+                raw.info['bads'] += ['EXG3']
                 # Filter the data
                 raw.filter(
                     l_freq=70, h_freq=1500, picks=np.arange(0, 34, 1))
@@ -87,13 +88,11 @@ for subj in subjlist:
                         raw, eves, pos, tmin=-0.05, proj=False,
                         tmax=0.75, baseline=(-0.05, 0),
                         reject = dict(eeg=150e-6))
+                    xtemp = epochs_neg.get_data()
                     if(xtemp.shape[0] > 0):
                         xtemp = xtemp.transpose((1, 0, 2))
                         xtemp = xtemp[0:32, :, :]
-                        if(k == 0):
-                            x = xtemp
-                        else:
-                            x = np.concatenate((x, xtemp), axis=1)
+                        x = np.concatenate((x, xtemp), axis=1)
                     else:
                         continue
 

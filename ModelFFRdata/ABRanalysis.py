@@ -30,27 +30,30 @@ for subj in subjlist:
 
     print 'Running Subject', subj, 'Condition', cond
 
-    bdfs = fnmatch.filter(os.listdir(fpath), subj + '*ABR*.bdf')
+    bdfs = fnmatch.filter(os.listdir(fpath), subj + '*ABR_10Hz.bdf')
 
-    for k, edfname in enumerate(bdfs):
-        # Load data and read event channel
-        (raw, eves) = bs.importbdf(fpath + edfname, nchans=35,
-                                   refchans=['EXG1'])
+    if len(bdfs) > 1:
+        print 'Warning! More than 1 file found!'
+    else:
+        edfname = bdfs[0]
 
-        # Filter the data
-        raw.filter(
-            l_freq=30, h_freq=2000, picks=np.arange(0, 34, 1))
+    # Load data and read event channel
+    (raw, eves) = bs.importbdf(fpath + edfname, nchans=35,
+                               refchans=['EXG1'])
+    raw.info['bads'] += ['EXG3']
+    # Filter the data
+    raw.filter(
+        l_freq=30, h_freq=2000, picks=np.arange(0, 34, 1))
 
-        raw.notch_filter(freqs=np.arange(60, 2000, 60),
-                         picks=np.arange(0, 34, 1))
-        # Here click trigger is 1
-        selectedEve = dict(up=cond)
+    raw.notch_filter(freqs=np.arange(60, 2000, 60),
+                     picks=np.arange(0, 34, 1))
+    # Here click trigger is 1
+    selectedEve = dict(up=cond)
 
-        # Epoching events of type 1 and 7
-        epochs = mne.Epochs(
-            raw, eves, selectedEve, tmin=-0.010, proj=False,
-            tmax=0.05, baseline=(-0.01, 0),
-            reject = dict(eeg=100e-6))
-
+    # Epoching events of type 1 and 7
+    epochs = mne.Epochs(
+        raw, eves, selectedEve, tmin=-0.02, proj=False,
+        tmax=0.2, baseline=(-0.02, 0),
+        reject = dict(eeg=50e-6))
     abr = epochs.average()
     abr.plot()
