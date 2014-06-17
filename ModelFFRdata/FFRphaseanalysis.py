@@ -28,7 +28,10 @@ for subj in subjlist:
     respath = fpath + 'RES/'
 
     condlist = np.arange(1, 16)
-    condstemlist = np.array(map(str, (condlist-1)*30 + 100))
+    f0_list = (condlist-1)*30 + 100
+    condstemlist = np.array(map(str, f0_list))
+
+    Ph_f0 = np.zeros((32, len(condlist)))
 
     for condind, cond in enumerate(condlist):
         condstem = condstemlist[condind]
@@ -84,29 +87,16 @@ for subj in subjlist:
         params = dict(Fs=fs, fpass=[5, 1000], tapers=[1, 1], Npairs=2000,
                       itc=1)
 
-        tdave = x.mean(axis=1)  # Time domain average
-        t = epochs.times
+        print 'Running Phase Estimation'
+        (Ph, f) = spectral.mtphase(x, params, verbose=True)
 
-        print 'Running Mean Spectrum Estimation'
-        (S, N, f) = spectral.mtspec(x, params, verbose=True)
-
-        print 'Running CPCA PLV Estimation'
-        (cplv, f) = spectral.mtcpca(x, params, verbose=True)
-
-        print 'Running channel by channel PLV Estimation'
-        (plv, f) = spectral.mtplv(x, params, verbose=True)
-
-        print 'Running CPCA Power Estimation'
-        (cpow, f) = spectral.mtcspec(x, params, verbose=True)
-
-        #print 'Running Phase Estimation'
-        #(Ph, f) = spectral.mtphase(x, params, verbose=True)
+        f0 = f0_list[condind]
+        Ph_f0[:, condind] = Ph[:, np.argmin(abs(f-f0))]
 
         # Saving Results
-        res = dict(cpow=cpow, plv=plv, cplv=cplv,
-                   tdave=tdave, t=t, f=f, S=S, N=N)
+        res = dict(Ph=Ph, f=f)
 
-        save_name = subj + '_' + condstem + 'Hz_results.mat'
+        save_name = subj + '_' + condstem + 'Hz_phase_results.mat'
 
         if (not os.path.isdir(respath)):
             os.mkdir(respath)
@@ -114,3 +104,9 @@ for subj in subjlist:
 
         if not os.path.isfile(respath + save_raw_name):
             io.savemat(respath + save_raw_name, dict(x=x, subj=subj))
+
+    allconds_phase_filename = subj + '_all_phase.mat'
+    all_ph = dict(Ph_f0=Ph_f0, f0_list=f0_list)
+    if (not os.path.isdir(respath)):
+        os.mkdir(respath)
+    io.savemat(respath + allconds_phase_filename, all_ph)

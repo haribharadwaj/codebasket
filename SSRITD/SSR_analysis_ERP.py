@@ -18,11 +18,11 @@ froot = '/home/hari/Documents/MATLAB/SSRITD/EEG/'
 # Could be different for edf, fiff, eve etc.
 # Use list [] and enumerate over if filenames are weird
 
-subjlist = [
-    'I02', 'I03', 'I05', 'I06', 'I08', 'I09', 'I11', 'I13', 'I14', 'I15',
-    'I17', 'I18', 'I19', 'I20', 'I25', 'I26', 'I29', 'I30', 'I33', 'I35',
-    'I36', 'I37']
-#subjlist = ['I25', ]
+#subjlist = [
+#    'I02', 'I03', 'I05', 'I06', 'I08', 'I09', 'I11', 'I13', 'I14', 'I15',
+#    'I17', 'I18', 'I19', 'I20', 'I25', 'I26', 'I29', 'I30', 'I33', 'I35',
+#    'I36', 'I37']
+subjlist = ['I25', ]
 evokeds_allsubj = []
 
 for k, subj in enumerate(subjlist):
@@ -45,7 +45,7 @@ for k, subj in enumerate(subjlist):
     (raw, eves) = bs.importbdf(fpath + edfname)
 
     # Filter the data for ERPs
-    raw.filter(l_freq=0.5, h_freq=40, l_trans_bandwidth=0.15,
+    raw.filter(l_freq=0.5, h_freq=200, l_trans_bandwidth=0.15,
                picks=np.arange(0, 32, 1))
     #raw.apply_function(detrend, picks=np.arange(0, 32, 1), dtype=None,
     #                  n_jobs=1, verbose=True)

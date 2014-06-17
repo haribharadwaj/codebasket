@@ -16,7 +16,7 @@ froot = '/home/hari/Documents/PythonCodes/ModelData/'
 # 'I17_redo','I18','I19','I20','I25','I26','I27','I28','I29','I30','I37',
 # 'I16','I32','I33','I34','I35','I39','I05','I36']
 
-subjlist = ['I14']
+subjlist = ['I13']
 
 for subj in subjlist:
 
@@ -30,7 +30,7 @@ for subj in subjlist:
 
     print 'Running Subject', subj, 'Condition', cond
 
-    bdfs = fnmatch.filter(os.listdir(fpath), subj + '*ABR_10Hz.bdf')
+    bdfs = fnmatch.filter(os.listdir(fpath), subj + '*ABR.bdf')
 
     if len(bdfs) > 1:
         print 'Warning! More than 1 file found!'
@@ -38,12 +38,12 @@ for subj in subjlist:
         edfname = bdfs[0]
 
     # Load data and read event channel
-    (raw, eves) = bs.importbdf(fpath + edfname, nchans=35,
-                               refchans=['EXG1'])
-    raw.info['bads'] += ['EXG3']
+    (raw, eves) = bs.importbdf(fpath + edfname, nchans=34,
+                               refchans=['EXG1', 'EXG2'])
+    raw.info['bads'] += ['A25']
     # Filter the data
     raw.filter(
-        l_freq=30, h_freq=2000, picks=np.arange(0, 34, 1))
+        l_freq=70, h_freq=3000, picks=np.arange(0, 34, 1))
 
     raw.notch_filter(freqs=np.arange(60, 2000, 60),
                      picks=np.arange(0, 34, 1))
@@ -52,8 +52,8 @@ for subj in subjlist:
 
     # Epoching events of type 1 and 7
     epochs = mne.Epochs(
-        raw, eves, selectedEve, tmin=-0.02, proj=False,
-        tmax=0.2, baseline=(-0.02, 0),
+        raw, eves, selectedEve, tmin=-0.005, proj=False,
+        tmax=0.01, baseline=(-0.002, 0),
         reject = dict(eeg=50e-6))
     abr = epochs.average()
     abr.plot()
