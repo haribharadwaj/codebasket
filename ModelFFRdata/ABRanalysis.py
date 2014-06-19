@@ -16,7 +16,7 @@ froot = '/home/hari/Documents/PythonCodes/ModelData/'
 # 'I17_redo','I18','I19','I20','I25','I26','I27','I28','I29','I30','I37',
 # 'I16','I32','I33','I34','I35','I39','I05','I36']
 
-subjlist = ['I13']
+subjlist = ['I39']
 
 for subj in subjlist:
 
