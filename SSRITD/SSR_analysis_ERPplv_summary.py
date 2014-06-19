@@ -11,8 +11,9 @@ froot = '/home/hari/Documents/MATLAB/SSRITD/EEG/'
 subjlist = [
     'I02', 'I03', 'I05', 'I06', 'I08', 'I09', 'I11', 'I13', 'I14', 'I15',
     'I17', 'I18', 'I19', 'I20', 'I25', 'I26', 'I29', 'I30', 'I33', 'I35',
-    'I36', 'I37']
+    'I37']
 
+# Something wrong with I36
 plvave = 0
 for k, subj in enumerate(subjlist):
     fpath = froot + subj + '/'
@@ -26,11 +27,12 @@ for k, subj in enumerate(subjlist):
     plvave = plvave + dat['plv']
 
 plvave = plvave/len(subjlist)
-
+times = dat['times'].squeeze()
+freqs = dat['freqs'].squeeze()
 ###############################################################################
 # View time-frequency plots
 import matplotlib.pyplot as plt
-plt.imshow(plvave[0],
+plt.imshow(plvave[4]**2, vmin=0.001, vmax=0.1,
            extent=[times[0], times[-1], freqs[0], freqs[-1]],
            aspect='auto', origin='lower')
 plt.xlabel('Time (s)')
