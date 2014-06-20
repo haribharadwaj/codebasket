@@ -22,14 +22,14 @@ froot = '/home/hari/Documents/MATLAB/SSRITD/EEG/'
 subjlist = [
     'I02', 'I03', 'I05', 'I06', 'I08', 'I09', 'I11', 'I13', 'I14', 'I15',
     'I17', 'I18', 'I19', 'I20', 'I25', 'I26', 'I29', 'I30', 'I33', 'I35',
-    'I36', 'I37']
-#subjlist = ['I13', ]
+    'I36', 'I37', 'I39', 'I22']
 
 ch = [3, 4, 25, 26, 30, 31]  # Channels of interest
 plv_allsubj = []
 pow_allsubj = []
-freqs = np.arange(5, 50, 2)  # define frequencies of interest
+freqs = np.arange(2, 100, 2)  # define frequencies of interest
 n_cycles = freqs / float(5)  # different number of cycle per frequency
+n_cycles[freqs < 5] = 1
 
 for k, subj in enumerate(subjlist):
     fpath = froot + subj + '/'
@@ -90,7 +90,7 @@ for k, subj in enumerate(subjlist):
     # Save results to the RES directory
     savedict = dict(tfspec=tfspec, plv=plv, times=times, conds=conds,
                     freqs=freqs)
-    save_name = subj + '_plv_inducedpow.mat'
+    save_name = subj + '_plv_inducedpow_2Hz_100Hz.mat'
     print 'Saving data for subject', subj
     if (not os.path.isdir(respath)):
         os.mkdir(respath)

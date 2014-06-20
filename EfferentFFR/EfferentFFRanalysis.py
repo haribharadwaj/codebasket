@@ -24,14 +24,14 @@ for subj in subjlist:
     respath = fpath + 'RES/'
 
     condlist = np.arange(1, 5)
-    condstemlist = ['_signalOnly_', '_simultaneousNoise_',
-                    'noise500ms_ahead_', '_noiseOnly_']
+    condstemlist = ['signalOnly', 'simultaneousNoise',
+                    'noise500ms_ahead', 'noiseOnly']
 
     for condind, cond in enumerate(condlist):
         condstem = condstemlist[condind]
         print 'Running Subject', subj, 'Condition', condind
 
-        save_raw_name = subj + '_' + condstem + 'alltrial.mat'
+        save_raw_name = subj + '_' + condstem + '_alltrial.mat'
 
         if os.path.isfile(respath + save_raw_name):
             print 'Epoched data is already available on disk!'
@@ -81,8 +81,7 @@ for subj in subjlist:
         params = dict(Fs=fs, fpass=[5, 1000], tapers=[1, 1], Npairs=2000,
                       itc=1)
 
-        #tdave = x.mean(axis=1)  # Time domain average
-        #t = epochs.times
+        Ntrials = x.shape[1]
 
         print 'Running Mean Spectrum Estimation'
         (S, N, f) = spectral.mtspec(x, params, verbose=True)
@@ -101,9 +100,9 @@ for subj in subjlist:
 
         # Saving Results
         res = dict(cpow=cpow, plv=plv, cplv=cplv, Sraw=Sraw,
-                   f=f, S=S, N=N)
+                   f=f, S=S, N=N, Ntrials=Ntrials)
 
-        save_name = subj + '_' + condstem + 'results.mat'
+        save_name = subj + '_' + condstem + '_results.mat'
 
         if (not os.path.isdir(respath)):
             os.mkdir(respath)
