@@ -11,8 +11,8 @@ import pylab as pl
 def plotDepthResults(subjlist, what,numCondsToPlot,summary = False, max = False,
                      ch_sel = 30):
         
-    #froot = '/home/hari/Documents/PythonCodes/research/DepthResults/'   
-    froot = '/home/hari/Documents/DepthResults/'   
+    froot = '/home/hari/Documents/PythonCodes/research/DepthResults/'   
+    #froot = '/home/hari/Documents/DepthResults/'   
     
     nsubjs = len(subjlist)
     condlist = [[1,7],[2,8],[3,9],[4,10]]
@@ -74,8 +74,8 @@ def plotDepthResults(subjlist, what,numCondsToPlot,summary = False, max = False,
 # I36 was recorded with wrong sampling rate, I16 is missing
 subjlist = ['I01','I02','I03','I05', 'I06','I07','I08','I09','I11','I13','I14',
             'I15','I17_redo','I18','I19','I20','I25','I26','I27','I28','I29',
-            'I30','I32','I33','I34','I35','I37','I39','I16','I36']
-what = 'cplv'
+            'I30','I32','I33','I34','I35','I37','I39','I16','I36', 'I41']
+what = 'S'
 numCondsToPlot = 4
-plv = plotDepthResults(subjlist,what,numCondsToPlot)
+S = plotDepthResults(subjlist,what,numCondsToPlot)
             
