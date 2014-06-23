@@ -16,8 +16,8 @@ def plotDepthResults(subjlist, what, numCondsToPlot, summary=False, max=False,
     #froot = '/home/hari/Documents/DepthResults/'
 
     nsubjs = len(subjlist)
-    condlist = [[1, 7], [2, 8], [3, 9], [4, 10]]
-    condstemlist = ['_0dB', '_m4dB', '_m8dB', '_m12dB']
+    condlist = [[1, 7], [2, 8], [3, 9]]
+    condstemlist = ['_0dB', '_m4dB', '_m8dB']
     nconds = len(condlist)
     whatever_all = np.zeros((nsubjs, nconds))
 
@@ -53,7 +53,7 @@ def plotDepthResults(subjlist, what, numCondsToPlot, summary=False, max=False,
                     whatever[condind] = dat[what][ch_sel, f_ind]
 
         whatever_all[k, :] = whatever
-        pl.plot(10 * np.log10(whatever[0:numCondsToPlot] / 1e-12), 'o-',
+        pl.plot(20 * np.log10(whatever[0:numCondsToPlot] / 1e-6), 'o-',
                 linewidth=2)
         pl.ylabel(what + ' (dB re: 1 sq.micro.V)', fontsize=20)
         pl.xlabel('Modulation Depth', fontsize=20)
@@ -70,9 +70,31 @@ def plotDepthResults(subjlist, what, numCondsToPlot, summary=False, max=False,
 
 
 # I36 was recorded with wrong sampling rate, I16 is missing
-subjlist = ['I01', 'I02', 'I03', 'I05', 'I06', 'I07', 'I08', 'I09', 'I11', 'I13', 'I14',
-            'I15', 'I17_redo', 'I18', 'I19', 'I20', 'I25', 'I26', 'I27', 'I28', 'I29',
-            'I30', 'I32', 'I33', 'I34', 'I35', 'I37', 'I39', 'I16', 'I36', 'I41']
+top = ['I37', 'I15', 'I39', 'I26', 'I03', 'I13', 'I33', 'I19', 'I02',
+       'I30', 'I41', 'I14']
+
+bottom = ['I07', 'I09', 'I17_redo', 'I18', 'I25', 'I05', 'I29', 'I08',
+          'I20', 'I36', 'I06', 'I11']
+
 what = 'S'
-numCondsToPlot = 4
-S = plotDepthResults(subjlist, what, numCondsToPlot)
+numCondsToPlot = 3
+S_top = np.log10(plotDepthResults(top, what, numCondsToPlot)/1e-6) * 20.0
+S_bottom = np.log10(plotDepthResults(bottom, what, numCondsToPlot)/1e-6) * 20.0
+
+m = [0, -4.0, -8.0]
+top_mu = S_top.mean(axis=0)
+top_err = S_top.std(axis=0)/(len(top)**0.5)
+
+bottom_mu = S_bottom.mean(axis=0)
+bottom_err = S_bottom.std(axis=0)/(len(bottom)**0.5)
+
+pl.figure()
+pl.errorbar(m, top_mu, yerr=top_err, linewidth=3)
+pl.hold(True)
+pl.errorbar(m, bottom_mu, yerr=bottom_err, color='r', linewidth=3)
+pl.plot(m, S_top.T, '--', linewidth=2, color=[0.5, 0.5, 0.5])
+pl.plot(m, S_bottom.T, '--', linewidth=2, color=[0.5, 0.5, 0.5])
+pl.xlabel('Modulation Depth (dB re: 100%)', fontsize=20)
+pl.ylabel('EFR magnitude (dB re: 1uV)', fontsize=20)
+pl.xlim((-8.5, 0.5))
+pl.show()
