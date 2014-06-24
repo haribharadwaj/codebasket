@@ -73,8 +73,8 @@ def plotDepthResults(subjlist, what, numCondsToPlot, summary=False, max=False,
 top = ['I37', 'I15', 'I39', 'I26', 'I03', 'I13', 'I33', 'I19', 'I02',
        'I30', 'I41', 'I14']
 
-bottom = ['I07', 'I09', 'I17_redo', 'I18', 'I25', 'I05', 'I29', 'I08',
-          'I20', 'I36', 'I06', 'I11']
+bottom = ['I09', 'I17_redo', 'I18', 'I25', 'I05', 'I29', 'I08',
+          'I20', 'I36', 'I06', 'I11', 'I07']
 
 what = 'S'
 numCondsToPlot = 3
