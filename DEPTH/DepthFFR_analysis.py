@@ -53,15 +53,17 @@ for subj in subjlist:
 
                 # Filter the data
                 raw.filter(l_freq=70, h_freq=1500, picks=np.arange(0, 32, 1))
+                raw.info['bads'] += ['A7', 'A12', 'A14', 'A15', 'A24']
 
                 # Here events 1 and 7 represent a particular stimulus in each
                 # polarity
                 selectedEve = dict(up=cond[0], down=cond[1])
 
+
                 # Epoching events of type 1 and 7
                 epochs = mne.Epochs(raw, eves, selectedEve, tmin=-0.05,
                                     proj=False, tmax=0.45, baseline=(-0.05, 0),
-                                    reject = dict(eeg=100e-6))
+                                    reject = dict(eeg=150e-6))
                 # Combining both polarities so I can get envelope related FFR
                 # responses
                 epochs = mne.epochs.combine_event_ids(epochs, ['up', 'down'],

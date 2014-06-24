@@ -18,7 +18,7 @@ froot = '/home/hari/Documents/PythonCodes/ModelData/'
 # 'I17_redo','I18','I19','I20','I25','I26','I27','I28','I29','I30','I37',
 # 'I16','I32','I33','I34','I35','I39','I05','I36']
 
-subjlist = ['I13']
+subjlist = ['I39']
 
 for subj in subjlist:
 
@@ -27,7 +27,7 @@ for subj in subjlist:
     # These are so that the generated files are organized better
     respath = fpath + 'RES/'
 
-    condlist = np.arange(1, 16)
+    condlist = np.arange(1, 14)
     condstemlist = np.array(map(str, (condlist-1)*30 + 100))
 
     for condind, cond in enumerate(condlist):

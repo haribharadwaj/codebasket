@@ -3,6 +3,7 @@ import mne
 import numpy as np
 import os
 import fnmatch
+import pylab as pl
 
 # Adding Files and locations
 froot = '/home/hari/Documents/PythonCodes/ModelData/'
@@ -16,7 +17,7 @@ froot = '/home/hari/Documents/PythonCodes/ModelData/'
 # 'I17_redo','I18','I19','I20','I25','I26','I27','I28','I29','I30','I37',
 # 'I16','I32','I33','I34','I35','I39','I05','I36']
 
-subjlist = ['I39']
+subjlist = ['I33']
 
 for subj in subjlist:
 
@@ -40,7 +41,7 @@ for subj in subjlist:
     # Load data and read event channel
     (raw, eves) = bs.importbdf(fpath + edfname, nchans=34,
                                refchans=['EXG1', 'EXG2'])
-    raw.info['bads'] += ['A25']
+    raw.info['bads'] += ['A24']
     # Filter the data
     raw.filter(
         l_freq=70, h_freq=3000, picks=np.arange(0, 34, 1))
@@ -57,3 +58,16 @@ for subj in subjlist:
         reject = dict(eeg=50e-6))
     abr = epochs.average()
     abr.plot()
+
+x = abr.data
+LE = x[32, :]
+RE = x[33, :]
+cz = x[31, :]
+t = abr.times*1e3
+pl.figure()
+pl.plot(t, cz, linewidth=2)
+pl.hold(True)
+pl.plot(t, cz - LE, linewidth=2)
+pl.plot(t, cz - RE, linewidth=2)
+pl.xlabel('Time (ms)')
+pl.ylabel('ABR (uV)')

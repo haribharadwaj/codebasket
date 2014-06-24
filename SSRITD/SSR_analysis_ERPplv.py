@@ -22,7 +22,7 @@ froot = '/home/hari/Documents/MATLAB/SSRITD/EEG/'
 subjlist = [
     'I02', 'I03', 'I05', 'I06', 'I08', 'I09', 'I11', 'I13', 'I14', 'I15',
     'I17', 'I18', 'I19', 'I20', 'I25', 'I26', 'I29', 'I30', 'I33', 'I35',
-    'I36', 'I37', 'I39', 'I22']
+    'I36', 'I37', 'I39']
 
 ch = [3, 4, 25, 26, 30, 31]  # Channels of interest
 plv_allsubj = []
