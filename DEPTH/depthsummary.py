@@ -71,10 +71,10 @@ def plotDepthResults(subjlist, what, numCondsToPlot, summary=False, max=False,
 
 # I36 was recorded with wrong sampling rate, I16 is missing
 top = ['I37', 'I15', 'I39', 'I26', 'I03', 'I13', 'I33', 'I19', 'I02',
-       'I30', 'I41', 'I14']
+       'I30', 'I41', 'I14', 'I08']
 
-bottom = ['I09', 'I17_redo', 'I18', 'I25', 'I05', 'I29', 'I08',
-          'I20', 'I36', 'I06', 'I11', 'I07']
+bottom = ['I09', 'I18', 'I25', 'I05', 'I29',
+          'I20', 'I36', 'I06', 'I11', 'I07', 'I05']
 
 what = 'S'
 numCondsToPlot = 3
@@ -88,6 +88,7 @@ top_err = S_top.std(axis=0)/(len(top)**0.5)
 bottom_mu = S_bottom.mean(axis=0)
 bottom_err = S_bottom.std(axis=0)/(len(bottom)**0.5)
 
+pl.close('all')
 pl.figure()
 pl.errorbar(m, top_mu, yerr=top_err, linewidth=3)
 pl.hold(True)
