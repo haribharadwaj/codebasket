@@ -14,7 +14,7 @@ froot = '/home/hari/Documents/PythonCodes/EfferentFFR/'
 # Use list [] and enumerate over if filenames are weird
 
 
-subjlist = ['I13']
+subjlist = ['I14']
 
 for subj in subjlist:
 
@@ -23,9 +23,10 @@ for subj in subjlist:
     # These are so that the generated files are organized better
     respath = fpath + 'RES/'
 
-    condlist = np.arange(1, 5)
+    condlist = np.arange(1, 6)
     condstemlist = ['signalOnly', 'simultaneousNoise',
-                    'noise500ms_ahead', 'noiseOnly']
+                    'noise500ms_ahead', 'noiseOnly',
+                    'forwardMasking']
 
     for condind, cond in enumerate(condlist):
         condstem = condstemlist[condind]
@@ -47,7 +48,7 @@ for subj in subjlist:
                 (raw, eves) = bs.importbdf(fpath + edfname, nchans=35,
                                            refchans=['EXG1', 'EXG2'])
 
-                raw.info['bads'] += ['A1']
+                raw.info['bads'] += ['EXG3', 'A17', 'A18', 'A19']
                 # Filter the data
                 raw.filter(
                     l_freq=70, h_freq=1500, picks=np.arange(0, 35, 1))
@@ -58,8 +59,8 @@ for subj in subjlist:
                 # Epoching events of type
                 epochs = mne.Epochs(
                     raw, eves, cond, tmin=0.475, proj=False,
-                    tmax=1.025, baseline=(0.475, 0.5),
-                    reject = dict(eeg=150e-6))
+                    tmax=0.825, baseline=(0.475, 0.5),
+                    reject = dict(eeg=100e-6))
 
                 xtemp = epochs.get_data()
 

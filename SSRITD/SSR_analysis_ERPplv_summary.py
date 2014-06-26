@@ -67,9 +67,9 @@ pl.figure()
 pl.imshow((plvave.mean(axis=0)), vmin=0.1, vmax=0.20,
           extent=[times[0] - t0, times[-1] - t0, freqs[0], freqs[-1]],
           aspect='auto', origin='lower')
-pl.xlabel('Time (s)', fontsize=20)
-pl.ylabel('Frequency (Hz)', fontsize=20)
-pl.title('Phase Locking', fontsize=20)
+pl.xlabel('Time (s)')
+pl.ylabel('Frequency (Hz)')
+pl.title('Phase Locking')
 pl.colorbar()
 pl.show()
 
@@ -81,15 +81,15 @@ powbline = powmean[:, np.logical_and(times < bmax, times > bmin)].mean(axis=1)
 pl.imshow((powmean.T-powbline.T).T, vmin=-2.0, vmax=1.0,
           extent=[times[0] - t0, times[-1] - t0, freqs[0], freqs[-1]],
           aspect='auto', origin='lower')
-pl.xlabel('Time (s)', fontsize=20)
-pl.ylabel('Frequency (Hz)', fontsize=20)
-pl.title('Power (dB re: baseline)', fontsize=20)
+pl.xlabel('Time (s)')
+pl.ylabel('Frequency (Hz)')
+pl.title('Power (dB re: baseline)')
 pl.colorbar()
 pl.show()
 
 pl.figure()
-fmin = 4
-fmax = 10
+fmin = 5
+fmax = 12
 smin = 0.3
 smax = 0.5
 bmin = 0.35
@@ -108,16 +108,16 @@ largeITD = largeITD/scale
 pl.plot(times - t0, smallITD, 'r', linewidth=2)
 pl.plot(times - t0, largeITD, 'b', linewidth=2)
 pl.legend(('Small ITD (50, 100, 200)', 'Large ITD (400, 800)'))
-pl.xlabel('Time (s)', fontsize=20)
-pl.ylabel('Normalized response', fontsize=20)
+pl.xlabel('Time (s)')
+pl.ylabel('Normalized response')
 pl.show()
 
 pl.figure()
 scale = np.max(plvlow[np.logical_and(times > smin, times < smax), :], axis=0)
 pl.plot(times - t0, plvlow/scale, linewidth=2)
 pl.legend(('50us', '100us', '200us', '400us', '800us'))
-pl.xlabel('Time (s)', fontsize=20)
-pl.ylabel('Normalized response', fontsize=20)
+pl.xlabel('Time (s)')
+pl.ylabel('Normalized response')
 pl.show()
 
 # Storing individual data
