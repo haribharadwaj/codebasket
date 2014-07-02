@@ -16,8 +16,8 @@ def plotDepthResults(subjlist, what, numCondsToPlot, summary=False, max=False,
     #froot = '/home/hari/Documents/DepthResults/'
 
     nsubjs = len(subjlist)
-    condlist = [[1, 7], [2, 8], [3, 9]]
-    condstemlist = ['_0dB', '_m4dB', '_m8dB']
+    condlist = [[1, 7], [2, 8], [3, 9], [4, 10]]
+    condstemlist = ['_0dB', '_m4dB', '_m8dB', '_m12dB']
     nconds = len(condlist)
     whatever_all = np.zeros((nsubjs, nconds))
 
@@ -81,7 +81,7 @@ numCondsToPlot = 3
 S_top = np.log10(plotDepthResults(top, what, numCondsToPlot)/1e-6) * 20.0
 S_bottom = np.log10(plotDepthResults(bottom, what, numCondsToPlot)/1e-6) * 20.0
 
-m = [0, -4.0, -8.0]
+m = [0, -4.0, -8.0, -12.0]
 top_mu = S_top.mean(axis=0)
 top_err = S_top.std(axis=0)/(len(top)**0.5)
 
@@ -98,4 +98,30 @@ pl.plot(m, S_bottom.T, '--', linewidth=2, color=[0.5, 0.5, 0.5])
 pl.xlabel('Modulation Depth (dB re: 100%)', fontsize=20)
 pl.ylabel('EFR magnitude (dB re: 1uV)', fontsize=20)
 pl.xlim((-8.5, 0.5))
+pl.show()
+
+allsubj = top + bottom
+S_all = np.log10(plotDepthResults(allsubj, what, numCondsToPlot)/1e-6) * 20
+N_all = np.log10(plotDepthResults(allsubj, 'N', numCondsToPlot)/1e-6) * 20
+all_mu = S_all.mean(axis=0)
+all_err = S_all.std(axis=0)/(len(allsubj)**0.5)
+all_mu_n = N_all.mean()
+all_err_n = N_all.std()/(len(allsubj)**0.5)
+pl.close('all')
+pl.figure()
+pl.errorbar(m, all_mu, yerr=all_err, linewidth=3, color='k', marker='s', ms=10)
+pl.xlabel('Modulation Depth (dB re: 100%)', fontsize=20)
+pl.ylabel('EFR magnitude (dB re: 1uV)', fontsize=20)
+ax = pl.gca()
+ax.spines['right'].set_visible(False)
+ax.spines['top'].set_visible(False)
+ax.xaxis.set_ticks_position('bottom')
+ax.yaxis.set_ticks_position('left')
+ax.fill_between(np.arange(-15, 2),
+                all_mu_n.repeat(17) + 1.645*all_err_n.repeat(17),
+                all_mu_n.repeat(17) - 10, facecolor='grey', alpha=0.25)
+pl.hold(True)
+pl.plot(m, S_all.T, '--', linewidth=2, color=[0.5, 0.5, 0.5])
+pl.xlim((-12.1, 0.1))
+pl.ylim((-15.0, 15.0))
 pl.show()
