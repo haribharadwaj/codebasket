@@ -62,7 +62,7 @@ for subj in subjlist:
                 epochs = mne.Epochs(
                     raw, eves, cond, tmin=-0.025, proj=False,
                     tmax=0.425, baseline=(-0.025, 0),
-                    reject = dict(eeg=100e-6))
+                    reject = dict(eeg=125e-6))
 
                 xtemp = epochs.get_data()
 

@@ -141,8 +141,8 @@ bmin = 0.35
 bmax = 0.38
 plv = plv[:, :, np.logical_and(freqs > fmin, freqs < fmax), :].mean(axis=2)
 small = plv[:, :3, :].mean(axis=1)
-small = small - (small[:, np.logical_and(times < bmax, times > bmin)]
-                 .mean(axis=1))[:, None]
+#small = small - (small[:, np.logical_and(times < bmax, times > bmin)]
+#                 .mean(axis=1))[:, None]
 scale = np.max(small[:, np.logical_and(times < smax, times > smin)], axis=1)
 small = small/scale[:, None]
 wmin, wmax = 1.17, 1.42
@@ -150,13 +150,13 @@ small1 = np.max(small[:, np.logical_and(times > wmin, times < wmax)], axis=1)
 small2 = small[:, np.logical_and(times > wmin, times < wmax)].mean(axis=1)
 
 large = plv[:, 3:, :].mean(axis=1)
-large = large - (large[:, np.logical_and(times < bmax, times > bmin)]
-                 .mean(axis=1))[:, None]
+#large = large - (large[:, np.logical_and(times < bmax, times > bmin)]
+#                 .mean(axis=1))[:, None]
 scale = np.max(large[:, np.logical_and(times < smax, times > smin)], axis=1)
 large = large/scale[:, None]
 large1 = np.max(large[:, np.logical_and(times > wmin, times < wmax)], axis=1)
 large2 = large[:, np.logical_and(times > wmin, times < wmax)].mean(axis=1)
-perf = np.array([  6.729,   8.563,  18.308,  19.046,  16.732,   8.266,  19.564,
-                   9.457,   6.608,   7.889,  13.516,  16.509,   7.005,  13.839,
-                   8.943,   7.458,  16.509,  10.344,  10.264,  16.7  ,  12.319,
-                   6.41 ,   8.943])
+perf = np.array([6.729,   8.563,  18.308,  19.046,  16.732,   8.266,  19.564,
+                 9.457,   6.608,   7.889,  13.516,  16.509,   7.005,  13.839,
+                 8.943,   7.458,  16.509,  10.344,  10.264,  16.7,  12.319,
+                 6.41,   8.943])

@@ -5,7 +5,7 @@ from scipy import io
 froot = '/home/hari/Documents/PythonCodes/EfferentFFR/'
 
 
-subj = 'I13'
+subj = 'I39'
 
 fpath = froot + subj + '/'
 
@@ -13,7 +13,8 @@ fpath = froot + subj + '/'
 respath = fpath + 'RES/'
 
 condstemlist = ['signalOnly', 'simultaneousNoise',
-                'noise500ms_ahead', 'noiseOnly']
+                'noise500ms_ahead', 'noiseOnly',
+                'forwardMasking']
 
 for k, cond in enumerate(condstemlist):
     fname = respath + subj + '_' + cond + '_results.mat'
