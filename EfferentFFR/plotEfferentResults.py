@@ -5,7 +5,7 @@ from scipy import io
 froot = '/home/hari/Documents/PythonCodes/EfferentFFR/'
 
 
-subj = 'I39'
+subj = 'I13'
 
 fpath = froot + subj + '/'
 
@@ -13,9 +13,9 @@ fpath = froot + subj + '/'
 respath = fpath + 'RES/'
 
 condstemlist = ['signalOnly', 'simultaneousNoise',
-                'noise500ms_ahead', 'noiseOnly',
-                'forwardMasking']
-
+                'noise500ms_ahead', 'noiseOnly']
+                # 'forwardMasking']
+pl.figure()
 for k, cond in enumerate(condstemlist):
     fname = respath + subj + '_' + cond + '_results.mat'
     dat = io.loadmat(fname)
@@ -25,35 +25,25 @@ for k, cond in enumerate(condstemlist):
     Sraw = dat['Sraw'].squeeze()
 
     # Plot PLV
-    pl.figure(num=1)
+    ax1 = pl.subplot(3, 1, 1)
     pl.plot(f, cpow, linewidth=2)
     pl.hold(True)
-    pl.ylabel('Response Magnitude (uV^2)', fontsize=20)
-    pl.xlabel('Frequency (Hz)', fontsize=20)
+    pl.ylabel('Response Magnitude (uV^2)', fontsize=16)
+    pl.title(' Subject ' + subj + ' Efferent FFR results')
+    pl.legend(condstemlist)
 
     # Plot power
-    pl.figure(num=2)
+    ax2 = pl.subplot(3, 1, 2, sharex=ax1)
     pl.plot(f, cplv, linewidth=2)
     pl.hold(True)
-    pl.ylabel('Phase locking value', fontsize=20)
-    pl.xlabel('Frequency (Hz)', fontsize=20)
+    pl.ylabel('Phase locking value', fontsize=16)
 
     # Plot raw power
-    pl.figure(num=3)
+    ax3 = pl.subplot(3, 1, 3, sharex=ax1)
     ch = [3, 4, 25, 26, 30, 31]
     pl.plot(f, Sraw[ch, :].mean(axis=0), linewidth=2)
     pl.hold(True)
-    pl.ylabel('Raw power', fontsize=20)
-    pl.xlabel('Frequency (Hz)', fontsize=20)
+    pl.ylabel('Raw power', fontsize=16)
+    pl.xlabel('Frequency (Hz)', fontsize=16)
 
-pl.figure(num=1)
-pl.legend(condstemlist)
-pl.show()
-
-pl.figure(num=2)
-pl.legend(condstemlist)
-pl.show()
-
-pl.figure(num=3)
-pl.legend(condstemlist)
 pl.show()
