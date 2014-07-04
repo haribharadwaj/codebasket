@@ -459,20 +459,23 @@ for subj in subjlist:
            intRoexpwt(0, 0.4, pu_best, w_best, t_best))
     print 'ERB = ', ERB * fc, 'Hz'
 
-    # Plot the filter
+    # Calculate filter weights
     gvec = np.arange(-1.0, 1.0, 0.002)
     wts = getAudFilterPWT(gvec, fit['x'])
     wtslist += [wts, ]
 
-wts_mu = db(wtslist).mean(axis=0)
-wts_err = np.std(db(wtslist), axis=0) / np.sqrt(len(subjlist))
+pl.figure()
+wts_mu = np.nanmean(db(wtslist), axis=0)
+wts_err = np.nanstd(db(wtslist), axis=0) / np.sqrt(len(subjlist))
 f = fc * (1 + gvec)
-pl.plot(f, wts_mu, 'k', linewidth=3)
+pl.semilogx(f, wts_mu, 'k', linewidth=3)
 pl.hold(True)
-pl.plot(f, wts_mu + 1.645*wts_err, 'k--', linewidth=2)
-pl.plot(f, wts_mu - 1.645*wts_err, 'k--', linewidth=2)
+pl.semilogx(f, wts_mu + 1.645*wts_err, 'k--', linewidth=2)
+pl.semilogx(f, wts_mu - 1.645*wts_err, 'k--', linewidth=2)
+ticks = [1000, 2000, 4000, 8000]
+pl.xticks(ticks, map(str, ticks))
 pl.grid(True)
-pl.xlim((1000, 6000))
+pl.xlim((500, 9000))
 pl.ylim((-60.0, 0.0))
 ax = pl.gca()
 ax.spines['right'].set_visible(False)
