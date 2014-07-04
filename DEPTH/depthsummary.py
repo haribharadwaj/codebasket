@@ -12,8 +12,8 @@ import pylab as pl
 def plotDepthResults(subjlist, what, numCondsToPlot, summary=False, max=False,
                      ch_sel=30):
 
-    #froot = '/home/hari/Documents/PythonCodes/research/DepthResults/'
-    froot = '/home/hari/Documents/DepthResults/'
+    froot = '/home/hari/Documents/PythonCodes/research/DepthResults/'
+    # froot = '/home/hari/Documents/DepthResults/'
 
     nsubjs = len(subjlist)
     condlist = [[1, 7], [2, 8], [3, 9], [4, 10]]
@@ -132,7 +132,9 @@ pl.ylim((-15.0, 15.0))
 for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
              ax.get_xticklabels() + ax.get_yticklabels()):
     item.set_fontsize(20)
-pl.legend(loc=4)
-#pl.legend(('Mean', '1st Quartile Median', '2nd Quartile Median',
+pl.legend(['Mean', 'Individual Subjects'], loc=2)
+pl.text(-4, -12, 'Noise Floor')
+
+# pl.legend(('Mean', '1st Quartile Median', '2nd Quartile Median',
 #           '3rd Quartile Median', '4th Quartile Median'), loc=4)
 pl.show()
