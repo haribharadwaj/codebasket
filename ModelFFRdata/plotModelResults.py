@@ -8,7 +8,7 @@ import numpy as np
 from scipy import io
 import pylab as pl
 
-subjlist = ['I13', 'I33', 'I41']
+subjlist = ['I13', 'I33', 'I41', 'I08', 'I02']
 
 # Adding Files and locations
 froot = '/home/hari/Documents/PythonCodes/ModelData/'
