@@ -2,10 +2,10 @@ import pylab as pl
 from scipy import io
 
 # Adding Files and locations
-froot = '/home/hari/Documents/PythonCodes/EfferentFFR/'
+froot = '/home/hari/Documents/PythonCodes/EfferentFFR/f331/'
 
 
-subj = 'I13'
+subj = 'I08'
 
 fpath = froot + subj + '/'
 
@@ -13,8 +13,8 @@ fpath = froot + subj + '/'
 respath = fpath + 'RES/'
 
 condstemlist = ['signalOnly', 'simultaneousNoise',
-                'noise500ms_ahead', 'noiseOnly']
-                # 'forwardMasking']
+                'noise500ms_ahead', 'noiseOnly',
+                'forwardMasking']
 pl.figure()
 for k, cond in enumerate(condstemlist):
     fname = respath + subj + '_' + cond + '_results.mat'

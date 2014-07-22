@@ -7,14 +7,14 @@ import os
 import fnmatch
 
 # Adding Files and locations
-froot = '/home/hari/Documents/PythonCodes/EfferentFFR/'
+froot = '/home/hari/Documents/PythonCodes/EfferentFFR/f331/'
 
 # List of files stems, each will be appended by run number
 # Could be different for edf, fiff, eve etc.
 # Use list [] and enumerate over if filenames are weird
 
 
-subjlist = ['I39']
+subjlist = ['I08']
 
 for subj in subjlist:
 

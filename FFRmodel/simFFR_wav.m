@@ -9,11 +9,11 @@ wavname_noise = 'restaurant.wav';
 %wavname = 'SAM_4kHz_40Hz.wav';
 fs = 100e3;
 
-plotting = 0;
+plotting = 1;
 fiblist = {'Low-SR','Med-SR','High-SR'};
 
-noisedblist = [50, 60, 70, 80, 90];
-Ntrials = 10;
+noisedblist = 75; %50:5:90;
+Ntrials = 1;
 
 for noisedb = noisedblist
     for trial = 1:Ntrials
@@ -23,8 +23,7 @@ for noisedb = noisedblist
             SR = [0.1, 15, 100];
             stimdb = 75;
             
-            
-            Ntrials = 1;
+
             [pin_noise, fs_wav] = wavread(wavname_noise);
             tstart = ceil(rand*fs_wav*9); % The file is slightly more than 10 secs long..
             pin_noise = pin_noise(tstart:(tstart+ceil(fs_wav)-1),1);
@@ -140,14 +139,16 @@ for noisedb = noisedblist
             [n1, x1] = hist(cond1(:), 50);
             [n2, x2] = hist(cond2(:), 50);
             figure;
-            plot(x1, n1/numel(cond1), 'b-', 'linew', 2);
+            h1 = n1/numel(cond1);
+            h2 = n2/numel(cond2);
+            plot(x1, h1, 'b-', 'linew', 2);
             hold on;
-            plot(x2, n2/numel(cond2), 'r-', 'linew', 2);
+            plot(x2, h2, 'r-', 'linew', 2);
             xlabel('Neural SNR in time-frequency atom (dB)', 'FontSize', 20);
             ylabel('Probability of occurrence', 'FontSize', 20);
         end
         fname = strcat('./RESULTS/simNoisy_trial', num2str(trial),'_noise', num2str(noisedb),'dB.mat');
-        save(fname, 'S', 'f', 't_gated', 'SNR', 'f_fft', 'f0', 'stimdb', 'noisedb', 'trial');
+        save(fname, 'S', 'f', 't_gated', 'SNR', 'f_fft', 'f0', 'stimdb', 'noisedb', 'trial', 'h1', 'h2', 'x1', 'x2');
         clear SNR
     end
 end
