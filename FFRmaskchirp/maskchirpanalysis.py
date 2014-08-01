@@ -18,7 +18,7 @@ froot = '/home/hari/Documents/MATLAB/MaskChirp/'
 # 'I17_redo','I18','I19','I20','I25','I26','I27','I28','I29','I30','I37',
 # 'I16','I32','I33','I34','I35','I39','I05','I36']
 
-subjlist = ['I03']          
+subjlist = ['I11']          
             
 for subj in subjlist:
     
@@ -30,10 +30,10 @@ for subj in subjlist:
     # Saving all the results (only) in a separate directory
     resonly_backup = '/home/hari/Documents/MaskChirpResults/' + subj + '/'
     
-    #condlist = [[1,7],[2,8],[3,9],[4,10],[5,11]]
-    condlist = [[6,12]]
-    #condstemlist = ['_mask1','_mask2','_mask3','_mask4','_mask5']
-    condstemlist = ['_chirp']
+    condlist = [[1,7],[2,8],[3,9],[4,10],[5,11]]
+    #condlist = [[6,12]]
+    condstemlist = ['_mask1','_mask2','_mask3','_mask4','_mask5']
+    #condstemlist = ['_chirp']
     
     for  condind, cond in enumerate(condlist):
         condstem = condstemlist[condind]
@@ -136,6 +136,11 @@ for subj in subjlist:
             io.savemat(respath + save_raw_name,dict(x = x,subj = subj))
         
 '''
+froot = '/home/hari/Documents/MATLAB/MaskChirp/'
+subj = 'I11'
+fpath = froot + subj + '/'
+respath = fpath + 'RES/'
+from scipy import io
 import pylab as pl
 dat = io.loadmat(respath + subj + '_mask1_results.mat')
 m0 = dat['cplv']
@@ -147,6 +152,7 @@ dat = io.loadmat(respath + subj + '_mask4_results.mat')
 m_lo = dat['cplv']
 dat = io.loadmat(respath + subj + '_mask5_results.mat')
 m_hi2 = dat['cplv']
+f = dat['f']
 pl.plot(f,m0)
 pl.hold(True)
 pl.plot(f,m)

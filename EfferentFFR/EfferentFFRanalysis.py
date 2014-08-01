@@ -7,14 +7,18 @@ import os
 import fnmatch
 
 # Adding Files and locations
-froot = '/home/hari/Documents/PythonCodes/EfferentFFR/f331/'
+froot = '/home/hari/Documents/PythonCodes/EfferentFFR/'
+
+f331 = True
+if f331:
+    froot = froot + 'f331/'
 
 # List of files stems, each will be appended by run number
 # Could be different for edf, fiff, eve etc.
 # Use list [] and enumerate over if filenames are weird
 
 
-subjlist = ['I08']
+subjlist = ['I41']
 
 for subj in subjlist:
 
@@ -60,7 +64,7 @@ for subj in subjlist:
                 epochs = mne.Epochs(
                     raw, eves, cond, tmin=0.475, proj=False,
                     tmax=0.825, baseline=(0.475, 0.5),
-                    reject = dict(eeg=100e-6))
+                    reject = dict(eeg=150e-6))
 
                 xtemp = epochs.get_data()
 

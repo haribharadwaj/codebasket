@@ -2,10 +2,15 @@ import pylab as pl
 from scipy import io
 
 # Adding Files and locations
-froot = '/home/hari/Documents/PythonCodes/EfferentFFR/f331/'
+froot = '/home/hari/Documents/PythonCodes/EfferentFFR/'
+f331 = True
+if f331:
+    froot = froot + 'f331/'
+    xlim = (320, 350)
+else:
+    xlim = (70, 250)
 
-
-subj = 'I08'
+subj = 'I41'
 
 fpath = froot + subj + '/'
 
@@ -20,6 +25,7 @@ for k, cond in enumerate(condstemlist):
     fname = respath + subj + '_' + cond + '_results.mat'
     dat = io.loadmat(fname)
     f = dat['f'].squeeze()
+
     cpow = dat['cpow'].squeeze()
     cplv = dat['cplv'].squeeze()
     Sraw = dat['Sraw'].squeeze()
@@ -46,4 +52,5 @@ for k, cond in enumerate(condstemlist):
     pl.ylabel('Raw power', fontsize=16)
     pl.xlabel('Frequency (Hz)', fontsize=16)
 
+pl.xlim(xlim)
 pl.show()
