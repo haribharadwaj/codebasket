@@ -8,7 +8,7 @@ import numpy as np
 from scipy import io
 import pylab as pl
 
-subjlist = ['I13', 'I33', 'I41', 'I08', 'I02']
+subjlist = ['I33', 'I41', 'I08', 'I02', 'I11', 'I13']
 
 # Adding Files and locations
 froot = '/home/hari/Documents/PythonCodes/ModelData/'
@@ -47,8 +47,11 @@ for subj in subjlist:
     fname = respath + subj + '_all_phase.mat'
     dat = io.loadmat(fname)
     ph = dat['Ph_f0'].squeeze()
+    t0 = -0.025
+    shift = 2*np.pi*f*t0
+    ph = ph - shift
     # phclean = np.median(unwrap(ph, axis=1), axis=0) / (2 * np.pi)
-    phclean = np.unwrap(ph[30, :]) / (2 * np.pi)
+    phclean = np.unwrap(ph[24, :]) / (2 * np.pi)
     f = dat['f0_list'].squeeze()
     t_grp = -1e3 * np.diff(phclean) / (np.diff(f).mean())
     f_grp = f[1:] - (np.diff(f).mean())/2

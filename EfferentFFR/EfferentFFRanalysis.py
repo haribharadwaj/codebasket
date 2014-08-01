@@ -9,7 +9,7 @@ import fnmatch
 # Adding Files and locations
 froot = '/home/hari/Documents/PythonCodes/EfferentFFR/'
 
-f331 = True
+f331 = False
 if f331:
     froot = froot + 'f331/'
 
@@ -18,7 +18,7 @@ if f331:
 # Use list [] and enumerate over if filenames are weird
 
 
-subjlist = ['I41']
+subjlist = ['I52']
 
 for subj in subjlist:
 

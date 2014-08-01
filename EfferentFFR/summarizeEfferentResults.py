@@ -5,14 +5,14 @@ from scipy import io
 
 # Adding Files and locations
 froot = '/home/hari/Documents/PythonCodes/EfferentFFR/'
-f331 = True
+f331 = False
 if f331:
     froot = froot + 'f331/'
     f0 = 331.0
     subjlist = ['I08', 'I14', 'I29', 'I33', 'I39', 'I41']
 else:
     f0 = 100.0
-    subjlist = ['I08', 'I11', 'I14', 'I29', 'I39', 'I33', 'I41']
+    subjlist = ['I08', 'I11', 'I14', 'I29', 'I39', 'I33', 'I41', 'I52']
 
 measureName = 'cplv'
 condstemlist = ['signalOnly', 'simultaneousNoise',

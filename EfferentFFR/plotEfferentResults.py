@@ -3,14 +3,14 @@ from scipy import io
 
 # Adding Files and locations
 froot = '/home/hari/Documents/PythonCodes/EfferentFFR/'
-f331 = True
+f331 = False
 if f331:
     froot = froot + 'f331/'
-    xlim = (320, 350)
+    xlim = (100, 500)
 else:
     xlim = (70, 250)
 
-subj = 'I41'
+subj = 'I52'
 
 fpath = froot + subj + '/'
 
