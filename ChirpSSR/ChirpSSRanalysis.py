@@ -1,6 +1,5 @@
 import mne
 import numpy as np
-from anlffr import spectral
 from scipy import io
 import os
 import fnmatch
@@ -8,12 +7,17 @@ from anlffr.helper import biosemi2mne as bs
 from anlffr.preproc import find_blinks
 from mne.preprocessing.ssp import compute_proj_epochs
 from mne.time_frequency import induced_power
+import pylab as pl
 
 
 # Adding Files and locations
 froot = '/home/hari/Documents/PythonCodes/ChirpSSR/'
 
 subjlist = ['I41', ]
+ch = [3, 4, 25, 26, 30, 31]  # Channels of interest
+freqs = np.arange(2, 500, 2)  # define frequencies of interest
+n_cycles = freqs / float(5)  # different number of cycle per frequency
+n_cycles[freqs < 5] = 1
 
 for subj in subjlist:
 
@@ -73,13 +77,46 @@ for subj in subjlist:
                 # Reshaping to the format needed by spectral.mtcpca() and
                 # calling it
                 if(xtemp.shape[0] > 0):
-                    xtemp = xtemp.transpose((1, 0, 2))
-                    xtemp = xtemp[0:32, :, :]
                     if(k == 0):
                         x = xtemp
                     else:
-                        x = np.concatenate((x, xtemp), axis=1)
+                        x = np.concatenate((x, xtemp), axis=0)
                 else:
                     continue
 
-        
+    # Calculate power, plv
+    Fs = raw.info['sfreq']
+    times = epochs.times
+    plv = np.zeros((len(freqs), len(times)))
+    tfspec = np.zeros((len(freqs), len(times)))
+    dat = x[:, ch, :].mean(axis=1, keepdims=True)
+    powtemp, plvtemp = induced_power(dat, Fs=Fs, frequencies=freqs,
+                                     n_cycles=n_cycles, zero_mean=True)
+    plv = plvtemp.squeeze()
+    tfspec = powtemp.squeeze()
+
+    # Save results to the RES directory
+    savedict = dict(tfspec=tfspec, plv=plv, times=times, freqs=freqs)
+    save_name = subj + '_plv_inducedpow_2Hz_500Hz.mat'
+    print 'Saving data for subject', subj
+    if (not os.path.isdir(respath)):
+        os.mkdir(respath)
+    io.savemat(respath + save_name, savedict)
+
+    if not os.path.isfile(respath + save_raw_name):
+        io.savemat(respath + save_raw_name, dict(x=x, subj=subj, Fs=Fs))
+
+    ##########################################################################
+    # View time-frequency plots
+
+    pl.close('all')
+    t0 = 0.0
+    pl.figure()
+    pl.imshow(plv, vmin=0.1, vmax=0.20,
+              extent=[times[0] - t0, times[-1] - t0, freqs[0], freqs[-1]],
+              aspect='auto', origin='lower')
+    pl.xlabel('Time (s)')
+    pl.ylabel('Frequency (Hz)')
+    pl.title('Phase Locking')
+    pl.colorbar()
+    pl.show()
