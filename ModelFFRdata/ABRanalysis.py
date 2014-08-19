@@ -17,7 +17,7 @@ froot = '/home/hari/Documents/PythonCodes/ModelData/'
 # 'I17_redo','I18','I19','I20','I25','I26','I27','I28','I29','I30','I37',
 # 'I16','I32','I33','I34','I35','I39','I05','I36']
 
-subjlist = ['I52']
+subjlist = ['I08']
 
 for subj in subjlist:
 
@@ -44,7 +44,7 @@ for subj in subjlist:
     raw.info['bads'] += ['A24']
     # Filter the data
     raw.filter(
-        l_freq=70, h_freq=3000, picks=np.arange(0, 34, 1))
+        l_freq=100, h_freq=2000, picks=np.arange(0, 34, 1))
 
     raw.notch_filter(freqs=np.arange(60, 2000, 60),
                      picks=np.arange(0, 34, 1))
@@ -71,3 +71,5 @@ pl.plot(t, cz - LE, linewidth=2)
 pl.plot(t, cz - RE, linewidth=2)
 pl.xlabel('Time (ms)')
 pl.ylabel('ABR (uV)')
+pl.legend(('Cz -average ear', 'Cz - ipsi ear', 'Cz - contra ear'))
+pl.show()

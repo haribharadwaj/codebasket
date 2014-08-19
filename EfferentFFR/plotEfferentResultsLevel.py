@@ -2,13 +2,9 @@ import pylab as pl
 from scipy import io
 
 # Adding Files and locations
-froot = '/home/hari/Documents/PythonCodes/EfferentFFR/'
-f331 = True
-if f331:
-    froot = froot + 'f331/'
-    xlim = (100, 500)
-else:
-    xlim = (70, 250)
+froot = '/home/hari/Documents/PythonCodes/EfferentFFR/LevelControl/'
+
+xlim = (100, 500)
 
 subj = 'I41'
 
@@ -17,9 +13,8 @@ fpath = froot + subj + '/'
 # These are so that the generated files are organized better
 respath = fpath + 'RES/'
 
-condstemlist = ['signalOnly', 'simultaneousNoise',
-                'noise500ms_ahead', 'noiseOnly',
-                'forwardMasking']
+condstemlist = ['70dBSPL', '64dBSPL', '58dBSPL']
+
 pl.figure()
 for k, cond in enumerate(condstemlist):
     fname = respath + subj + '_' + cond + '_results.mat'

@@ -7,18 +7,9 @@ import os
 import fnmatch
 
 # Adding Files and locations
-froot = '/home/hari/Documents/PythonCodes/EfferentFFR/'
+froot = '/home/hari/Documents/PythonCodes/EfferentFFR/LevelControl/'
 
-f331 = False
-if f331:
-    froot = froot + 'f331/'
-
-# List of files stems, each will be appended by run number
-# Could be different for edf, fiff, eve etc.
-# Use list [] and enumerate over if filenames are weird
-
-
-subjlist = ['I02', ]
+subjlist = ['I41', ]
 
 for subj in subjlist:
 
@@ -27,11 +18,8 @@ for subj in subjlist:
     # These are so that the generated files are organized better
     respath = fpath + 'RES/'
 
-    condlist = np.arange(1, 6)
-    condstemlist = ['signalOnly', 'simultaneousNoise',
-                    'noise500ms_ahead', 'noiseOnly',
-                    'forwardMasking']
-
+    condlist = np.arange(1, 4)
+    condstemlist = ['70dBSPL', '64dBSPL', '58dBSPL']
     for condind, cond in enumerate(condlist):
         condstem = condstemlist[condind]
         print 'Running Subject', subj, 'Condition', condind
@@ -62,8 +50,8 @@ for subj in subjlist:
 
                 # Epoching events of type
                 epochs = mne.Epochs(
-                    raw, eves, cond, tmin=0.475, proj=False,
-                    tmax=0.825, baseline=(0.475, 0.5),
+                    raw, eves, cond, tmin=-0.025, proj=False,
+                    tmax=0.325, baseline=(-0.025, 0.0),
                     reject = dict(eeg=150e-6))
 
                 xtemp = epochs.get_data()
@@ -82,7 +70,7 @@ for subj in subjlist:
 
         nPerDraw = 400
         nDraws = 100
-        fs = 2048
+        fs = 4096.0
         params = dict(Fs=fs, fpass=[5, 1000], tapers=[1, 1], Npairs=2000,
                       itc=1)
 
