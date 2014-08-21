@@ -10,14 +10,35 @@ from mne.time_frequency import induced_power
 import pylab as pl
 
 
+def pow2db(x):
+    """ Converts *power* to decibels
+
+    Parameters
+    ----------
+
+    x - Input in linear units
+
+    Returns
+    -------
+
+    y - Equivalend in decibel units
+    """
+
+    y = 10*np.log10(x)
+    return y
+
 # Adding Files and locations
 froot = '/home/hari/Documents/PythonCodes/ChirpSSR/'
+
+lowLevel = True
+if lowLevel:
+    froot = froot + 'Level58dB/'
 
 subjlist = ['I41', ]
 ch = [3, 4, 25, 26, 30, 31]  # Channels of interest
 freqs = np.arange(2, 500, 2)  # define frequencies of interest
 n_cycles = freqs / float(5)  # different number of cycle per frequency
-n_cycles[freqs < 5] = 1
+n_cycles[freqs < 15] = 2
 
 for subj in subjlist:
 
@@ -35,10 +56,15 @@ for subj in subjlist:
         save_raw_name = subj + '_' + condstem + '_alltrial.mat'
 
         if os.path.isfile(respath + save_raw_name):
+            preEpoched = True
             print 'Epoched data is already available on disk!'
             print 'Loading data from:', respath + save_raw_name
-            x = io.loadmat(respath + save_raw_name)['x']
+            dat = io.loadmat(respath + save_raw_name)
+            Fs = dat['Fs'][0, 0]
+            x = dat['x']
+            times = dat['times'].squeeze()
         else:
+            preEpoched = False
             bdfs = fnmatch.filter(os.listdir(fpath), subj + '*.bdf')
             print 'No pre-epoched data found, looking for BDF files'
             print 'Viola!', len(bdfs),  'files found!'
@@ -50,7 +76,7 @@ for subj in subjlist:
 
                 raw.info['bads'] += ['EXG3', ]
                 # Filter the data for ERPs
-                raw.filter(l_freq=0.5, h_freq=200, l_trans_bandwidth=0.15,
+                raw.filter(l_freq=0.5, h_freq=500, l_trans_bandwidth=0.15,
                            picks=np.arange(0, 32, 1))
 
                 # raw.apply_proj()
@@ -64,13 +90,13 @@ for subj in subjlist:
                 blink_projs = compute_proj_epochs(epochs_blinks, n_grad=0,
                                                   n_mag=0, n_eeg=2,
                                                   verbose='DEBUG')
+                raw.del_proj(0)  # Removing average reference projection
                 raw.add_proj(blink_projs)
 
                 # Epoching events of type
-                epochs = mne.Epochs(
-                    raw, eves, cond, tmin=-0.1, proj=False,
-                    tmax=2.1, baseline=(-0.1, 0.0),
-                    reject = dict(eeg=150e-6))
+                epochs = mne.Epochs(raw, eves, cond, tmin=-0.1, proj=True,
+                                    tmax=2.1, baseline=(-0.1, 0.0),
+                                    reject = dict(eeg=150e-6))
 
                 xtemp = epochs.get_data()
 
@@ -85,15 +111,16 @@ for subj in subjlist:
                     continue
 
     # Calculate power, plv
-    Fs = raw.info['sfreq']
-    times = epochs.times
+    if not preEpoched:
+        Fs = raw.info['sfreq']
+        times = epochs.times
     plv = np.zeros((len(freqs), len(times)))
     tfspec = np.zeros((len(freqs), len(times)))
     dat = x[:, ch, :].mean(axis=1, keepdims=True)
     powtemp, plvtemp = induced_power(dat, Fs=Fs, frequencies=freqs,
                                      n_cycles=n_cycles, zero_mean=True)
     plv = plvtemp.squeeze()
-    tfspec = powtemp.squeeze()
+    tfspec = pow2db(powtemp.squeeze())
 
     # Save results to the RES directory
     savedict = dict(tfspec=tfspec, plv=plv, times=times, freqs=freqs)
@@ -104,19 +131,34 @@ for subj in subjlist:
     io.savemat(respath + save_name, savedict)
 
     if not os.path.isfile(respath + save_raw_name):
-        io.savemat(respath + save_raw_name, dict(x=x, subj=subj, Fs=Fs))
+        io.savemat(respath + save_raw_name, dict(x=x, subj=subj, Fs=Fs,
+                                                 times=times))
 
     ##########################################################################
     # View time-frequency plots
-
+    # PLV
     pl.close('all')
     t0 = 0.0
     pl.figure()
-    pl.imshow(plv, vmin=0.1, vmax=0.20,
+    pl.imshow(plv, vmin=0.05, vmax=0.2,
               extent=[times[0] - t0, times[-1] - t0, freqs[0], freqs[-1]],
               aspect='auto', origin='lower')
     pl.xlabel('Time (s)')
     pl.ylabel('Frequency (Hz)')
     pl.title('Phase Locking')
+    pl.colorbar()
+    pl.show()
+
+    # Induced power
+    pl.figure()
+    bmin, bmax = -0.1, 0.0
+    powbline = tfspec[:, np.logical_and(times < bmax,
+                                        times > bmin)].mean(axis=1)
+    pl.imshow((tfspec.T-powbline.T).T, vmin=-3.0, vmax=3.0,
+              extent=[times[0] - t0, times[-1] - t0, freqs[0], freqs[-1]],
+              aspect='auto', origin='lower')
+    pl.xlabel('Time (s)')
+    pl.ylabel('Frequency (Hz)')
+    pl.title('Power (dB re: baseline)')
     pl.colorbar()
     pl.show()

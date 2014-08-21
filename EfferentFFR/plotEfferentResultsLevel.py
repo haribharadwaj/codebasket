@@ -4,7 +4,12 @@ from scipy import io
 # Adding Files and locations
 froot = '/home/hari/Documents/PythonCodes/EfferentFFR/LevelControl/'
 
-xlim = (100, 500)
+noisecarr100 = False
+if noisecarr100:
+    froot = froot + 'Noisecarrier100/'
+    xlim = (70, 200)
+else:
+    xlim = (250, 500)
 
 subj = 'I41'
 

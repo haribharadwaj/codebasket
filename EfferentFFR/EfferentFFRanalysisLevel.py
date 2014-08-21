@@ -9,6 +9,10 @@ import fnmatch
 # Adding Files and locations
 froot = '/home/hari/Documents/PythonCodes/EfferentFFR/LevelControl/'
 
+noisecarr100 = True
+if noisecarr100:
+    froot = froot + 'Noisecarrier100/'
+
 subjlist = ['I41', ]
 
 for subj in subjlist:
