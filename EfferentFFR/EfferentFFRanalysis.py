@@ -10,15 +10,27 @@ import fnmatch
 froot = '/home/hari/Documents/PythonCodes/EfferentFFR/'
 
 f331 = False
+noisecarr = True
 if f331:
     froot = froot + 'f331/'
+
+if noisecarr:
+    froot = froot + 'NoiseCarr/'
+    condlist = np.arange(1, 5)
+    condstemlist = ['signalOnly', 'simultaneousNoise',
+                    'noise500ms_ahead', 'forwardMasking']
+else:
+    condstemlist = ['signalOnly', 'simultaneousNoise',
+                    'noise500ms_ahead', 'noiseOnly',
+                    'forwardMasking']
+    condlist = np.arange(1, 6)
 
 # List of files stems, each will be appended by run number
 # Could be different for edf, fiff, eve etc.
 # Use list [] and enumerate over if filenames are weird
 
 
-subjlist = ['I02', ]
+subjlist = ['I08', ]
 
 for subj in subjlist:
 
@@ -26,11 +38,6 @@ for subj in subjlist:
 
     # These are so that the generated files are organized better
     respath = fpath + 'RES/'
-
-    condlist = np.arange(1, 6)
-    condstemlist = ['signalOnly', 'simultaneousNoise',
-                    'noise500ms_ahead', 'noiseOnly',
-                    'forwardMasking']
 
     for condind, cond in enumerate(condlist):
         condstem = condstemlist[condind]

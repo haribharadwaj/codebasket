@@ -4,22 +4,32 @@ from scipy import io
 # Adding Files and locations
 froot = '/home/hari/Documents/PythonCodes/EfferentFFR/'
 f331 = True
+noisecarr = False
 if f331:
     froot = froot + 'f331/'
     xlim = (100, 500)
+    condstemlist = ['signalOnly', 'simultaneousNoise',
+                    'noise500ms_ahead', 'noiseOnly',
+                    'forwardMasking']
 else:
     xlim = (70, 250)
+    condstemlist = ['signalOnly', 'simultaneousNoise',
+                    'noise500ms_ahead', 'noiseOnly',
+                    'forwardMasking']
 
-subj = 'I41'
+if noisecarr:
+    froot = froot + 'NoiseCarr/'
+    condstemlist = ['signalOnly', 'simultaneousNoise',
+                    'noise500ms_ahead', 'forwardMasking']
+
+subj = 'I33'
 
 fpath = froot + subj + '/'
 
 # These are so that the generated files are organized better
 respath = fpath + 'RES/'
 
-condstemlist = ['signalOnly', 'simultaneousNoise',
-                'noise500ms_ahead', 'noiseOnly',
-                'forwardMasking']
+
 pl.figure()
 for k, cond in enumerate(condstemlist):
     fname = respath + subj + '_' + cond + '_results.mat'

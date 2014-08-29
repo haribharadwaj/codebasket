@@ -4,14 +4,19 @@ from scipy import io
 # Adding Files and locations
 froot = '/home/hari/Documents/PythonCodes/EfferentFFR/LevelControl/'
 
-noisecarr100 = False
-if noisecarr100:
-    froot = froot + 'Noisecarrier100/'
+carr100 = True
+noise = True
+
+if carr100:
     xlim = (70, 200)
+    if noise:
+        froot = froot + 'Noisecarrier100/'
+    else:
+        froot = froot + 'PTCarr100/'
 else:
     xlim = (250, 500)
 
-subj = 'I41'
+subj = 'I11'
 
 fpath = froot + subj + '/'
 

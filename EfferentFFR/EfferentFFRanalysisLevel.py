@@ -9,11 +9,16 @@ import fnmatch
 # Adding Files and locations
 froot = '/home/hari/Documents/PythonCodes/EfferentFFR/LevelControl/'
 
-noisecarr100 = True
-if noisecarr100:
-    froot = froot + 'Noisecarrier100/'
+carr100 = True
+noise = True
 
-subjlist = ['I41', ]
+if carr100:
+    if noise:
+        froot = froot + 'Noisecarrier100/'
+    else:
+        froot = froot + 'PTCarr100/'
+
+subjlist = ['I11', ]
 
 for subj in subjlist:
 
@@ -44,7 +49,7 @@ for subj in subjlist:
                 (raw, eves) = bs.importbdf(fpath + edfname, nchans=35,
                                            refchans=['EXG1', 'EXG2'])
 
-                raw.info['bads'] += ['EXG3', ]
+                raw.info['bads'] += ['EXG3', 'A6', 'A7', 'A24', 'A21']
                 # Filter the data
                 raw.filter(
                     l_freq=70, h_freq=1500, picks=np.arange(0, 35, 1))
@@ -76,7 +81,7 @@ for subj in subjlist:
         nDraws = 100
         fs = 4096.0
         params = dict(Fs=fs, fpass=[5, 1000], tapers=[1, 1], Npairs=2000,
-                      itc=1)
+                      itc=1, nfft=2048)
 
         Ntrials = x.shape[1]
 
