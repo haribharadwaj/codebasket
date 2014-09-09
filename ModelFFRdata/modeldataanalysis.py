@@ -18,7 +18,7 @@ froot = '/home/hari/Documents/PythonCodes/ModelData/'
 # 'I17_redo','I18','I19','I20','I25','I26','I27','I28','I29','I30','I37',
 # 'I16','I32','I33','I34','I35','I39','I05','I36']
 
-subjlist = ['I11', 'I52', 'I29', 'I14']
+subjlist = ['I14']
 
 for subj in subjlist:
 
@@ -50,7 +50,7 @@ for subj in subjlist:
                 (raw, eves) = bs.importbdf(fpath + edfname, nchans=35,
                                            refchans=['EXG1', 'EXG2'])
 
-                raw.info['bads'] += ['EXG3', 'A24']
+                raw.info['bads'] += ['EXG3', 'A24', 'A20', 'A17']
                 # Filter the data
                 raw.filter(
                     l_freq=70, h_freq=1500, picks=np.arange(0, 34, 1))
@@ -62,7 +62,7 @@ for subj in subjlist:
                 epochs = mne.Epochs(
                     raw, eves, cond, tmin=-0.025, proj=False,
                     tmax=0.425, baseline=(-0.025, 0),
-                    reject = dict(eeg=125e-6))
+                    reject = dict(eeg=150e-6))
 
                 xtemp = epochs.get_data()
 

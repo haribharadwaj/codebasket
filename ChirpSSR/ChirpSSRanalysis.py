@@ -6,7 +6,7 @@ import fnmatch
 from anlffr.helper import biosemi2mne as bs
 from anlffr.preproc import find_blinks
 from mne.preprocessing.ssp import compute_proj_epochs
-from mne.time_frequency import induced_power
+from mne.time_frequency.tfr import _induced_power as induced_power
 import pylab as pl
 
 
@@ -30,12 +30,14 @@ def pow2db(x):
 # Adding Files and locations
 froot = '/home/hari/Documents/PythonCodes/ChirpSSR/'
 
-lowLevel = True
+lowLevel = False
 if lowLevel:
     froot = froot + 'Level58dB/'
 
-subjlist = ['I41', ]
-ch = [3, 4, 25, 26, 30, 31]  # Channels of interest
+subjlist = ['I25', ]
+nchans = 66
+ch = [57, ]
+# ch = [3, 4, 25, 26, 30, 31]  # Channels of interest
 freqs = np.arange(2, 500, 2)  # define frequencies of interest
 n_cycles = freqs / float(5)  # different number of cycle per frequency
 n_cycles[freqs < 15] = 2
@@ -71,8 +73,9 @@ for subj in subjlist:
 
             for k, edfname in enumerate(bdfs):
                 # Load data and read event channel
-                (raw, eves) = bs.importbdf(fpath + edfname, nchans=35,
-                                           refchans=['EXG1', 'EXG2'])
+                (raw, eves) = bs.importbdf(fpath + edfname, nchans=nchans,
+                                           refchans=['EXG1', 'EXG2'],
+                                           verbose='DEBUG')
 
                 raw.info['bads'] += ['EXG3', ]
                 # Filter the data for ERPs
@@ -117,7 +120,7 @@ for subj in subjlist:
     plv = np.zeros((len(freqs), len(times)))
     tfspec = np.zeros((len(freqs), len(times)))
     dat = x[:, ch, :].mean(axis=1, keepdims=True)
-    powtemp, plvtemp = induced_power(dat, Fs=Fs, frequencies=freqs,
+    powtemp, plvtemp = induced_power(dat, sfreq=Fs, frequencies=freqs,
                                      n_cycles=n_cycles, zero_mean=True)
     plv = plvtemp.squeeze()
     tfspec = pow2db(powtemp.squeeze())

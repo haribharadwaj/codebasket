@@ -17,7 +17,7 @@ else:
                     'noise500ms_ahead', 'noiseOnly',
                     'forwardMasking']
 
-if noisecarr:
+if noisecarr and not f331:
     froot = froot + 'NoiseCarr/'
     condstemlist = ['signalOnly', 'simultaneousNoise',
                     'noise500ms_ahead', 'forwardMasking']

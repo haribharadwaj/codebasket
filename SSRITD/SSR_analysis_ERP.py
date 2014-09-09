@@ -22,7 +22,7 @@ froot = '/home/hari/Documents/MATLAB/SSRITD/EEG/'
 #    'I02', 'I03', 'I05', 'I06', 'I08', 'I09', 'I11', 'I13', 'I14', 'I15',
 #    'I17', 'I18', 'I19', 'I20', 'I25', 'I26', 'I29', 'I30', 'I33', 'I35',
 #    'I36', 'I37']
-subjlist = ['I13', ]
+subjlist = ['I25', ]
 evokeds_allsubj = []
 
 for k, subj in enumerate(subjlist):

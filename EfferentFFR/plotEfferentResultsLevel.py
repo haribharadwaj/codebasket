@@ -5,7 +5,7 @@ from scipy import io
 froot = '/home/hari/Documents/PythonCodes/EfferentFFR/LevelControl/'
 
 carr100 = True
-noise = True
+noise = False
 
 if carr100:
     xlim = (70, 200)
@@ -16,7 +16,7 @@ if carr100:
 else:
     xlim = (250, 500)
 
-subj = 'I11'
+subj = 'I33'
 
 fpath = froot + subj + '/'
 

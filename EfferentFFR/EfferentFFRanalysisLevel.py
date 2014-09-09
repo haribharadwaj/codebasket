@@ -10,7 +10,7 @@ import fnmatch
 froot = '/home/hari/Documents/PythonCodes/EfferentFFR/LevelControl/'
 
 carr100 = True
-noise = True
+noise = False
 
 if carr100:
     if noise:
@@ -18,7 +18,7 @@ if carr100:
     else:
         froot = froot + 'PTCarr100/'
 
-subjlist = ['I11', ]
+subjlist = ['I33', ]
 
 for subj in subjlist:
 

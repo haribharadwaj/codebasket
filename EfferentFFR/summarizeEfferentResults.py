@@ -13,10 +13,15 @@ if f331:
     ch = [3, 30, 31, 23, 22]
 else:
     f0 = 100.0
-    subjlist = ['I08', 'I11', 'I14', 'I29', 'I39', 'I33', 'I41', 'I52', 'I02']
+    subjlist = ['I08', 'I14', 'I29', 'I33', 'I39', 'I41', 'I52', 'I11', 'I02']
     ch = [30, ]
 
-measureName = 'plv'
+cpca = False
+if cpca:
+    measureName = 'cplv'
+else:
+    measureName = 'plv'
+
 condstemlist = ['signalOnly', 'simultaneousNoise',
                 'noise500ms_ahead', 'forwardMasking']
 results = np.zeros(len(condstemlist))
@@ -32,7 +37,10 @@ for ks, subj in enumerate(subjlist):
         fname = respath + subj + '_' + cond + '_results.mat'
         dat = io.loadmat(fname)
         f = dat['f'].squeeze()
-        measure = dat[measureName].squeeze()[ch, :].mean(axis=0)
+        if cpca:
+            measure = dat[measureName].squeeze()
+        else:
+            measure = dat[measureName].squeeze()[ch, :].mean(axis=0)
         ind = np.argmin(np.abs(f - f0))
         results[k] = measure[ind]
 
