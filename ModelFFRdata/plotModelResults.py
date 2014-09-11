@@ -66,7 +66,7 @@ for subj in subjlist:
     # phclean = np.median(unwrap(ph, axis=1), axis=0) / (2 * np.pi)
     phclean = np.unwrap(ph[24, :]) / (2 * np.pi)
     f = dat['f0_list'].squeeze()
-    offset = -2
+    offset = -1.6
     t_grp = -1e3 * np.diff(phclean) / (np.diff(f).mean()) + offset
     f_grp = f[1:] - (np.diff(f).mean())/2
 
