@@ -58,14 +58,15 @@ for subj in subjlist:
 
     # Phase plots
     fname = respath + subj + '_all_phase.mat'
-    dat = io.loadmat(fname)
-    ph = dat['Ph_f0'].squeeze()
+    datph = io.loadmat(fname)
+    ph = datph['Ph_f0'].squeeze()
     t0 = -0.025
     shift = 2*np.pi*f*t0
     ph = ph - shift
     # phclean = np.median(unwrap(ph, axis=1), axis=0) / (2 * np.pi)
     phclean = np.unwrap(ph[24, :]) / (2 * np.pi)
-    f = dat['f0_list'].squeeze()
+    phclean = phclean - phclean.mean()
+    f = datph['f0_list'].squeeze()
     offset = -1.6
     t_grp = -1e3 * np.diff(phclean) / (np.diff(f).mean()) + offset
     f_grp = f[1:] - (np.diff(f).mean())/2
@@ -86,34 +87,40 @@ for subj in subjlist:
     pl.ylabel('Group Delay (ms)', fontsize=16)
     pl.xlim(np.min(f), np.max(f))
     pl.legend(subjlist, loc=1)
+
+Perr = ((P2e - Pe**2) / len(subjlist))**0.5
+PLVerr = ((PLV2e - PLVe**2) / len(subjlist))**0.5
+Pherr = ((Ph2e - Phe**2) / len(subjlist))**0.5
+terr = ((t2e - te**2) / len(subjlist))**0.5
+
 pl.show()
 
 pl.figure(num=3)
 ax3 = pl.subplot(2, 2, 1)
 pl.plot(f, Pe, linewidth=2)
 pl.hold(True)
-pl.plot(f, Pe + (P2e/len(subjlist))**0.5, '--')
-pl.plot(f, Pe - (P2e/len(subjlist))**0.5, '--')
+pl.plot(f, Pe + Perr, 'r--')
+pl.plot(f, Pe - Perr, 'r--')
 pl.ylabel('Power (dB re: 1uV)', fontsize=16)
 pl.subplot(2, 2, 3, sharex=ax3)
 pl.plot(f, PLVe, linewidth=2)
 pl.hold(True)
-pl.plot(f, PLVe + (PLV2e/len(subjlist))**0.5, '--')
-pl.plot(f, PLVe - (PLV2e/len(subjlist))**0.5, '--')
+pl.plot(f, PLVe + PLVerr, 'r--')
+pl.plot(f, PLVe - PLVerr, 'r--')
 pl.ylabel('PLV (squared)', fontsize=16)
 pl.xlabel('Modulation frequency (Hz)', fontsize=16)
 pl.subplot(2, 2, 2)
 pl.plot(f, Phe, linewidth=2)
 pl.hold(True)
-#pl.plot(f, Phe + (Ph2e/len(subjlist))**0.5, '--')
-#pl.plot(f, Phe - (Ph2e/len(subjlist))**0.5, '--')
+pl.plot(f, Phe + Pherr, 'r--')
+pl.plot(f, Phe - Pherr, 'r--')
 pl.ylabel('Unwrapped phase (cycles)', fontsize=16)
 pl.subplot(2, 2, 4, sharex=ax3)
 te_new = -1e3 * np.diff(Phe) / (np.diff(f).mean()) + offset
 pl.plot(f_grp, te_new, linewidth=2)
 pl.hold(True)
-#pl.plot(f_grp, te + (t2e/len(subjlist))**0.5, '--')
-#pl.plot(f_grp, te - (t2e/len(subjlist))**0.5, '--')
+pl.plot(f_grp, te + terr, 'r--')
+pl.plot(f_grp, te - terr, 'r--')
 pl.ylim((-5, 15.))
 pl.xlabel('Modulation frequency (Hz)', fontsize=16)
 pl.ylabel('Group Delay (ms)', fontsize=16)
