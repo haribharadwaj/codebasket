@@ -16,10 +16,6 @@ if lowLevel:
 
 subjlist = ['I13', ]
 nchans = 34
-ch = [3, 4, 25, 26, 30, 31]  # Channels of interest
-freqs = np.arange(5, 500, 2)  # define frequencies of interest
-n_cycles = freqs / float(3)  # different number of cycle per frequency
-n_cycles[freqs < 15] = 2
 
 for subj in subjlist:
 
