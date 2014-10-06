@@ -4,7 +4,6 @@ from scipy import io
 import os
 import fnmatch
 from anlffr import spectral
-from anlffr.helper import biosemi2mne as bs
 from anlffr.preproc import find_blinks
 from mne.preprocessing.ssp import compute_proj_epochs
 from mne.time_frequency.tfr import _induced_power as induced_power
@@ -29,17 +28,17 @@ def pow2db(x):
     return y
 
 # Adding Files and locations
-froot = '/home/hari/Documents/PythonCodes/MegaNoise/'
-
-subjlist = ['I13', ]
+froot = '/home/hari/Documents/PythonCodes/ASSRmartinos/'
+saveResults = False
+subjlist = ['SK', ]
 nchans = 34
-ch = [3, 4, 25, 26, 30, 31]  # Channels of interest
+ch = [175, ]  # Channels of interest
 freqs = np.arange(5, 500, 2)  # define frequencies of interest
 n_cycles = freqs / float(3)  # different number of cycle per frequency
 n_cycles[freqs < 15] = 2
 
-SSSR = True
-ASSR25 = False  # Set false for ASSR43
+SSSR = False
+ASSR25 = True  # Set false for ASSR43
 
 for subj in subjlist:
 
@@ -49,17 +48,16 @@ for subj in subjlist:
     respath = fpath + 'RES/'
 
     if SSSR:
-        condlist = [11, 12, 13, 14, 21, 22, 23, 24,
-                    31, 32, 33, 34, 41, 42, 43, 44]
+        condlist = range(1, 17)
         condstem = 'allEvents'
         l_freq = 70
     else:
-        l_freq = 0.5
+        l_freq = 2.0
         if ASSR25:
-            condlist = [11, 13, 21, 23, 31, 33, 41, 43]
+            condlist = [1, 3, 5, 7, 9, 11, 13, 15]
             condstem = 'ASSR25'
         else:
-            condlist = [12, 14, 22, 24, 32, 34, 42, 44]
+            condlist = [2, 4, 6, 8, 10, 12, 14, 16]
             condstem = 'ASSR43'
 
     print 'Running Subject', subj, 'Condition', condstem
@@ -76,41 +74,45 @@ for subj in subjlist:
         times = dat['times'].squeeze()
     else:
         preEpoched = False
-        bdfs = fnmatch.filter(os.listdir(fpath), subj + '*.bdf')
+        fifs = fnmatch.filter(os.listdir(fpath), subj + '*raw.fif')
         print 'No pre-epoched data found, looking for BDF files'
-        print 'Viola!', len(bdfs),  'files found!'
+        print 'Viola!', len(fifs),  'files found!'
 
-        for k, edfname in enumerate(bdfs):
+        for k, fifname in enumerate(fifs):
             # Load data and read event channel
-            (raw, eves) = bs.importbdf(fpath + edfname, nchans=nchans,
-                                       refchans=['EXG1', 'EXG2'],
-                                       verbose='DEBUG')
+            raw = mne.io.Raw(fpath + fifname, preload=True)
+            eves = mne.find_events(raw, stim_channel='STI101',
+                                   shortest_event=1)
 
-            raw.info['bads'] += ['EXG3', ]
+            raw.info['bads'] += ['MEG1421', 'MEG1431', 'MEG2621']
             # Filter the data for ERPs
             raw.filter(l_freq=l_freq, h_freq=500, l_trans_bandwidth=0.15,
-                       picks=np.arange(0, 32, 1))
+                       picks=np.arange(0, 308, 1))
 
             # raw.apply_proj()
             fs = raw.info['sfreq']
 
             if not SSSR:
                 # SSP for blinks
-                blinks = find_blinks(raw)
+                blinks = find_blinks(raw, ch_name='EOG061')
                 epochs_blinks = mne.Epochs(raw, blinks, 998, tmin=-0.25,
                                            tmax=0.25, proj=True,
                                            baseline=(-0.25, 0),
-                                           reject=dict(eeg=500e-6))
-                blink_projs = compute_proj_epochs(epochs_blinks, n_grad=0,
-                                                  n_mag=0, n_eeg=2,
+                                           reject=dict(grad=8000e-13,
+                                                       mag=8e-12))
+                blink_projs = compute_proj_epochs(epochs_blinks, n_grad=2,
+                                                  n_mag=2, n_eeg=0,
                                                   verbose='DEBUG')
-                raw.del_proj(0)  # Removing average reference projection
                 raw.add_proj(blink_projs)
+                useProj = True
+            else:
+                useProj = False
 
             # Epoching events of type
-            epochs = mne.Epochs(raw, eves, condlist, tmin=-0.05, proj=True,
-                                tmax=0.75, baseline=(-0.05, 0.0),
-                                reject = dict(eeg=150e-6))
+            epochs = mne.Epochs(raw, eves, condlist, tmin=-0.1, proj=useProj,
+                                tmax=0.8, baseline=(-0.1, 0.0),
+                                reject=dict(grad=5000e-13, mag=5e-12,
+                                            eog=600e-6))
 
             xtemp = epochs.get_data()
 
@@ -137,16 +139,17 @@ for subj in subjlist:
     tfspec = pow2db(powtemp.squeeze())
 
     # Save results to the RES directory
-    savedict = dict(tfspec=tfspec, plv=plv, times=times, freqs=freqs)
-    save_name = subj + '_plv_inducedpow_2Hz_500Hz.mat'
-    print 'Saving data for subject', subj
-    if (not os.path.isdir(respath)):
-        os.mkdir(respath)
-    io.savemat(respath + save_name, savedict)
+    if saveResults:
+        savedict = dict(tfspec=tfspec, plv=plv, times=times, freqs=freqs)
+        save_name = subj + '_plv_inducedpow_2Hz_500Hz.mat'
+        print 'Saving data for subject', subj
+        if (not os.path.isdir(respath)):
+            os.mkdir(respath)
+        io.savemat(respath + save_name, savedict)
 
-    if not os.path.isfile(respath + save_raw_name):
-        io.savemat(respath + save_raw_name, dict(x=x, subj=subj, Fs=Fs,
-                                                 times=times))
+        if not os.path.isfile(respath + save_raw_name):
+            io.savemat(respath + save_raw_name, dict(x=x, subj=subj, Fs=Fs,
+                                                     times=times))
 
     ##########################################################################
     # View time-frequency plots
@@ -184,7 +187,7 @@ for subj in subjlist:
     # Fourier domain stuff
     pl.figure()
     params = dict(Fs=Fs, fpass=[5, 1000], tapers=[1, 1], itc=1)
-    y = x[:, :32, :].transpose((1, 0, 2))
+    y = x[:, 1:306, :].transpose((1, 0, 2))
     plv, f = spectral.mtcpca(y, params, verbose='DEBUG')
     pl.plot(f, plv**0.5, linewidth=2)
     pl.xlabel('Frequency (Hz)', fontsize=16)
