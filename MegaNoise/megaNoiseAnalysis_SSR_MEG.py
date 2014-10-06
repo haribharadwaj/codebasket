@@ -186,7 +186,7 @@ for subj in subjlist:
     # Fourier domain stuff
     pl.figure()
     params = dict(Fs=Fs, fpass=[5, 1000], tapers=[1, 1], itc=1)
-    y = x[:, 1:306, :].transpose((1, 0, 2))
+    y = x[:, :306, :].transpose((1, 0, 2))
     plv, f = spectral.mtcpca(y, params, verbose='DEBUG')
     pl.plot(f, plv**0.5, linewidth=2)
     pl.xlabel('Frequency (Hz)', fontsize=16)
