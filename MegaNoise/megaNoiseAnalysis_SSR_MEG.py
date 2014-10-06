@@ -111,8 +111,7 @@ for subj in subjlist:
             # Epoching events of type
             epochs = mne.Epochs(raw, eves, condlist, tmin=-0.1, proj=useProj,
                                 tmax=0.8, baseline=(-0.1, 0.0),
-                                reject=dict(grad=5000e-13, mag=5e-12,
-                                            eog=600e-6))
+                                reject=dict(grad=5000e-13, mag=5e-12))
 
             xtemp = epochs.get_data()
 
