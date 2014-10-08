@@ -37,7 +37,7 @@ freqs = np.arange(5, 500, 2)  # define frequencies of interest
 n_cycles = freqs / float(3)  # different number of cycle per frequency
 n_cycles[freqs < 15] = 2
 
-SSSR = True
+SSSR = False
 ASSR25 = True  # Set false for ASSR43
 
 for subj in subjlist:
@@ -188,7 +188,7 @@ for subj in subjlist:
     params = dict(Fs=Fs, fpass=[5, 1000], tapers=[1, 1], itc=1)
     y = x[:, :306, :].transpose((1, 0, 2))
     plv, f = spectral.mtcpca(y, params, verbose='DEBUG')
-    pl.plot(f, plv**0.5, linewidth=2)
+    pl.plot(f, plv, linewidth=2)
     pl.xlabel('Frequency (Hz)', fontsize=16)
     pl.ylabel('Intertrial PLV', fontsize=16)
     pl.show()

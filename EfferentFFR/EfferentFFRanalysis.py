@@ -9,28 +9,38 @@ import fnmatch
 # Adding Files and locations
 froot = '/home/hari/Documents/PythonCodes/EfferentFFR/'
 
-f331 = False
-noisecarr = True
+f331 = True
+noisecarr = True  # Has effect only if f331 is False
+shorter = True  # Has effect only if f331 is True
 if f331:
     froot = froot + 'f331/'
-
-if noisecarr:
-    froot = froot + 'NoiseCarr/'
-    condlist = np.arange(1, 5)
-    condstemlist = ['signalOnly', 'simultaneousNoise',
-                    'noise500ms_ahead', 'forwardMasking']
+    if shorter:
+        condlist = np.arange(1, 5)
+        condstemlist = ['signalOnly', 'simultaneousNoise',
+                        'noise500ms_ahead', 'forwardMasking']
+    else:
+        condstemlist = ['signalOnly', 'simultaneousNoise',
+                        'noise500ms_ahead', 'noiseOnly',
+                        'forwardMasking']
+        condlist = np.arange(1, 6)
 else:
-    condstemlist = ['signalOnly', 'simultaneousNoise',
-                    'noise500ms_ahead', 'noiseOnly',
-                    'forwardMasking']
-    condlist = np.arange(1, 6)
+    if noisecarr:
+        froot = froot + 'NoiseCarr/'
+        condlist = np.arange(1, 5)
+        condstemlist = ['signalOnly', 'simultaneousNoise',
+                        'noise500ms_ahead', 'forwardMasking']
+    else:
+        condstemlist = ['signalOnly', 'simultaneousNoise',
+                        'noise500ms_ahead', 'noiseOnly',
+                        'forwardMasking']
+        condlist = np.arange(1, 6)
 
 # List of files stems, each will be appended by run number
 # Could be different for edf, fiff, eve etc.
 # Use list [] and enumerate over if filenames are weird
 
 
-subjlist = ['I08', ]
+subjlist = ['I07', ]
 
 for subj in subjlist:
 
