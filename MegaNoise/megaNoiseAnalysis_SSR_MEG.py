@@ -28,17 +28,17 @@ def pow2db(x):
     return y
 
 # Adding Files and locations
-froot = '/home/hari/Documents/PythonCodes/ASSRmartinos/'
+froot = '/autofs/cluster/transcend/hari/ASSRnew/'
 saveResults = False
-subjlist = ['SK', ]
+subjlist = ['082601', ]
 nchans = 34
 ch = [175, ]  # Channels of interest
 freqs = np.arange(5, 500, 2)  # define frequencies of interest
 n_cycles = freqs / float(3)  # different number of cycle per frequency
 n_cycles[freqs < 15] = 2
 
-SSSR = False
-ASSR25 = True  # Set false for ASSR43
+SSSR = True
+ASSR25 = False  # Set false for ASSR43
 
 for subj in subjlist:
 
@@ -106,12 +106,12 @@ for subj in subjlist:
                 raw.add_proj(blink_projs)
                 useProj = True
             else:
-                useProj = False
+                useProj = True
 
             # Epoching events of type
             epochs = mne.Epochs(raw, eves, condlist, tmin=-0.1, proj=useProj,
                                 tmax=0.8, baseline=(-0.1, 0.0),
-                                reject=dict(grad=5000e-13, mag=5e-12))
+                                reject=dict(grad=8000e-13, mag=5e-12))
 
             xtemp = epochs.get_data()
 
@@ -185,8 +185,8 @@ for subj in subjlist:
     #########################################################################
     # Fourier domain stuff
     pl.figure()
-    params = dict(Fs=Fs, fpass=[5, 1000], tapers=[1, 1], itc=1)
-    y = x[:, :306, :].transpose((1, 0, 2))
+    params = dict(Fs=Fs, fpass=[5, 1000], tapers=[1, 1], itc=0)
+    y = x[:, 2:306:3, :].transpose((1, 0, 2))
     plv, f = spectral.mtcpca(y, params, verbose='DEBUG')
     pl.plot(f, plv, linewidth=2)
     pl.xlabel('Frequency (Hz)', fontsize=16)

@@ -7,9 +7,10 @@ from mne.preprocessing.ssp import compute_proj_epochs
 
 
 # Adding Files and locations
-froot = '/home/hari/Documents/PythonCodes/ASSRmartinos/'
+# froot = '/home/hari/Documents/PythonCodes/ASSRmartinos/'
+froot = '/autofs/cluster/transcend/hari/ASSRnew/'
 
-subjlist = ['SK', ]
+subjlist = ['082601', ]
 
 epochs = []
 
