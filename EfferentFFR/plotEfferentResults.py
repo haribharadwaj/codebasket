@@ -5,12 +5,17 @@ from scipy import io
 froot = '/home/hari/Documents/PythonCodes/EfferentFFR/'
 f331 = True
 noisecarr = False
+shorter = True
 if f331:
     froot = froot + 'f331/'
     xlim = (100, 500)
-    condstemlist = ['signalOnly', 'simultaneousNoise',
-                    'noise500ms_ahead', 'noiseOnly',
-                    'forwardMasking']
+    if shorter:
+        condstemlist = ['signalOnly', 'simultaneousNoise',
+                        'noise500ms_ahead', 'forwardMasking']
+    else:
+        condstemlist = ['signalOnly', 'simultaneousNoise',
+                        'noise500ms_ahead', 'noiseOnly',
+                        'forwardMasking']
 else:
     xlim = (70, 250)
     condstemlist = ['signalOnly', 'simultaneousNoise',
@@ -22,7 +27,7 @@ if noisecarr and not f331:
     condstemlist = ['signalOnly', 'simultaneousNoise',
                     'noise500ms_ahead', 'forwardMasking']
 
-subj = 'I08'
+subj = 'I07'
 
 fpath = froot + subj + '/'
 
