@@ -7,8 +7,8 @@ from mne.preprocessing.ssp import compute_proj_epochs
 
 
 # Adding Files and locations
-froot = '/home/hari/Documents/PythonCodes/voices/'
-# froot = '/autofs/cluster/transcend/hari/ASSRnew/'
+# froot = '/home/hari/Documents/PythonCodes/voices/'
+froot = '/autofs/cluster/transcend/hari/voices/'
 
 subjlist = ['013703', ]
 
@@ -18,7 +18,7 @@ for subj in subjlist:
 
     fpath = froot + subj + '/'
 
-    fifs = fnmatch.filter(os.listdir(fpath), subj + '*raw.fif')
+    fifs = fnmatch.filter(os.listdir(fpath), subj + '*_sss.fif')
     print 'Viola!', len(fifs),  'files found!'
     if len(fifs) > 1:
         print 'Wait!!.. Was expecting only one file..'
@@ -29,7 +29,7 @@ for subj in subjlist:
     raw = mne.io.Raw(fpath + fifname, preload=True)
     eves = mne.find_events(raw, stim_channel='STI101', shortest_event=1)
 
-    raw.info['bads'] += ['MEG2312', 'MEG2613', 'MEG0212', 'MEG1622']
+    # raw.info['bads'] += ['MEG2312', 'MEG2613', 'MEG0212', 'MEG1622']
     # Filter the data for ERPs
     raw.filter(l_freq=0.5, h_freq=144.0, l_trans_bandwidth=0.15,
                picks=np.arange(0, 306, 1))
@@ -49,7 +49,8 @@ for subj in subjlist:
     raw.add_proj(blink_projs)
     evokeds = []
     condlists = [1, 2, 3, 4, 5, 6, 7, 8]
-    condnames = map(str, condlists)
+    condnames = ['SpeechA', 'SpeechB', 'JabberA', 'JabberB',
+                 'SWSA', 'SWSB', 'NoiseA', 'NoiseB']
 
     for k, condstem in enumerate(condnames):
         condlist = condlists[k]
