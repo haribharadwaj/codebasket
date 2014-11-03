@@ -10,8 +10,8 @@ from mne.preprocessing.ssp import compute_proj_epochs
 # froot = '/home/hari/Documents/PythonCodes/ASSRmartinos/'
 froot = '/autofs/cluster/transcend/hari/ASSRnew/'
 
-subjlist = ['082601', ]
-
+subjlist = ['075901', ]
+para = 'assrnew'
 epochs = []
 
 for subj in subjlist:
@@ -32,15 +32,17 @@ for subj in subjlist:
     raw = mne.io.Raw(fpath + fifname, preload=True)
     eves = mne.find_events(raw, stim_channel='STI101', shortest_event=1)
 
-    raw.info['bads'] += ['MEG1421', 'MEG1431', 'MEG2621']
+    raw.info['bads'] += ['MEG0412', 'MEG2033', 'MEG1221', 'MEG2343']
     # Filter the data for ERPs
-    raw.filter(l_freq=1.0, h_freq=20, l_trans_bandwidth=0.15,
-               picks=np.arange(0, 308, 1))
+    raw.filter(l_freq=1.0, h_freq=144, l_trans_bandwidth=0.15,
+               picks=np.arange(0, 306, 1))
 
     # raw.apply_proj()
     fs = raw.info['sfreq']
     # SSP for blinks
-    blinks = find_blinks(raw, ch_name='EOG061')
+    blinks = find_blinks(raw, ch_name='EOG062')
+    blinkname = fpath + subj + '_' + para + '_blinks.eve'
+    mne.write_events(blinkname, blinks)
     epochs_blinks = mne.Epochs(raw, blinks, 998, tmin=-0.25,
                                tmax=0.25, proj=True,
                                baseline=(-0.25, 0),
@@ -50,9 +52,25 @@ for subj in subjlist:
                                       n_mag=2, n_eeg=0,
                                       verbose='DEBUG')
     raw.add_proj(blink_projs)
+
+    # SSP for cardiac artifact
+    qrs = find_blinks(raw, ch_name='ECG063', h_freq=100.0, event_id=999,
+                      thresh=0.4e-3)
+    qrsname = fpath + subj + '_' + para + '_qrs.eve'
+    mne.write_events(qrsname, qrs)
+    epochs_qrs = mne.Epochs(raw, qrs, 999, tmin=-0.1,
+                            tmax=0.25, proj=True,
+                            baseline=(-0.1, 0),
+                            reject=dict(grad=8000e-13,
+                                        mag=8e-12))
+    qrs_projs = compute_proj_epochs(epochs_qrs, n_grad=2,
+                                      n_mag=2, n_eeg=0,
+                                      verbose='DEBUG')
+    raw.add_proj(qrs_projs)
+
     evokeds = []
-    condnames = ['LL', 'RL', 'LR', 'RR']
-    condlists = [[1, 2, 5, 6], [9, 10, 13, 14], [3, 4, 7, 8], [11, 12, 15, 16]]
+    condnames = ['Jump', 'NoJump']
+    condlists = [[1, 2, 3, 4], [5, 6, 7, 8, 9, 10, 11, 12]]
 
     for k, condstem in enumerate(condnames):
         condlist = condlists[k]
