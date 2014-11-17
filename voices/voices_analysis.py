@@ -11,14 +11,14 @@ from mne.preprocessing.ssp import compute_proj_epochs
 froot = '/autofs/cluster/transcend/hari/voices/'
 
 subjlist = ['013703', ]
-
+para = 'voices'
 epochs = []
 
 for subj in subjlist:
 
     fpath = froot + subj + '/'
 
-    fifs = fnmatch.filter(os.listdir(fpath), subj + '*_sss.fif')
+    fifs = fnmatch.filter(os.listdir(fpath), subj + '_' + para + '*_sss.fif')
     print 'Viola!', len(fifs),  'files found!'
     if len(fifs) > 1:
         print 'Wait!!.. Was expecting only one file..'
@@ -57,10 +57,12 @@ for subj in subjlist:
         print 'Running Subject', subj, 'Condition', condstem
 
         # Epoching events of type
-        epochs = mne.Epochs(raw, eves, condlist, tmin=-0.3, proj=True,
-                            tmax=1.0, baseline=(-0.3, 0.0), name=condstem,
+        epochs = mne.Epochs(raw, eves, condlist, tmin=-0.5, proj=True,
+                            tmax=2.0, baseline=(-0.3, 0.0), name=condstem,
                             reject=dict(grad=5000e-13, mag=5e-12))
+        epo_name = fpath + subj + '_' + para + '_' + condstem + '-epo.fif'
+        epochs.save(epo_name)
         evokeds += [epochs.average(), ]
 
-avename = subj + '_voices-ave.fif'
+avename = subj + '_' + para + '-ave.fif'
 mne.write_evokeds(fpath + avename, evokeds)

@@ -1,6 +1,5 @@
 import mne
 import numpy as np
-from scipy import io
 import os
 import fnmatch
 from anlffr import spectral
@@ -29,24 +28,22 @@ def pow2db(x):
 
     # Adding Files and locations
 froot = '/autofs/cluster/transcend/hari/ASSRnew/'
-saveResults = False
+saveResults = True
 subjlist = ['075901', ]
 ch = range(1, 307)  # Channels of interest
 mags = range(2, 306, 3)
+grads = range(0, 306, 3) + range(1, 306, 3)
 eeg = [309, ]
 freqs = np.arange(5, 500, 2)  # define frequencies of interest
 n_cycles = freqs / float(3)  # different number of cycle per frequency
 n_cycles[freqs < 15] = 2
 
-SSSR = False
-ASSR25 = True  # Set false for ASSR43
+SSSR = True
+ASSR25 = False  # Set false for ASSR43
 
 for subj in subjlist:
 
     fpath = froot + subj + '/'
-
-    # These are so that the generated files are organized better
-    respath = fpath + 'RES/'
 
     if SSSR:
         condlist = range(1, 13)
@@ -63,83 +60,72 @@ for subj in subjlist:
 
     print 'Running Subject', subj, 'Condition', condstem
 
-    save_raw_name = subj + '_' + condstem + '_alltrial.mat'
+    save_raw_name = subj + '_' + condstem + '-epo.fif'
 
-    if os.path.isfile(respath + save_raw_name):
+    if os.path.isfile(fpath + save_raw_name):
         preEpoched = True
         print 'Epoched data is already available on disk!'
-        print 'Loading data from:', respath + save_raw_name
-        dat = io.loadmat(respath + save_raw_name)
-        Fs = dat['Fs'][0, 0]
-        x = dat['x']
-        times = dat['times'].squeeze()
+        print 'Loading data from:', fpath + save_raw_name
+        epochs = mne.read_epochs(fpath + save_raw_name, verbose='DEBUG')
+        Fs = epochs.info['sfreq']
+        x = epochs.get_data()
+        times = epochs.times
     else:
         preEpoched = False
         fifs = fnmatch.filter(os.listdir(fpath), subj + '*raw.fif')
         print 'No pre-epoched data found, looking for BDF files'
         print 'Viola!', len(fifs),  'files found!'
+        for k, fif in enumerate(fifs):
+            fifs[k] = fpath + fif
+        # Load data and read event channel
+        raw = mne.io.Raw(fifs, preload=True)
+        eves = mne.find_events(raw, stim_channel='STI101',
+                               shortest_event=1)
 
-        for k, fifname in enumerate(fifs):
-            # Load data and read event channel
-            raw = mne.io.Raw(fpath + fifname, preload=True)
-            eves = mne.find_events(raw, stim_channel='STI101',
-                                   shortest_event=1)
+        raw.info['bads'] += ['MEG0412', 'MEG2033', 'MEG1221', 'MEG2343',
+                             'MEG0912']
+        # Filter the data for ERPs
+        raw.filter(l_freq=l_freq, h_freq=144, l_trans_bandwidth=0.15,
+                   picks=np.arange(0, 306, 1))
 
-            raw.info['bads'] += ['MEG0412', 'MEG2033', 'MEG1221', 'MEG2343']
-            # Filter the data for ERPs
-            raw.filter(l_freq=l_freq, h_freq=144, l_trans_bandwidth=0.15,
-                       picks=np.arange(0, 306, 1))
+        if not SSSR:
+            # raw.resample(sfreq=1000.0, n_jobs=4, verbose='DEBUG')
+            # SSP for blinks
+            blinks = find_blinks(raw, ch_name='EOG062')
+            epochs_blinks = mne.Epochs(raw, blinks, 998, tmin=-0.25,
+                                       tmax=0.25, proj=True,
+                                       baseline=(-0.25, 0),
+                                       reject=dict(grad=8000e-13,
+                                                   mag=8e-12))
+            blink_projs = compute_proj_epochs(epochs_blinks, n_grad=2,
+                                              n_mag=2, n_eeg=0,
+                                              verbose='DEBUG')
+            raw.add_proj(blink_projs)
 
+            # SSP for cardiac
+            qrs = find_blinks(raw, ch_name='ECG063', h_freq=100.0,
+                              event_id=999)
+            epochs_qrs = mne.Epochs(raw, qrs, 999, tmin=-0.1,
+                                    tmax=0.1, proj=True,
+                                    baseline=(-0.1, 0),
+                                    reject=dict(grad=8000e-13,
+                                                mag=8e-12))
+            qrs_projs = compute_proj_epochs(epochs_qrs, n_grad=2,
+                                            n_mag=2, n_eeg=0,
+                                            verbose='DEBUG')
+            raw.add_proj(qrs_projs)
+            useProj = True
+        else:
+            useProj = False
 
-            if not SSSR:
-                # raw.resample(sfreq=1000.0, n_jobs=4, verbose='DEBUG')
-                # SSP for blinks
-                blinks = find_blinks(raw, ch_name='EOG062')
-                epochs_blinks = mne.Epochs(raw, blinks, 998, tmin=-0.25,
-                                           tmax=0.25, proj=True,
-                                           baseline=(-0.25, 0),
-                                           reject=dict(grad=8000e-13,
-                                                       mag=8e-12))
-                blink_projs = compute_proj_epochs(epochs_blinks, n_grad=2,
-                                                  n_mag=2, n_eeg=0,
-                                                  verbose='DEBUG')
-                raw.add_proj(blink_projs)
+        # Epoching events of type
+        epochs = mne.Epochs(raw, eves, condlist, tmin=0.1, proj=useProj,
+                            tmax=1.2, baseline=(0.1, 1.2),
+                            reject=dict(grad=5000e-13, mag=4e-12))
 
-                # SSP for cardiac
-                qrs = find_blinks(raw, ch_name='ECG063', h_freq=100.0, event_id=999)
-                epochs_qrs = mne.Epochs(raw, qrs, 999, tmin=-0.1,
-                                           tmax=0.1, proj=True,
-                                           baseline=(-0.1, 0),
-                                           reject=dict(grad=8000e-13,
-                                                       mag=8e-12))
-                qrs_projs = compute_proj_epochs(epochs_qrs, n_grad=2,
-                                                  n_mag=2, n_eeg=0,
-                                                  verbose='DEBUG')
-                raw.add_proj(qrs_projs)
-
-
-
-                useProj = True
-            else:
-                useProj = False
-
-            # Epoching events of type
-            epochs = mne.Epochs(raw, eves, condlist, tmin=0.1, proj=useProj,
-                                tmax=1.2, baseline=(0.1, 1.2),
-                                reject=dict(grad=5000e-13, mag=4e-12))
-
-            xtemp = epochs.get_data()
-            fs = raw.info['sfreq']
-
-            # Reshaping to the format needed by spectral.mtcpca() and
-            # calling it
-            if(xtemp.shape[0] > 0):
-                if(k == 0):
-                    x = xtemp
-                else:
-                    x = np.concatenate((x, xtemp), axis=0)
-            else:
-                continue
+        x = epochs.get_data()
+        if saveResults:
+            epochs.save(fpath + save_raw_name)
 
     # Calculate power, plv
     if not preEpoched:
@@ -155,18 +141,6 @@ for subj in subjlist:
                                          n_cycles=n_cycles, zero_mean=True)
         plv = plvtemp.squeeze()
         tfspec = pow2db(powtemp.squeeze())
-
-        # Save results to the RES directory
-        if saveResults:
-            savedict = dict(tfspec=tfspec, plv=plv, times=times, freqs=freqs)
-            save_name = subj + '_plv_inducedpow_2Hz_500Hz.mat'
-            print 'Saving data for subject', subj
-            if (not os.path.isdir(respath)):
-                os.mkdir(respath)
-            io.savemat(respath + save_name, savedict)
-            if not os.path.isfile(respath + save_raw_name):
-                io.savemat(respath + save_raw_name, dict(x=x, subj=subj, Fs=Fs,
-                                                         times=times))
 
         ######################################################################
         # View time-frequency plots
@@ -204,20 +178,30 @@ for subj in subjlist:
     # Fourier domain stuff
     pl.figure()
     params = dict(Fs=Fs, fpass=[5, 140], tapers=[1, 1], itc=0)
+    for badname in epochs.info['bads']:
+        bad_ind = epochs.info['ch_names'].index(badname)
+        if bad_ind in mags:
+            mags.remove(bad_ind)
     if SSSR:
-        y = x[:, mags + eeg, :].transpose((1, 0, 2))
+        y = x[:, mags, :].transpose((1, 0, 2))
         plv, f = spectral.mtplv(y, params, verbose='DEBUG')
         pl.plot(f, plv.T, linewidth=2)
         pl.xlabel('Frequency (Hz)', fontsize=16)
         pl.ylabel('Intertrial PLV', fontsize=16)
-        pl.title('MEG magnetometers - cPCA', fontsize=16)
+        pl.title('MEG gradiometers - cPCA', fontsize=16)
         pl.xlim([70, 140])
         pl.show()
 
     else:
-        y = x[:, mags + eeg, :].transpose((1, 0, 2))
+        y = x[:, grads, :].transpose((1, 0, 2))
         plv, f = spectral.mtplv(y, params, verbose='DEBUG')
         pl.plot(f, plv.T, linewidth=2)
         pl.xlabel('Frequency (Hz)', fontsize=16)
         pl.ylabel('Intertrial PLV', fontsize=16)
         pl.show()
+
+    lout = lout = mne.find_layout(epochs.info)
+    pos = lout.pos[mags]
+    f_AM = 107.0
+    ind_AM = np.argmin(np.abs(f - f_AM))
+    mne.viz.plot_topomap(plv[:, ind_AM], pos, vmin=1.0/float(y.shape[1]))

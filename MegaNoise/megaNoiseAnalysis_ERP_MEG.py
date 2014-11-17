@@ -10,7 +10,7 @@ from mne.preprocessing.ssp import compute_proj_epochs
 # froot = '/home/hari/Documents/PythonCodes/ASSRmartinos/'
 froot = '/autofs/cluster/transcend/hari/ASSRnew/'
 
-subjlist = ['075901', ]
+subjlist = ['082802', ]
 para = 'assrnew'
 epochs = []
 
@@ -24,15 +24,15 @@ for subj in subjlist:
     fifs = fnmatch.filter(os.listdir(fpath), subj + '*raw.fif')
     print 'Viola!', len(fifs),  'files found!'
     if len(fifs) > 1:
-        print 'Wait!!.. Was expecting only one file..'
-        'Going to use just one'
-    fifname = fifs[0]
+        print 'Warning! Using multitple raw files!'
+    for k, fif in enumerate(fifs):
+        fifs[k] = fpath + fif
 
     # Load data and read event channel
-    raw = mne.io.Raw(fpath + fifname, preload=True)
+    raw = mne.io.Raw(fifs, preload=True)
     eves = mne.find_events(raw, stim_channel='STI101', shortest_event=1)
 
-    raw.info['bads'] += ['MEG0412', 'MEG2033', 'MEG1221', 'MEG2343']
+    raw.info['bads'] += ['MEG0412', 'MEG2033', 'MEG1221', 'MEG2343', 'MEG0912']
     # Filter the data for ERPs
     raw.filter(l_freq=1.0, h_freq=144, l_trans_bandwidth=0.15,
                picks=np.arange(0, 306, 1))
@@ -40,7 +40,7 @@ for subj in subjlist:
     # raw.apply_proj()
     fs = raw.info['sfreq']
     # SSP for blinks
-    blinks = find_blinks(raw, ch_name='EOG062')
+    blinks = find_blinks(raw, ch_name='EOG061')
     blinkname = fpath + subj + '_' + para + '_blinks.eve'
     mne.write_events(blinkname, blinks)
     epochs_blinks = mne.Epochs(raw, blinks, 998, tmin=-0.25,
@@ -54,7 +54,7 @@ for subj in subjlist:
     raw.add_proj(blink_projs)
 
     # SSP for cardiac artifact
-    qrs = find_blinks(raw, ch_name='ECG063', h_freq=100.0, event_id=999,
+    qrs = find_blinks(raw, ch_name='EOG062', h_freq=100.0, event_id=999,
                       thresh=0.4e-3)
     qrsname = fpath + subj + '_' + para + '_qrs.eve'
     mne.write_events(qrsname, qrs)
@@ -64,8 +64,8 @@ for subj in subjlist:
                             reject=dict(grad=8000e-13,
                                         mag=8e-12))
     qrs_projs = compute_proj_epochs(epochs_qrs, n_grad=2,
-                                      n_mag=2, n_eeg=0,
-                                      verbose='DEBUG')
+                                    n_mag=2, n_eeg=0,
+                                    verbose='DEBUG')
     raw.add_proj(qrs_projs)
 
     evokeds = []
