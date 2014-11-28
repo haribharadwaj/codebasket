@@ -29,7 +29,7 @@ def pow2db(x):
     # Adding Files and locations
 froot = '/autofs/cluster/transcend/hari/ASSRnew/'
 saveResults = True
-subjlist = ['075901', ]
+subjlist = ['082802', ]
 ch = range(1, 307)  # Channels of interest
 mags = range(2, 306, 3)
 grads = range(0, 306, 3) + range(1, 306, 3)
@@ -38,7 +38,7 @@ freqs = np.arange(5, 500, 2)  # define frequencies of interest
 n_cycles = freqs / float(3)  # different number of cycle per frequency
 n_cycles[freqs < 15] = 2
 
-SSSR = True
+SSSR = False
 ASSR25 = False  # Set false for ASSR43
 
 for subj in subjlist:
@@ -91,7 +91,7 @@ for subj in subjlist:
         if not SSSR:
             # raw.resample(sfreq=1000.0, n_jobs=4, verbose='DEBUG')
             # SSP for blinks
-            blinks = find_blinks(raw, ch_name='EOG062')
+            blinks = find_blinks(raw, ch_name='EOG061')
             epochs_blinks = mne.Epochs(raw, blinks, 998, tmin=-0.25,
                                        tmax=0.25, proj=True,
                                        baseline=(-0.25, 0),
@@ -103,7 +103,7 @@ for subj in subjlist:
             raw.add_proj(blink_projs)
 
             # SSP for cardiac
-            qrs = find_blinks(raw, ch_name='ECG063', h_freq=100.0,
+            qrs = find_blinks(raw, ch_name='EOG062', h_freq=100.0,
                               event_id=999)
             epochs_qrs = mne.Epochs(raw, qrs, 999, tmin=-0.1,
                                     tmax=0.1, proj=True,
@@ -191,6 +191,13 @@ for subj in subjlist:
         pl.title('MEG gradiometers - cPCA', fontsize=16)
         pl.xlim([70, 140])
         pl.show()
+        lout = mne.find_layout(epochs.info)
+        pos = lout.pos[mags]
+        f_AM = 107.0
+        ind_AM = np.argmin(np.abs(f - f_AM))
+        pl.figure()
+        mne.viz.plot_topomap(plv[:, ind_AM], pos, sensors='ok', vmin=-0.01,
+                             vmax=0.01)
 
     else:
         y = x[:, grads, :].transpose((1, 0, 2))
@@ -199,9 +206,13 @@ for subj in subjlist:
         pl.xlabel('Frequency (Hz)', fontsize=16)
         pl.ylabel('Intertrial PLV', fontsize=16)
         pl.show()
-
-    lout = lout = mne.find_layout(epochs.info)
-    pos = lout.pos[mags]
-    f_AM = 107.0
-    ind_AM = np.argmin(np.abs(f - f_AM))
-    mne.viz.plot_topomap(plv[:, ind_AM], pos, vmin=1.0/float(y.shape[1]))
+        lout = mne.find_layout(epochs.info)
+        pos = lout.pos[grads]
+        if ASSR25:
+            f_AM = 25.0
+        else:
+            f_AM = 43.0
+        ind_AM = np.argmin(np.abs(f - f_AM))
+        pl.figure()
+        mne.viz.plot_topomap(plv[:, ind_AM], pos, sensors='ok', vmin=-0.01,
+                             vmax=0.05)
