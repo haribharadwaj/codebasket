@@ -1,10 +1,10 @@
 import pylab as pl
 from scipy import io
-
+import numpy as np
 # Adding Files and locations
 froot = '/home/hari/Documents/PythonCodes/EfferentFFR/LevelControl/'
 
-carr100 = True
+carr100 = False
 noise = False
 
 if carr100:
@@ -16,7 +16,7 @@ if carr100:
 else:
     xlim = (250, 500)
 
-subj = 'I52'
+subj = 'I41'
 
 fpath = froot + subj + '/'
 
@@ -37,7 +37,7 @@ for k, cond in enumerate(condstemlist):
 
     # Plot PLV
     ax1 = pl.subplot(3, 1, 1)
-    pl.plot(f, cpow, linewidth=2)
+    pl.plot(f, 10*np.log10(cpow), linewidth=2)
     pl.hold(True)
     pl.ylabel('Response Magnitude (uV^2)', fontsize=16)
     pl.title(' Subject ' + subj + ' Efferent FFR results')

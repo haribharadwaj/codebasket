@@ -27,7 +27,7 @@ if noisecarr and not f331:
     condstemlist = ['signalOnly', 'simultaneousNoise',
                     'noise500ms_ahead', 'forwardMasking']
 
-subj = 'I53'
+subj = 'I07'
 
 fpath = froot + subj + '/'
 

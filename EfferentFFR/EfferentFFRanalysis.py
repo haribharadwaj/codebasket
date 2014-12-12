@@ -40,7 +40,7 @@ else:
 # Use list [] and enumerate over if filenames are weird
 
 
-subjlist = ['I12', 'I53', 'I07']
+subjlist = ['I54', ]
 
 for subj in subjlist:
 
@@ -69,7 +69,7 @@ for subj in subjlist:
                 (raw, eves) = bs.importbdf(fpath + edfname, nchans=35,
                                            refchans=['EXG1', 'EXG2'])
 
-                raw.info['bads'] += ['EXG3', 'A7']
+                raw.info['bads'] += ['EXG3', 'A7', 'A4']
                 # Filter the data
                 raw.filter(
                     l_freq=70, h_freq=1500, picks=np.arange(0, 35, 1))
