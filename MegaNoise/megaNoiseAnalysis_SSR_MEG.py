@@ -29,7 +29,7 @@ def pow2db(x):
     # Adding Files and locations
 froot = '/autofs/cluster/transcend/hari/ASSRnew/'
 saveResults = True
-subjlist = ['082802', ]
+subjlist = ['084501', ]
 ch = range(1, 307)  # Channels of interest
 mags = range(2, 306, 3)
 grads = range(0, 306, 3) + range(1, 306, 3)
@@ -38,7 +38,7 @@ freqs = np.arange(5, 500, 2)  # define frequencies of interest
 n_cycles = freqs / float(3)  # different number of cycle per frequency
 n_cycles[freqs < 15] = 2
 
-SSSR = False
+SSSR = True
 ASSR25 = False  # Set false for ASSR43
 
 for subj in subjlist:
@@ -83,7 +83,7 @@ for subj in subjlist:
                                shortest_event=1)
 
         raw.info['bads'] += ['MEG0412', 'MEG2033', 'MEG1221', 'MEG2343',
-                             'MEG0912']
+                             'MEG0912', 'MEG1041']
         # Filter the data for ERPs
         raw.filter(l_freq=l_freq, h_freq=144, l_trans_bandwidth=0.15,
                    picks=np.arange(0, 306, 1))
@@ -91,7 +91,7 @@ for subj in subjlist:
         if not SSSR:
             # raw.resample(sfreq=1000.0, n_jobs=4, verbose='DEBUG')
             # SSP for blinks
-            blinks = find_blinks(raw, ch_name='EOG061')
+            blinks = find_blinks(raw, ch_name='EOG062')
             epochs_blinks = mne.Epochs(raw, blinks, 998, tmin=-0.25,
                                        tmax=0.25, proj=True,
                                        baseline=(-0.25, 0),
@@ -103,7 +103,7 @@ for subj in subjlist:
             raw.add_proj(blink_projs)
 
             # SSP for cardiac
-            qrs = find_blinks(raw, ch_name='EOG062', h_freq=100.0,
+            qrs = find_blinks(raw, ch_name='ECG063', h_freq=100.0,
                               event_id=999)
             epochs_qrs = mne.Epochs(raw, qrs, 999, tmin=-0.1,
                                     tmax=0.1, proj=True,
