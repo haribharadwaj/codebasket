@@ -29,7 +29,7 @@ def pow2db(x):
     # Adding Files and locations
 froot = '/autofs/cluster/transcend/hari/ASSRnew/'
 saveResults = True
-subjlist = ['084501', ]
+subjlist = ['083701', ]
 ch = range(1, 307)  # Channels of interest
 mags = range(2, 306, 3)
 grads = range(0, 306, 3) + range(1, 306, 3)
@@ -38,7 +38,7 @@ freqs = np.arange(5, 500, 2)  # define frequencies of interest
 n_cycles = freqs / float(3)  # different number of cycle per frequency
 n_cycles[freqs < 15] = 2
 
-SSSR = True
+SSSR = False
 ASSR25 = False  # Set false for ASSR43
 
 for subj in subjlist:
@@ -82,9 +82,8 @@ for subj in subjlist:
         eves = mne.find_events(raw, stim_channel='STI101',
                                shortest_event=1)
 
-        raw.info['bads'] += ['MEG0412', 'MEG2033', 'MEG1221', 'MEG2343',
-                             'MEG0912', 'MEG1041']
-        # Filter the data for ERPs
+        raw.info['bads'] += ['MEG2033', 'MEG0442', 'MEG2343', 'MEG1643']
+        # Filter the data for SSRs
         raw.filter(l_freq=l_freq, h_freq=144, l_trans_bandwidth=0.15,
                    picks=np.arange(0, 306, 1))
 
@@ -215,4 +214,4 @@ for subj in subjlist:
         ind_AM = np.argmin(np.abs(f - f_AM))
         pl.figure()
         mne.viz.plot_topomap(plv[:, ind_AM], pos, sensors='ok', vmin=-0.01,
-                             vmax=0.05)
+                             vmax=0.1)
