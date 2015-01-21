@@ -10,7 +10,7 @@ from mne.preprocessing.ssp import compute_proj_epochs
 # froot = '/home/hari/Documents/PythonCodes/voices/'
 froot = '/autofs/cluster/transcend/hari/voices/'
 
-subjlist = ['013703', ]
+subjlist = ['083701', ]
 para = 'voices'
 epochs = []
 
@@ -21,12 +21,11 @@ for subj in subjlist:
     fifs = fnmatch.filter(os.listdir(fpath), subj + '_' + para + '*_sss.fif')
     print 'Viola!', len(fifs),  'files found!'
     if len(fifs) > 1:
-        print 'Wait!!.. Was expecting only one file..'
-        'Going to use just one'
-    fifname = fifs[0]
-
+        print 'Concatenating multiple files..'
+    for k, fifname in enumerate(fifs):
+        fifs[k] = fpath + fifname
     # Load data and read event channel
-    raw = mne.io.Raw(fpath + fifname, preload=True)
+    raw = mne.io.Raw(fifs, preload=True)
     eves = mne.find_events(raw, stim_channel='STI101', shortest_event=1)
 
     # raw.info['bads'] += ['MEG2312', 'MEG2613', 'MEG0212', 'MEG1622']
