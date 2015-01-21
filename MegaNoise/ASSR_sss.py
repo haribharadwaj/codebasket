@@ -6,7 +6,7 @@ import os
 # froot = '/home/hari/Documents/PythonCodes/voices/'
 froot = '/autofs/cluster/transcend/hari/ASSRnew/'
 
-subjlist = ['082802', ]
+subjlist = ['083701', ]
 paradigm = 'assrnew'
 hp_est = True
 for subj in subjlist:
@@ -36,7 +36,7 @@ for subj in subjlist:
             mv_hp = None
             mv_headpos = False
 
-        mx_args = '-in 9 -out 3 -v > ' + logname
+        mx_args = '-in 9 -out 3 -v | tee ' + logname
         badchname = fpath + 'badch.txt'
         if os.path.isfile(badchname):
             bads = open(badchname, 'r').read().strip('\n')
@@ -45,7 +45,7 @@ for subj in subjlist:
             continue
         # Calling maxfiler
         origin = apply_maxfilter(fpath + rawname, sssname, frame=frame,
-                                 bad=bads, mv_hp=mv_hp, mv_comp=True,
+                                 bad=bads, mv_hp=mv_hp, mv_comp='inter',
                                  mv_headpos=mv_headpos, mv_hpicons=True,
                                  mx_args=mx_args, verbose='DEBUG')
         print 'Estimated head center was ', origin
