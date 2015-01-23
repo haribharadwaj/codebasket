@@ -13,15 +13,19 @@ froot = '/autofs/cluster/transcend/hari/ASSRnew/'
 subjlist = ['083701', ]
 para = 'assrnew'
 epochs = []
-
+sss = True
 for subj in subjlist:
 
     fpath = froot + subj + '/'
 
     # These are so that the generated files are organized better
     respath = fpath + 'RES/'
+    if sss:
+        ssstag = '_sss'
+    else:
+        ssstag = ''
 
-    fifs = fnmatch.filter(os.listdir(fpath), subj + '*raw.fif')
+    fifs = fnmatch.filter(os.listdir(fpath), subj + '*raw' + ssstag + '.fif')
     print 'Viola!', len(fifs),  'files found!'
     if len(fifs) > 1:
         print 'Warning! Using multitple raw files!'
@@ -32,7 +36,8 @@ for subj in subjlist:
     raw = mne.io.Raw(fifs, preload=True)
     eves = mne.find_events(raw, stim_channel='STI101', shortest_event=1)
 
-    raw.info['bads'] += ['MEG2033', 'MEG0442', 'MEG2343', 'MEG1643']
+    if not sss:
+        raw.info['bads'] += ['MEG2033', 'MEG0442', 'MEG2343', 'MEG1643']
     # Filter the data for ERPs
     raw.filter(l_freq=1.0, h_freq=144, l_trans_bandwidth=0.15,
                picks=np.arange(0, 306, 1))
@@ -41,7 +46,7 @@ for subj in subjlist:
     fs = raw.info['sfreq']
     # SSP for blinks
     blinks = find_blinks(raw, ch_name='EOG062')
-    blinkname = fpath + subj + '_' + para + '_blinks.eve'
+    blinkname = fpath + subj + '_' + para + '_blinks' + ssstag + '.eve'
     mne.write_events(blinkname, blinks)
     epochs_blinks = mne.Epochs(raw, blinks, 998, tmin=-0.25,
                                tmax=0.25, proj=True,
@@ -56,7 +61,7 @@ for subj in subjlist:
     # SSP for cardiac artifact
     qrs = find_blinks(raw, ch_name='ECG063', h_freq=100.0, event_id=999,
                       thresh=0.4e-3)
-    qrsname = fpath + subj + '_' + para + '_qrs.eve'
+    qrsname = fpath + subj + '_' + para + '_qrs' + ssstag + '.eve'
     mne.write_events(qrsname, qrs)
     epochs_qrs = mne.Epochs(raw, qrs, 999, tmin=-0.1,
                             tmax=0.25, proj=True,
@@ -82,5 +87,5 @@ for subj in subjlist:
                             reject=dict(grad=5000e-13, mag=5e-12))
         evokeds += [epochs.average(), ]
 
-avename = subj + '_ITDadapt-ave.fif'
+avename = subj + ssstag + '_ITDadapt-ave.fif'
 mne.write_evokeds(fpath + avename, evokeds)

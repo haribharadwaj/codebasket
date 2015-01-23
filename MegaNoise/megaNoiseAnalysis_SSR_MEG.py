@@ -38,12 +38,16 @@ freqs = np.arange(5, 500, 2)  # define frequencies of interest
 n_cycles = freqs / float(3)  # different number of cycle per frequency
 n_cycles[freqs < 15] = 2
 
-SSSR = False
+SSSR = True
 ASSR25 = False  # Set false for ASSR43
-
+sss = True
 for subj in subjlist:
 
     fpath = froot + subj + '/'
+    if sss:
+        ssstag = '_sss'
+    else:
+        ssstag = ''
 
     if SSSR:
         condlist = range(1, 13)
@@ -60,7 +64,7 @@ for subj in subjlist:
 
     print 'Running Subject', subj, 'Condition', condstem
 
-    save_raw_name = subj + '_' + condstem + '-epo.fif'
+    save_raw_name = subj + '_' + condstem + ssstag + '-epo.fif'
 
     if os.path.isfile(fpath + save_raw_name):
         preEpoched = True
@@ -72,8 +76,9 @@ for subj in subjlist:
         times = epochs.times
     else:
         preEpoched = False
-        fifs = fnmatch.filter(os.listdir(fpath), subj + '*raw.fif')
-        print 'No pre-epoched data found, looking for BDF files'
+        fifs = fnmatch.filter(os.listdir(fpath), subj + '*raw' +
+                              ssstag + '.fif')
+        print 'No pre-epoched data found, looking for raw files'
         print 'Viola!', len(fifs),  'files found!'
         for k, fif in enumerate(fifs):
             fifs[k] = fpath + fif
@@ -81,8 +86,8 @@ for subj in subjlist:
         raw = mne.io.Raw(fifs, preload=True)
         eves = mne.find_events(raw, stim_channel='STI101',
                                shortest_event=1)
-
-        raw.info['bads'] += ['MEG2033', 'MEG0442', 'MEG2343', 'MEG1643']
+        if not sss:
+            raw.info['bads'] += ['MEG2033', 'MEG0442', 'MEG2343', 'MEG1643']
         # Filter the data for SSRs
         raw.filter(l_freq=l_freq, h_freq=144, l_trans_bandwidth=0.15,
                    picks=np.arange(0, 306, 1))
@@ -195,8 +200,8 @@ for subj in subjlist:
         f_AM = 107.0
         ind_AM = np.argmin(np.abs(f - f_AM))
         pl.figure()
-        mne.viz.plot_topomap(plv[:, ind_AM], pos, sensors='ok', vmin=-0.01,
-                             vmax=0.01)
+        mne.viz.plot_topomap(plv[:, ind_AM], pos, sensors='ok', vmin=-0.1,
+                             vmax=0.1)
 
     else:
         y = x[:, grads, :].transpose((1, 0, 2))
