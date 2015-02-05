@@ -29,7 +29,7 @@ def pow2db(x):
     # Adding Files and locations
 froot = '/autofs/cluster/transcend/hari/ASSRnew/'
 saveResults = True
-subjlist = ['083701', ]
+subjlist = ['manny', ]
 ch = range(1, 307)  # Channels of interest
 mags = range(2, 306, 3)
 grads = range(0, 306, 3) + range(1, 306, 3)
@@ -38,9 +38,10 @@ freqs = np.arange(5, 500, 2)  # define frequencies of interest
 n_cycles = freqs / float(3)  # different number of cycle per frequency
 n_cycles[freqs < 15] = 2
 
-SSSR = True
+SSSR = False
 ASSR25 = False  # Set false for ASSR43
-sss = True
+sss = False
+eeg = True
 for subj in subjlist:
 
     fpath = froot + subj + '/'
@@ -83,11 +84,14 @@ for subj in subjlist:
         for k, fif in enumerate(fifs):
             fifs[k] = fpath + fif
         # Load data and read event channel
-        raw = mne.io.Raw(fifs, preload=True)
+        raw = mne.io.Raw(fifs, preload=True, add_eeg_ref=False)
         eves = mne.find_events(raw, stim_channel='STI101',
                                shortest_event=1)
         if not sss:
-            raw.info['bads'] += ['MEG2033', 'MEG0442', 'MEG2343', 'MEG1643']
+            raw.info['bads'] += ['MEG2033', 'MEG0442', 'MEG2343', 'MEG1643',
+                                 'MEG1211', 'MEG2522']
+        if eeg:
+            raw.info['bads'] += ['EEG004', 'EEG038', 'EEG040', 'EEG067']
         # Filter the data for SSRs
         raw.filter(l_freq=l_freq, h_freq=144, l_trans_bandwidth=0.15,
                    picks=np.arange(0, 306, 1))
@@ -186,37 +190,53 @@ for subj in subjlist:
         bad_ind = epochs.info['ch_names'].index(badname)
         if bad_ind in mags:
             mags.remove(bad_ind)
-    if SSSR:
-        y = x[:, mags, :].transpose((1, 0, 2))
-        plv, f = spectral.mtplv(y, params, verbose='DEBUG')
-        pl.plot(f, plv.T, linewidth=2)
-        pl.xlabel('Frequency (Hz)', fontsize=16)
-        pl.ylabel('Intertrial PLV', fontsize=16)
-        pl.title('MEG gradiometers - cPCA', fontsize=16)
-        pl.xlim([70, 140])
-        pl.show()
-        lout = mne.find_layout(epochs.info)
-        pos = lout.pos[mags]
-        f_AM = 107.0
-        ind_AM = np.argmin(np.abs(f - f_AM))
-        pl.figure()
-        mne.viz.plot_topomap(plv[:, ind_AM], pos, sensors='ok', vmin=-0.1,
-                             vmax=0.1)
 
+    y = x[:, mags, :].transpose((1, 0, 2))
+    plv, f = spectral.mtplv(y, params, verbose='DEBUG')
+    pl.plot(f, plv.T, linewidth=2)
+    pl.xlabel('Frequency (Hz)', fontsize=16)
+    pl.ylabel('Intertrial PLV', fontsize=16)
+    pl.title('MEG Magnetometers', fontsize=16)
+    if SSSR:
+        pl.xlim([70, 140])
     else:
-        y = x[:, grads, :].transpose((1, 0, 2))
-        plv, f = spectral.mtplv(y, params, verbose='DEBUG')
-        pl.plot(f, plv.T, linewidth=2)
-        pl.xlabel('Frequency (Hz)', fontsize=16)
-        pl.ylabel('Intertrial PLV', fontsize=16)
-        pl.show()
-        lout = mne.find_layout(epochs.info)
-        pos = lout.pos[grads]
+        pl.xlim([5, 140])
+    pl.show()
+    lout = mne.find_layout(epochs.info)
+    pos = lout.pos[mags]
+    if SSSR:
+        f_AM = 107.0
+    else:
         if ASSR25:
             f_AM = 25.0
         else:
-            f_AM = 43.0
-        ind_AM = np.argmin(np.abs(f - f_AM))
-        pl.figure()
-        mne.viz.plot_topomap(plv[:, ind_AM], pos, sensors='ok', vmin=-0.01,
-                             vmax=0.1)
+            f_AM = 50.0
+    ind_AM = np.argmin(np.abs(f - f_AM))
+    pl.figure()
+    mne.viz.plot_topomap(plv[:, ind_AM], pos, sensors='ok', vmin=-0.07,
+                         vmax=0.07)
+    pl.show()
+
+    eeg = []
+    for k, ch in enumerate(raw.info['ch_names']):
+        if 'EEG' in ch:
+            eeg += [k, ]
+    yy = x[:, eeg, :].transpose((1, 0, 2))
+    pl.figure()
+    plv, f = spectral.mtplv(yy, params, verbose='DEBUG')
+    pl.plot(f, plv.T, linewidth=2)
+    pl.xlabel('Frequency (Hz)', fontsize=16)
+    pl.ylabel('Intertrial PLV', fontsize=16)
+    pl.title('EEG', fontsize=16)
+    if SSSR:
+        pl.xlim([70, 140])
+    else:
+        pl.xlim([5, 140])
+    pl.show()
+    louteeg = mne.layouts.make_eeg_layout(raw.info,
+                                          exclude=['EEG073', 'EEG074',
+                                                   'EEG097', 'EEG098'])
+    pl.figure()
+    mne.viz.plot_topomap(plv[:-4, ind_AM], louteeg.pos, sensors='ok',
+                         vmin=-0.2, vmax=0.2)
+    pl.show()
