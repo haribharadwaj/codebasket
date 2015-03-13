@@ -1,5 +1,5 @@
 %%  MA666 - Lab 13:  Models of gamma --- ING, PING, and sparse PING. 
-%   In this tutorial we will use the Hodgkin-Huxley equations to develop a
+%   We will use the Hodgkin-Huxley equations to develop a
 %   simple (yet biophysical) model of gamma (~40 Hz) activity.  We'll
 %   consider three types of models: ING, PING, and sparse PING.
 
@@ -109,7 +109,7 @@ xlabel('Time [ms]')
 %   hyperpolarization wears off.  Eventually, the synaptic gate becomes
 %   closed enough that the input drive to the cell induces another spike.
 
-%Q (In Lab Challenge):  This model captures 3 experimental observations we
+% This model captures 3 experimental observations we
 %discussed in class.  To generate gamma, 1) The cell needs sufficient
 %excitatory drive, 2) The GABA synapse is critical, and 3) Altering the decay
 %time of the inhibitory synapse changes the gamma frequency.  Show that all
