@@ -21,9 +21,6 @@
 %   code with any of your classmates / colleagues.  Watch out for *Extreme*
 %   Challenge problems --- they're tricky.
 %
-%   ********
-%   Please email your assignment to me as a PDF by Tuesday, Dec 11 at midnight.
-%   ********
 
 %%  Part 0:  Simplest (?) model of gamma.
 %   In class we discussed experimental observations of gamma, and listed
