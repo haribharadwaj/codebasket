@@ -43,7 +43,7 @@ for subj in subjlist:
 
     # Filter the data
     raw.filter(
-        l_freq=200, h_freq=3000, picks=np.arange(0, 2, 1))
+        l_freq=70, h_freq=3000, picks=np.arange(0, 2, 1))
 
     #raw.notch_filter(freqs=np.arange(60, 3000, 60),
     #                 picks=np.arange(0, 2, 1))
