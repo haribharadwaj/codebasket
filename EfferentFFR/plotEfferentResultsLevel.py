@@ -4,8 +4,8 @@ import numpy as np
 # Adding Files and locations
 froot = '/home/hari/Documents/PythonCodes/EfferentFFR/LevelControl/'
 
-carr100 = False
-noise = False
+carr100 = True
+noise = True
 
 if carr100:
     xlim = (70, 200)
@@ -16,7 +16,7 @@ if carr100:
 else:
     xlim = (250, 500)
 
-subj = 'I41'
+subj = 'I11'
 
 fpath = froot + subj + '/'
 

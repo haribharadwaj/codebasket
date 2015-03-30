@@ -31,6 +31,7 @@ condstemlist = ['signalOnly', 'simultaneousNoise',
                 'noise500ms_ahead', 'forwardMasking']
 results = np.zeros(len(condstemlist))
 normRes = np.zeros((len(subjlist), len(condstemlist) - 1))
+abs70dB = np.zeros(len(subjlist))
 
 for ks, subj in enumerate(subjlist):
 
@@ -48,6 +49,8 @@ for ks, subj in enumerate(subjlist):
             measure = dat[measureName].squeeze()[ch, :].mean(axis=0)
         ind = np.argmin(np.abs(f - f0))
         results[k] = measure[ind]
+        if k == 1:
+            abs70dB[ks] = np.log10(results[k] / 1e-6)
 
     normRes[ks, 0] = np.log10(results[1]/results[0]) * 20
     normRes[ks, 1] = 0.8*np.log10(results[2]/results[1]) * 20
