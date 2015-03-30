@@ -43,17 +43,17 @@ for subj in subjlist:
 
     # Filter the data
     raw.filter(
-        l_freq=100, h_freq=3000, picks=np.arange(0, 2, 1))
+        l_freq=200, h_freq=3000, picks=np.arange(0, 2, 1))
 
-    raw.notch_filter(freqs=np.arange(60, 3000, 60),
-                     picks=np.arange(0, 2, 1))
+    #raw.notch_filter(freqs=np.arange(60, 3000, 60),
+    #                 picks=np.arange(0, 2, 1))
     # Here click trigger is 1
     selectedEve = dict(pos=condlist[0], neg=condlist[1])
 
     # Epoching events of type 3 and 8
     epochs = mne.Epochs(
         raw, eves, selectedEve, tmin=-0.002, proj=False,
-        tmax=0.04, baseline=(-0.002, 0),
+        tmax=0.014, baseline=(-0.002, 0),
         reject = dict(eeg=20e-6))
     abr = epochs.average()
     # abr.plot()
