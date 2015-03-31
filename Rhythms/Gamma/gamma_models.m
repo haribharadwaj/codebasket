@@ -135,7 +135,7 @@ eps = 4;    %Set the noise level.
 T0 = 200;   %Simulate for 100 ms.
 
 [VP,sP,VI,sI,t] = sparse_ping(I0p,gP,gI,tauI,eps,T0);
-
+figure;
 subplot(2,1,1)
 plot(t,VP);  ylim([-120 50]);  xlabel('Time [ms]');  ylabel('P-cell [mV]')
 subplot(2,1,2)
@@ -155,7 +155,7 @@ gP=0.2;
 %   After choosing a value, simulate the dynamics and see what we observe.
 
 [VP,sP,VI,sI,t] = sparse_ping(I0p,gP,gI,tauI,eps,T0);
-
+figure;
 subplot(2,1,1)
 plot(t,VP);  xlabel('Time [ms]');  ylabel('P-cell [mV]')
 subplot(2,1,2)
@@ -171,7 +171,7 @@ plot(t,VI);  xlabel('Time [ms]');  ylabel('I-cell [mV]')
 
 gI=0.25;
 [VP,sP,VI,sI,t] = sparse_ping(I0p,gP,gI,tauI,eps,T0);
-
+figure;
 subplot(2,1,1)
 plot(t,VP);  xlabel('Time [ms]');  ylabel('P-cell [mV]')
 subplot(2,1,2)
@@ -185,7 +185,7 @@ plot(t,VI);  xlabel('Time [ms]');  ylabel('I-cell [mV]')
 %   A critical aspect of the gamma dynamics is the synaptic interactions
 %   between the two cell populations.  To examine these interactions, let's
 %   plot the voltages and the synaptic currents together on one figure.
-
+figure;
 subplot(2,1,1)
 [AX,H1,H2] = plotyy(t,VP,t,sI);  xlabel('Time [ms]');
 set(H1,'Color','g');  set(H2, 'Color', 'r')
@@ -201,7 +201,7 @@ set(H1,'Color','r');  set(H2, 'Color', 'g')
 %   Also convenient is a way to visualize the spiking / voltage activity of
 %   all the cells.  Here's a simple (and crude) way to do so,
 
-figure(10)
+figure;
 subplot(2,1,1)
 imagesc(t, (1:40), VP', [-100, 20]);
 axis xy; xlabel('Time [ms]');  ylabel('P-cell #');  colorbar
