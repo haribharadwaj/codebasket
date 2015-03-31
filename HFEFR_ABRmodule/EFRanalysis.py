@@ -7,7 +7,7 @@ import os
 import fnmatch
 
 # Adding Files and locations
-froot = '/home/hari/Documents/PythonCodes/HFEFR/'
+froot = '/autofs/cluster/transcend/hari/HFEFR/'
 
 # List of files stems, each will be appended by run number
 # Could be different for edf, fiff, eve etc.
@@ -55,8 +55,7 @@ for subj in subjlist:
                 # Epoching events of type
                 epochs = mne.Epochs(
                     raw, eves, cond, tmin=-0.025, proj=False,
-                    tmax=0.425, baseline=(-0.025, 0),
-                    reject = dict(eeg=150e-6))
+                    tmax=0.525, baseline=(-0.025, 0), reject=dict(eeg=150e-6))
 
                 xtemp = epochs.get_data()
 
@@ -71,11 +70,12 @@ for subj in subjlist:
                         x = np.concatenate((x, xtemp), axis=1)
                 else:
                     continue
+            x = (x[0, :, :] - x[1, :, :]).squeeze()
 
         nPerDraw = 400
         nDraws = 100
         fs = 16384.
-        params = dict(Fs=fs, fpass=[5, 1000], tapers=[1, 1], Npairs=2000,
+        params = dict(Fs=fs, fpass=[300, 1200], tapers=[1, 1], Npairs=2000,
                       itc=1)
 
         tdave = x.mean(axis=1)  # Time domain average
@@ -84,21 +84,14 @@ for subj in subjlist:
         print 'Running Mean Spectrum Estimation'
         (S, N, f) = spectral.mtspec(x, params, verbose=True)
 
-        print 'Running CPCA PLV Estimation'
-        (cplv, f) = spectral.mtcpca(x, params, verbose=True)
-
         print 'Running channel by channel PLV Estimation'
         (plv, f) = spectral.mtplv(x, params, verbose=True)
 
-        print 'Running CPCA Power Estimation'
-        (cpow, f) = spectral.mtcspec(x, params, verbose=True)
-
-        #print 'Running Phase Estimation'
-        #(Ph, f) = spectral.mtphase(x, params, verbose=True)
+        # print 'Running Phase Estimation'
+        # (Ph, f) = spectral.mtphase(x, params, verbose=True)
 
         # Saving Results
-        res = dict(cpow=cpow, plv=plv, cplv=cplv,
-                   tdave=tdave, t=t, f=f, S=S, N=N)
+        res = dict(plv=plv, tdave=tdave, t=t, f=f, S=S, N=N)
 
         save_name = subj + '_' + condstem + 'Hz_results.mat'
 
