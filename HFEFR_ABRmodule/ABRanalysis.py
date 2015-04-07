@@ -6,7 +6,7 @@ import fnmatch
 import pylab as pl
 
 # Adding Files and locations
-froot = '/autofs/cluster/transcend/hari/HFEFR/'
+froot = '/Users/Hari/Documents/Data/ABRmoduleBiosemi/'
 
 subjlist = ['I13']
 
