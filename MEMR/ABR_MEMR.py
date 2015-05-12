@@ -8,12 +8,11 @@ import pylab as pl
 # Adding Files and locations
 froot = '/Users/Hari/Documents/Data/MEMR/'
 
-subjlist = ['I13']
-mne.set_log_level(verbose='WARNING')
+subjlist = ['I14']
+conds = [4, 5]
 for subj in subjlist:
 
     fpath = froot + subj + '/'
-
     # These are so that the generated files are organized better
     respath = fpath + 'RES/'
 
@@ -30,36 +29,23 @@ for subj in subjlist:
     (raw, eves) = bs.importbdf(fpath + edfname, nchans=2, refchans=None)
 
     # Filter the data
-    raw.filter(l_freq=150, h_freq=2000, picks=np.arange(0, 2, 1))
-
-    pre = range(1, 40)
-    on = range(39, 79)
-    post = range(79, 118)
-
-    # Epoching events of type 3 and 8
-    epochs_pre = mne.Epochs(raw, eves, pre, tmin=0., proj=False, tmax=0.014,
-                            baseline=(0., 0.002), reject=dict(eeg=50e-6))
-    abr_pre = epochs_pre.average()
-    # Epoching events of type 3 and 8
-    epochs_on = mne.Epochs(raw, eves, on, tmin=0., proj=False, tmax=0.014,
-                           baseline=(0., 0.002), reject=dict(eeg=50e-6))
-    abr_on = epochs_on.average()
-    # Epoching events of type 3 and 8
-    epochs_post = mne.Epochs(raw, eves, post, tmin=0., proj=False, tmax=0.014,
-                             baseline=(0., 0.002), reject=dict(eeg=50e-6))
-    abr_post = epochs_post.average()
-
-x_pre = abr_pre.data * 1e6  # microV
-t = abr_pre.times * 1e3 - 1.6  # Adjust for delay and use milliseconds
-x_on = abr_on.data * 1e6  # microV
-x_post = abr_post.data * 1e6  # microV
-pl.figure()
-pl.plot(t, x_pre[0, :] - x_pre[1, :], linewidth=2)
-pl.hold(True)
-pl.plot(t, x_on[0, :] - x_on[1, :], linewidth=2)
-pl.hold(True)
-pl.plot(t, x_post[0, :] - x_post[1, :], linewidth=2)
+    raw.filter(l_freq=100, h_freq=2000, picks=np.arange(0, 2, 1))
+    abrs = []
+    pl.figure()
+    for cond in conds:
+        epochs = mne.Epochs(raw, eves, cond, tmin=-0.001, proj=False,
+                            tmax=0.014, baseline=(-0.001, 0.001),
+                            reject=dict(eeg=25e-6), verbose='INFO')
+        abr = epochs.average()
+        abrs += [abr, ]
+        x = abr.data * 1e6  # microV
+        t = abr.times * 1e3 - 1.6  # Adjust for delay and use milliseconds
+        pl.plot(t, x[1, :] - x[0, :], linewidth=2)
+        pl.hold(True)
 pl.xlabel('Time (ms)')
 pl.ylabel('ABR (uV)')
-pl.legend(('PRE', 'NOISE', 'POST'), loc=0)
+# pl.legend(('60 dB peSPL', '70 dB peSPL', '80 dB peSPL', '90 dB peSPL',
+#          '100 dB peSPL'))
+pl.legend(('90 dB peSPL', '100 dB peSPL'))
 pl.show()
+mne.write_evokeds(fpath + subj + '_abr_conds4_5-ave.fif', abrs)

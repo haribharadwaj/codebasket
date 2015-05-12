@@ -10,7 +10,7 @@ from mne.time_frequency import tfr_multitaper
 
 # Adding Files and locations
 # froot = '/Users/Hari/Documents/Data/ATTEEG/'
-froot = '/home/hari/Documents/PythonCodes/ATTEEG/'
+froot = '/Users/Hari/Documents/Data/ATTEEG/'
 
 # List of files stems, each will be appended by run number
 # Could be different for edf, fiff, eve etc.
@@ -53,15 +53,26 @@ for k, subj in enumerate(subjlist):
     raw.add_proj(blink_projs)
 
     # Epoching and averaging
-    epochs = mne.Epochs(raw, eves, [3, 5], tmin=-0.5, proj=True,
-                        tmax=6.0, baseline=(-0.5, 0.0),
-                        reject=dict(eeg=200e-6))
+    epochsL = mne.Epochs(raw, eves, [3, ], tmin=-0.5, proj=True,
+                         tmax=6.0, baseline=(-0.5, 0.0),
+                         reject=dict(eeg=200e-6))
+    epochsR = mne.Epochs(raw, eves, [5, ], tmin=-0.5, proj=True,
+                         tmax=6.0, baseline=(-0.5, 0.0),
+                         reject=dict(eeg=200e-6))
 
-freqs = np.arange(2, 100, 2)  # define frequencies of interest
+freqs = np.arange(2, 80, 2)  # define frequencies of interest
 n_cycles = freqs / float(5)  # different number of cycle per frequency
 n_cycles[freqs < 5] = 1
 # epochs.subtract_evoked()
-power, itc = tfr_multitaper(epochs, freqs=freqs, n_cycles=n_cycles,
-                            time_bandwidth=2.0, n_jobs=-1)
-power.data = 20*np.log10(power.data)
-power.plot_topo(dB=False, baseline=(-0.5, 0.))
+powerL, itcL = tfr_multitaper(epochsL, freqs=freqs, n_cycles=n_cycles,
+                              time_bandwidth=2.0, n_jobs=-1)
+powerL.data = 20*np.log10(powerL.data)
+powerL.plot_topo(dB=False, baseline=(-0.5, 0.))
+
+powerR, itcR = tfr_multitaper(epochsR, freqs=freqs, n_cycles=n_cycles,
+                              time_bandwidth=2.0, n_jobs=-1)
+powerR.data = 20*np.log10(powerR.data)
+powerL.plot_topo(dB=False, baseline=(-0.5, 0.))
+
+powerLR = powerR - powerL
+powerLR.plot_topo(dB=False, baseline=(-0.5, 0.))
