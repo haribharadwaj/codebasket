@@ -6,15 +6,13 @@ import fnmatch
 import pylab as pl
 
 # Adding Files and locations
-froot = '/Users/Hari/Documents/Data/MEMR/'
+froot = '/cluster/transcend/hari/MEMR/'
 
 subjlist = ['I14']
-conds = [4, 5]
+conds = [1, 2, 3, 4, 5, 6]
 for subj in subjlist:
 
-    fpath = froot + subj + '/'
-    # These are so that the generated files are organized better
-    respath = fpath + 'RES/'
+    fpath = froot + '/'
 
     print 'Running Subject', subj
 
@@ -29,23 +27,25 @@ for subj in subjlist:
     (raw, eves) = bs.importbdf(fpath + edfname, nchans=2, refchans=None)
 
     # Filter the data
-    raw.filter(l_freq=100, h_freq=2000, picks=np.arange(0, 2, 1))
+    raw.filter(l_freq=100, h_freq=3000, picks=np.arange(0, 2, 1))
     abrs = []
     pl.figure()
     for cond in conds:
-        epochs = mne.Epochs(raw, eves, cond, tmin=-0.001, proj=False,
-                            tmax=0.014, baseline=(-0.001, 0.001),
-                            reject=dict(eeg=25e-6), verbose='INFO')
+        print 'Doing condition ', cond
+        epochs = mne.Epochs(raw, eves, cond, tmin=0., proj=False,
+                            tmax=0.014, baseline=(0.001, 0.002),
+                            reject=dict(eeg=20e-6), verbose='WARNING')
         abr = epochs.average()
         abrs += [abr, ]
         x = abr.data * 1e6  # microV
         t = abr.times * 1e3 - 1.6  # Adjust for delay and use milliseconds
-        pl.plot(t, x[1, :] - x[0, :], linewidth=2)
+        pl.plot(t, x[0, :] - x[1, :], linewidth=2)
         pl.hold(True)
-pl.xlabel('Time (ms)')
-pl.ylabel('ABR (uV)')
-# pl.legend(('60 dB peSPL', '70 dB peSPL', '80 dB peSPL', '90 dB peSPL',
-#          '100 dB peSPL'))
-pl.legend(('90 dB peSPL', '100 dB peSPL'))
+pl.xlabel('Time (ms)', fontsize=16)
+pl.ylabel('ABR (uV)', fontsize=16)
+pl.legend(('70 dB peSPL', '85 dB peSPL', '100 dB peSPL'), loc='best')
+pl.xlim((0., 9.))
+ax = pl.gca()
+ax.tick_params(labelsize=16)
 pl.show()
-mne.write_evokeds(fpath + subj + '_abr_conds4_5-ave.fif', abrs)
+mne.write_evokeds(fpath + subj + '_abr-ave.fif', abrs)
