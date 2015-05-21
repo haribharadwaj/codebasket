@@ -152,3 +152,4 @@ for subj in subjlist:
     pl.figure()
     mne.viz.plot_topomap(plv[:, ind_AM], pos, sensors='ok')
     pl.show()
+    res = dict(plv=plv, f=f, f_AM=f_AM, subj=subj, mags=mags)
