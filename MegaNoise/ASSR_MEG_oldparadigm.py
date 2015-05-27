@@ -6,6 +6,7 @@ from anlffr import spectral
 from anlffr.preproc import find_blinks
 from mne.preprocessing.ssp import compute_proj_epochs
 import pylab as pl
+from scipy.io import savemat
 
 
 def pow2db(x):
@@ -28,7 +29,7 @@ def pow2db(x):
     # Adding Files and locations
 froot = '/autofs/cluster/transcend/hari/ASSRold/'
 saveResults = True
-subjlist = ['058501', ]
+subjlist = ['075401', ]
 ch = range(306)  # Channels of interest
 mags = range(2, 306, 3)
 grads = range(0, 306, 3) + range(1, 306, 3)
@@ -37,7 +38,7 @@ n_cycles = freqs / float(3)  # different number of cycle per frequency
 n_cycles[freqs < 15] = 2
 
 ASSR25 = False  # Set false for ASSR43
-sss = False
+sss = True
 for subj in subjlist:
 
     fpath = froot + subj + '/'
@@ -140,7 +141,7 @@ for subj in subjlist:
     pl.xlabel('Frequency (Hz)', fontsize=16)
     pl.ylabel('Intertrial PLV', fontsize=16)
     pl.title('MEG Magnetometers', fontsize=16)
-    pl.xlim([5, 140])
+    pl.xlim([15, 90])
     pl.show()
     lout = mne.find_layout(epochs.info)
     pos = lout.pos[mags]
@@ -153,3 +154,33 @@ for subj in subjlist:
     mne.viz.plot_topomap(plv[:, ind_AM], pos, sensors='ok')
     pl.show()
     res = dict(plv=plv, f=f, f_AM=f_AM, subj=subj, mags=mags)
+    save_res_name = subj + '_' + condstem + ssstag + '_mag-results.mat'
+    savemat(fpath + save_res_name, mdict=res)
+
+    for badname in epochs.info['bads']:
+        bad_ind = epochs.info['ch_names'].index(badname)
+        if bad_ind in grads:
+            grads.remove(bad_ind)
+
+    pl.figure()
+    y = x[:, grads, :].transpose((1, 0, 2))
+    plv, f = spectral.mtplv(y, params, verbose='DEBUG')
+    pl.plot(f, plv.T, linewidth=2)
+    pl.xlabel('Frequency (Hz)', fontsize=16)
+    pl.ylabel('Intertrial PLV', fontsize=16)
+    pl.title('MEG Gradiometers', fontsize=16)
+    pl.xlim([15, 90])
+    pl.show()
+    lout = mne.find_layout(epochs.info)
+    pos = lout.pos[grads]
+    if ASSR25:
+        f_AM = 25.0
+    else:
+        f_AM = 43.0
+    ind_AM = np.argmin(np.abs(f - f_AM))
+    pl.figure()
+    mne.viz.plot_topomap(plv[:, ind_AM], pos, sensors='ok')
+    pl.show()
+    res = dict(plv=plv, f=f, f_AM=f_AM, subj=subj, grads=grads)
+    save_res_name = subj + '_' + condstem + ssstag + '_grad-results.mat'
+    savemat(fpath + save_res_name, mdict=res)
