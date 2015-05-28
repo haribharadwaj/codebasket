@@ -29,7 +29,7 @@ def pow2db(x):
     # Adding Files and locations
 froot = '/autofs/cluster/transcend/hari/ASSRold/'
 saveResults = True
-subjlist = ['075401', ]
+subjlist = ['014002', ]
 ch = range(306)  # Channels of interest
 mags = range(2, 306, 3)
 grads = range(0, 306, 3) + range(1, 306, 3)
@@ -143,6 +143,8 @@ for subj in subjlist:
     pl.title('MEG Magnetometers', fontsize=16)
     pl.xlim([15, 90])
     pl.show()
+    figname_mag = subj + '_' + condstem + ssstag + '_mag-results.pdf'
+    pl.savefig(fpath + figname_mag)
     lout = mne.find_layout(epochs.info)
     pos = lout.pos[mags]
     if ASSR25:
@@ -153,6 +155,9 @@ for subj in subjlist:
     pl.figure()
     mne.viz.plot_topomap(plv[:, ind_AM], pos, sensors='ok')
     pl.show()
+    figname_mag_topo = subj + '_' + condstem + ssstag + '_mag_topo-results.pdf'
+    pl.savefig(fpath + figname_mag_topo)
+
     res = dict(plv=plv, f=f, f_AM=f_AM, subj=subj, mags=mags)
     save_res_name = subj + '_' + condstem + ssstag + '_mag-results.mat'
     savemat(fpath + save_res_name, mdict=res)
@@ -171,6 +176,8 @@ for subj in subjlist:
     pl.title('MEG Gradiometers', fontsize=16)
     pl.xlim([15, 90])
     pl.show()
+    figname_grad = subj + '_' + condstem + ssstag + '_grad-results.pdf'
+    pl.savefig(fpath + figname_grad)
     lout = mne.find_layout(epochs.info)
     pos = lout.pos[grads]
     if ASSR25:
@@ -181,6 +188,10 @@ for subj in subjlist:
     pl.figure()
     mne.viz.plot_topomap(plv[:, ind_AM], pos, sensors='ok')
     pl.show()
+    figname_grad_topo = (subj + '_' + condstem + ssstag +
+                         '_grad_topo-results.pdf')
+    pl.savefig(fpath + figname_grad_topo)
+
     res = dict(plv=plv, f=f, f_AM=f_AM, subj=subj, grads=grads)
     save_res_name = subj + '_' + condstem + ssstag + '_grad-results.mat'
     savemat(fpath + save_res_name, mdict=res)
