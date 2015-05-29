@@ -37,7 +37,7 @@ freqs = np.arange(5, 500, 2)  # define frequencies of interest
 n_cycles = freqs / float(3)  # different number of cycle per frequency
 n_cycles[freqs < 15] = 2
 
-SSSR = False
+SSSR = True
 ASSR25 = False  # Set false for ASSR43
 sss = False
 eeg = False
@@ -90,7 +90,8 @@ for subj in subjlist:
             raw.info['bads'] += ['MEG2033', 'MEG0442', 'MEG2343', 'MEG1643',
                                  'MEG1211', 'MEG2522', 'MEG0731']
         if eeg:
-            raw.info['bads'] += ['EEG004', 'EEG038', 'EEG040', 'EEG067']
+            # raw.info['bads'] += ['EEG004', 'EEG038', 'EEG040', 'EEG067']
+            raw.info['bads'] += ['EEG009', 'EEG027', 'EEG067']
         # Filter the data for SSRs
         raw.filter(l_freq=l_freq, h_freq=144, l_trans_bandwidth=0.15,
                    picks=np.arange(0, 306, 1))
@@ -199,8 +200,10 @@ for subj in subjlist:
     if SSSR:
         pl.xlim([70, 140])
     else:
-        pl.xlim([5, 140])
+        pl.xlim([15, 90])
     pl.show()
+    figname_mag = subj + '_' + condstem + ssstag + '_mag-results.pdf'
+    pl.savefig(fpath + figname_mag)
     lout = mne.find_layout(epochs.info)
     pos = lout.pos[mags]
     if SSSR:
@@ -215,6 +218,47 @@ for subj in subjlist:
     mne.viz.plot_topomap(plv[:, ind_AM], pos, sensors='ok', vmin=-0.07,
                          vmax=0.07, show_names=True)
     pl.show()
+    figname_mag_topo = subj + '_' + condstem + ssstag + '_mag_topo-results.pdf'
+    pl.savefig(fpath + figname_mag_topo)
+
+    # Gradiometers
+    pl.figure()
+    params = dict(Fs=Fs, fpass=[5, 140], tapers=[1, 1], itc=0)
+    for badname in epochs.info['bads']:
+        bad_ind = epochs.info['ch_names'].index(badname)
+        if bad_ind in grads:
+            grads.remove(bad_ind)
+
+    y = x[:, grads, :].transpose((1, 0, 2))
+    plv, f = spectral.mtplv(y, params, verbose='DEBUG')
+    pl.plot(f, plv.T, linewidth=2)
+    pl.xlabel('Frequency (Hz)', fontsize=16)
+    pl.ylabel('Intertrial PLV', fontsize=16)
+    pl.title('MEG Magnetometers', fontsize=16)
+    if SSSR:
+        pl.xlim([70, 140])
+    else:
+        pl.xlim([15, 90])
+    pl.show()
+    figname_grad = subj + '_' + condstem + ssstag + '_grad-results.pdf'
+    pl.savefig(fpath + figname_grad)
+    lout = mne.find_layout(epochs.info)
+    pos = lout.pos[mags]
+    if SSSR:
+        f_AM = 107.0
+    else:
+        if ASSR25:
+            f_AM = 25.0
+        else:
+            f_AM = 43.0
+    ind_AM = np.argmin(np.abs(f - f_AM))
+    pl.figure()
+    mne.viz.plot_topomap(plv[:, ind_AM], pos, sensors='ok', vmin=-0.07,
+                         vmax=0.07, show_names=True)
+    pl.show()
+    figname_grad_topo = (subj + '_' + condstem + ssstag +
+                         '_grad_topo-results.pdf')
+    pl.savefig(fpath + figname_grad_topo)
 
     if eeg:
         eeg = []
@@ -231,8 +275,10 @@ for subj in subjlist:
         if SSSR:
             pl.xlim([70, 140])
         else:
-            pl.xlim([5, 140])
+            pl.xlim([15, 90])
         pl.show()
+        figname_eeg = subj + '_' + condstem + ssstag + '_eeg-results.pdf'
+        pl.savefig(fpath + figname_eeg)
         louteeg = mne.layouts.make_eeg_layout(raw.info,
                                               exclude=['EEG073', 'EEG074',
                                                        'EEG097', 'EEG098'])
@@ -240,3 +286,6 @@ for subj in subjlist:
         mne.viz.plot_topomap(plv[:-4, ind_AM], louteeg.pos, sensors='ok',
                              vmin=-0.2, vmax=0.2)
         pl.show()
+        figname_eeg_topo = (subj + '_' + condstem + ssstag +
+                            '_eeg_topo-results.pdf')
+        pl.savefig(fpath + figname_eeg_topo)

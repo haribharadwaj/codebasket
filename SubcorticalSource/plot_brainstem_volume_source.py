@@ -17,14 +17,12 @@ import numpy as np
 from scipy.spatial import ConvexHull
 from mayavi import mlab
 from mne import setup_source_space, setup_volume_source_space
-from mne.datasets import sample
 
-print(__doc__)
 
-data_path = sample.data_path()
-subjects_dir = data_path + '/subjects'
-subj = 'sample'
-aseg_fname = subjects_dir + '/sample/mri/aseg.mgz'
+meg_path = '/autofs/cluster/transcend/hari/ASSRnew/'
+subjects_dir = '/autofs/cluster/transcend/MRI/WMA/recons/'
+subj = '092201'
+aseg_fname = subjects_dir + subj + '/mri/aseg.mgz'
 
 ###############################################################################
 # Setup the source spaces
@@ -77,7 +75,7 @@ mlab.roll(85)
 # Compare volume source locations to segmentation file in freeview
 
 # Export source positions to nifti file
-nii_fname = data_path + '/MEG/sample/mne_sample_brainstem-lh-cortex.nii'
+nii_fname = meg_path + subj + '/mne_brainstem-lh-cortex.nii'
 
 # Combine the source spaces
 src = surf + brainstem
@@ -88,7 +86,7 @@ src.export_volume(nii_fname, mri_resolution=True)
 '''
 # display image in freeview
 from mne.utils import run_subprocess
-mri_fname = subjects_dir + '/sample/mri/brain.mgz'
+mri_fname = subjects_dir + subj + '/mri/brain.mgz'
 run_subprocess(['freeview', '-v', mri_fname, '-v',
                 '%s:colormap=lut:opacity=0.5' % aseg_fname, '-v',
                 '%s:colormap=jet:colorscale=0,2' % nii_fname, '-slice',
