@@ -5,7 +5,6 @@ import fnmatch
 from anlffr import spectral
 from anlffr.preproc import find_blinks
 from mne.preprocessing.ssp import compute_proj_epochs
-from mne.time_frequency.tfr import _induced_power as induced_power
 import pylab as pl
 
 
@@ -29,7 +28,7 @@ def pow2db(x):
     # Adding Files and locations
 froot = '/autofs/cluster/transcend/hari/ASSRnew/'
 saveResults = True
-subjlist = ['manny', ]
+subjlist = ['053001', ]
 ch = range(1, 307)  # Channels of interest
 mags = range(2, 306, 3)
 grads = range(0, 306, 3) + range(1, 306, 3)
@@ -37,9 +36,9 @@ freqs = np.arange(5, 500, 2)  # define frequencies of interest
 n_cycles = freqs / float(3)  # different number of cycle per frequency
 n_cycles[freqs < 15] = 2
 
-SSSR = True
-ASSR25 = False  # Set false for ASSR43
-sss = False
+SSSR = False
+ASSR25 = True  # Set false for ASSR43
+sss = True
 eeg = False
 for subj in subjlist:
 
@@ -140,48 +139,6 @@ for subj in subjlist:
         Fs = raw.info['sfreq']
         times = epochs.times
 
-    calculateTF = False
-    if calculateTF:
-        plv = np.zeros((len(freqs), len(times)))
-        tfspec = np.zeros((len(freqs), len(times)))
-        dat = x[:, ch, :].mean(axis=1, keepdims=True)
-        powtemp, plvtemp = induced_power(dat, sfreq=Fs, frequencies=freqs,
-                                         n_cycles=n_cycles, zero_mean=True)
-        plv = plvtemp.squeeze()
-        tfspec = pow2db(powtemp.squeeze())
-
-        ######################################################################
-        # View time-frequency plots
-        # PLV
-        pl.close('all')
-        t0 = 0.0
-        bmin, bmax = -0.1, 0.0
-        plvbline = plv[:, np.logical_and(times < bmax,
-                                         times > bmin)].mean(axis=1)
-        pl.figure()
-        pl.imshow((plv.T - plvbline.T).T, vmin=0.02, vmax=0.2,
-                  extent=[times[0] - t0, times[-1] - t0, freqs[0], freqs[-1]],
-                  aspect='auto', origin='lower')
-        pl.xlabel('Time (s)')
-        pl.ylabel('Frequency (Hz)')
-        pl.title('Phase Locking')
-        pl.colorbar()
-        pl.show()
-
-        # Induced power
-        pl.figure()
-        bmin, bmax = -0.1, 0.0
-        powbline = tfspec[:, np.logical_and(times < bmax,
-                                            times > bmin)].mean(axis=1)
-        pl.imshow((tfspec.T-powbline.T).T, vmin=-3.0, vmax=3.0,
-                  extent=[times[0] - t0, times[-1] - t0, freqs[0], freqs[-1]],
-                  aspect='auto', origin='lower')
-        pl.xlabel('Time (s)')
-        pl.ylabel('Frequency (Hz)')
-        pl.title('Power (dB re: baseline)')
-        pl.colorbar()
-        pl.show()
-
     #########################################################################
     # Fourier domain stuff
     pl.figure()
@@ -216,7 +173,7 @@ for subj in subjlist:
     ind_AM = np.argmin(np.abs(f - f_AM))
     pl.figure()
     mne.viz.plot_topomap(plv[:, ind_AM], pos, sensors='ok', vmin=-0.07,
-                         vmax=0.07, show_names=True)
+                         vmax=0.07)
     pl.show()
     figname_mag_topo = subj + '_' + condstem + ssstag + '_mag_topo-results.pdf'
     pl.savefig(fpath + figname_mag_topo)
@@ -234,7 +191,7 @@ for subj in subjlist:
     pl.plot(f, plv.T, linewidth=2)
     pl.xlabel('Frequency (Hz)', fontsize=16)
     pl.ylabel('Intertrial PLV', fontsize=16)
-    pl.title('MEG Magnetometers', fontsize=16)
+    pl.title('MEG Gradiometers', fontsize=16)
     if SSSR:
         pl.xlim([70, 140])
     else:
@@ -243,7 +200,7 @@ for subj in subjlist:
     figname_grad = subj + '_' + condstem + ssstag + '_grad-results.pdf'
     pl.savefig(fpath + figname_grad)
     lout = mne.find_layout(epochs.info)
-    pos = lout.pos[mags]
+    pos = lout.pos[grads]
     if SSSR:
         f_AM = 107.0
     else:
@@ -254,7 +211,7 @@ for subj in subjlist:
     ind_AM = np.argmin(np.abs(f - f_AM))
     pl.figure()
     mne.viz.plot_topomap(plv[:, ind_AM], pos, sensors='ok', vmin=-0.07,
-                         vmax=0.07, show_names=True)
+                         vmax=0.07)
     pl.show()
     figname_grad_topo = (subj + '_' + condstem + ssstag +
                          '_grad_topo-results.pdf')

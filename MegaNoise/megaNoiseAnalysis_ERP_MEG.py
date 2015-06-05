@@ -10,7 +10,7 @@ from mne.preprocessing.ssp import compute_proj_epochs
 # froot = '/home/hari/Documents/PythonCodes/ASSRmartinos/'
 froot = '/autofs/cluster/transcend/hari/ASSRnew/'
 
-subjlist = ['manny', ]
+subjlist = ['092201', ]
 para = 'assrnew'
 epochs = []
 sss = True
