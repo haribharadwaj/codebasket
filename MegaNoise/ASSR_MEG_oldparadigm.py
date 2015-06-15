@@ -29,7 +29,7 @@ def pow2db(x):
     # Adding Files and locations
 froot = '/autofs/cluster/transcend/hari/ASSRold/'
 saveResults = True
-subjlist = ['056001', ]
+subjlist = ['076402', ]
 ch = range(306)  # Channels of interest
 mags = range(2, 306, 3)
 grads = range(0, 306, 3) + range(1, 306, 3)
@@ -37,7 +37,7 @@ freqs = np.arange(5, 500, 2)  # define frequencies of interest
 n_cycles = freqs / float(3)  # different number of cycle per frequency
 n_cycles[freqs < 15] = 2
 
-ASSR25 = False  # Set false for ASSR43
+ASSR25 = True  # Set false for ASSR43
 sss = True
 for subj in subjlist:
 
@@ -122,6 +122,9 @@ for subj in subjlist:
         x = epochs.get_data()
         if saveResults:
             epochs.save(fpath + save_raw_name)
+            evoked = epochs.average()
+            save_evoked_name = subj + '_' + condstem + ssstag + '-ave.fif'
+            evoked.save(fpath + save_evoked_name)
 
     # Calculate power, plv
     if not preEpoched:
