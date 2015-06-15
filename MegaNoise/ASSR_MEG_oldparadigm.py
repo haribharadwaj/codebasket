@@ -29,7 +29,7 @@ def pow2db(x):
     # Adding Files and locations
 froot = '/autofs/cluster/transcend/hari/ASSRold/'
 saveResults = True
-subjlist = ['014002', ]
+subjlist = ['056001', ]
 ch = range(306)  # Channels of interest
 mags = range(2, 306, 3)
 grads = range(0, 306, 3) + range(1, 306, 3)
@@ -99,8 +99,10 @@ for subj in subjlist:
         raw.add_proj(blink_projs)
 
         # SSP for cardiac
-        qrs = find_blinks(raw, ch_name='ECG063', h_freq=100.0,
-                          event_id=999)
+        ekg_name = 'ECG063' if 'ECG063' in raw.ch_names else 'MEG1421'
+        ekg_thresh = 100e-6 if 'ECG063' in raw.ch_names else 1.0e-12
+        qrs = find_blinks(raw, ch_name=ekg_name, l_freq=25.0, h_freq=100.0,
+                          thresh=ekg_thresh, event_id=999)
         epochs_qrs = mne.Epochs(raw, qrs, 999, tmin=-0.1,
                                 tmax=0.1, proj=True,
                                 baseline=(-0.1, 0),

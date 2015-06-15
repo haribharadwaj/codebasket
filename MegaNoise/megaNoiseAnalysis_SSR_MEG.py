@@ -37,7 +37,7 @@ n_cycles = freqs / float(3)  # different number of cycle per frequency
 n_cycles[freqs < 15] = 2
 
 SSSR = False
-ASSR25 = True  # Set false for ASSR43
+ASSR25 = False  # Set false for ASSR43
 sss = True
 eeg = False
 for subj in subjlist:
