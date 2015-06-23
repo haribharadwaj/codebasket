@@ -6,7 +6,7 @@ import os
 # froot = '/home/hari/Documents/PythonCodes/voices/'
 froot = '/autofs/cluster/transcend/hari/ASSRold/'
 
-subjlist = ['077001', ]
+subjlist = ['011302', ]
 paradigm = 'assrold'
 hp_est = True
 for subj in subjlist:

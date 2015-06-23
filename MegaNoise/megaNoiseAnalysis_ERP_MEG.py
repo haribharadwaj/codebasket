@@ -10,7 +10,7 @@ from mne.preprocessing.ssp import compute_proj_epochs
 # froot = '/home/hari/Documents/PythonCodes/ASSRmartinos/'
 froot = '/autofs/cluster/transcend/hari/ASSRnew/'
 
-subjlist = ['092201', ]
+subjlist = ['084601', ]
 para = 'assrnew'
 epochs = []
 sss = True
@@ -46,7 +46,7 @@ for subj in subjlist:
     fs = raw.info['sfreq']
     # SSP for blinks
     blinks = find_blinks(raw, ch_name='EOG062')
-    blinkname = fpath + subj + '_' + para + '_blinks' + ssstag + '.eve'
+    blinkname = fpath + subj + '_' + para + '_blinks_erp' + ssstag + '-eve.fif'
     mne.write_events(blinkname, blinks)
     epochs_blinks = mne.Epochs(raw, blinks, 998, tmin=-0.25,
                                tmax=0.25, proj=True,
@@ -61,7 +61,7 @@ for subj in subjlist:
     # SSP for cardiac artifact
     qrs = find_blinks(raw, ch_name='MEG1421', h_freq=100.0, event_id=999,
                       thresh=1e-12)
-    qrsname = fpath + subj + '_' + para + '_qrs' + ssstag + '.eve'
+    qrsname = fpath + subj + '_' + para + '_qrs_erp' + ssstag + '-eve.fif'
     mne.write_events(qrsname, qrs)
     epochs_qrs = mne.Epochs(raw, qrs, 999, tmin=-0.1,
                             tmax=0.25, proj=True,
