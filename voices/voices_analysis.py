@@ -10,7 +10,7 @@ from mne.preprocessing.ssp import compute_proj_epochs
 # froot = '/home/hari/Documents/PythonCodes/voices/'
 froot = '/autofs/cluster/transcend/hari/voices/'
 
-subjlist = ['083701', ]
+subjlist = ['053001', ]
 para = 'voices'
 epochs = []
 for subj in subjlist:
