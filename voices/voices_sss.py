@@ -60,7 +60,6 @@ for subj in subjlist:
     for run in range(1, 3):
         fifs = fnmatch.filter(os.listdir(fpath), subj + '*' +
                               str(run) + '_raw-1.fif')
-        fifs = fnmatch.filter(os.listdir(fpath), subj + '*raw-1.fif')
         print 'Viola!', len(fifs),  'files found!'
         if len(fifs) > 1:
             nruns = len(fifs)
@@ -147,16 +146,15 @@ for subj in subjlist:
             logname = fpath + subj + '_' + paradigm + ('_' + str(run) + '_'
                                                        'trans_maxfilter-1.log')
 
-            if k > 0:
-                # Transform everything to the coil definition of run 1
-                run1name = fpath + subj + '_' + paradigm + ('_1_raw_sss.fif')
-                mv_trans = run1name
+            # Transform everything to the coil definition of run 1
+            run1name = fpath + subj + '_' + paradigm + ('_1_raw_sss.fif')
+            mv_trans = run1name
 
-                mx_args = '-in 9 -out 3 -v | tee ' + logname
+            mx_args = '-in 9 -out 3 -v | tee ' + logname
 
-                # Calling maxfiler
-                origin = apply_maxfilter(sss_old, sssname, frame=frame,
-                                         mv_trans=mv_trans, mx_args=mx_args,
-                                         verbose='DEBUG')
-                print 'Estimated head center was ', origin
-                print '----- YAY! Done with subject ', subj
+            # Calling maxfiler
+            origin = apply_maxfilter(sss_old, sssname, frame=frame,
+                                     mv_trans=mv_trans, mx_args=mx_args,
+                                     verbose='DEBUG')
+            print 'Estimated head center was ', origin
+            print '----- YAY! Done with subject ', subj
