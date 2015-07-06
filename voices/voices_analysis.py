@@ -17,7 +17,8 @@ for subj in subjlist:
 
     fpath = froot + subj + '/'
 
-    fifs = fnmatch.filter(os.listdir(fpath), subj + '_' + para + '*_sss.fif')
+    fifs = fnmatch.filter(os.listdir(fpath), subj + '_' + para +
+                          '_?_raw_sss.fif')
     print 'Viola!', len(fifs),  'files found!'
     if len(fifs) > 1:
         print 'Concatenating multiple files..'

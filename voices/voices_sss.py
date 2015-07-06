@@ -40,9 +40,12 @@ for subj in subjlist:
         else:
             transtag = ''
 
+        sssname_nomovecomp = fpath + subj + '_' + paradigm + ('_' + str(run) +
+                                                              transtag +
+                                                              '_nomovecomp'
+                                                              '_raw_sss.fif')
         sssname = fpath + subj + '_' + paradigm + ('_' + str(run) +
-                                                   transtag +
-                                                   '_raw_sss.fif')
+                                                   transtag + '_raw_sss.fif')
         # Maxfilter parameters
         frame = 'head'
         logname = fpath + subj + '_' + paradigm + ('_' + str(run) +
@@ -57,7 +60,7 @@ for subj in subjlist:
             mv_hp = None
             mv_headpos = False
 
-        mx_args = '-in 9 -out 3 -v | tee ' + logname
+        mx_args = '-in 9 -out 3 -v | tee -a ' + logname
         badchname = fpath + 'badch.txt'
         if os.path.isfile(badchname):
             bads = open(badchname, 'r').read().strip('\n')
@@ -66,9 +69,14 @@ for subj in subjlist:
                                              'not found!\n'
                                              'Cannot Continue!')
 
-        # Calling maxfiler
-        origin = apply_maxfilter(fpath + rawname, sssname, frame=frame,
-                                 bad=bads, mv_hp=mv_hp, mv_comp='inter',
+        # Calling maxfiler for basic SSS
+        origin = apply_maxfilter(fpath + rawname, sssname_nomovecomp,
+                                 frame=frame, bad=bads, mx_args=mx_args,
+                                 verbose='DEBUG')
+
+        # Calling maxfilter for movement compensation
+        origin = apply_maxfilter(sssname_nomovecomp, sssname, frame=frame,
+                                 mv_hp=mv_hp, mv_comp='inter',
                                  mv_headpos=mv_headpos, mv_hpicons=True,
                                  mx_args=mx_args, verbose='DEBUG')
         print 'Done with file:', rawname
@@ -87,9 +95,11 @@ for subj in subjlist:
         if len(fifs) == 1:
             rawname = fifs[0]
             transtag = '_notrans'
-            sssname = fpath + subj + '_' + paradigm + ('_' + str(run) +
-                                                       transtag +
-                                                       '_raw_sss-1.fif')
+            sssname_nomovecomp = (fpath + subj + '_' + paradigm + '_' +
+                                  str(run) + transtag +
+                                  '_nomovecomp_raw_sss-1.fif')
+            sssname = (fpath + subj + '_' + paradigm + '_' +
+                       str(run) + transtag + '_raw_sss-1.fif')
             # Maxfilter parameters
             frame = 'head'
             logname = fpath + subj + '_' + paradigm + ('_' + str(run) +
@@ -105,7 +115,7 @@ for subj in subjlist:
                 mv_headpos = False
 
             mv_trans = None
-            mx_args = '-in 9 -out 3 -v | tee ' + logname
+            mx_args = '-in 9 -out 3 -v | tee -a ' + logname
             badchname = fpath + 'badch.txt'
             if os.path.isfile(badchname):
                 bads = open(badchname, 'r').read().strip('\n')
@@ -114,9 +124,13 @@ for subj in subjlist:
                                                  'not found!\n'
                                                  'Cannot Continue!')
 
-            # Calling maxfiler
-            origin = apply_maxfilter(fpath + rawname, sssname, frame=frame,
-                                     bad=bads, mv_hp=mv_hp, mv_comp='inter',
+            # Calling maxfiler for basic SSS
+            origin = apply_maxfilter(fpath + rawname, sssname_nomovecomp,
+                                     frame=frame, bad=bads, mx_args=mx_args,
+                                     verbose='DEBUG')
+            # Calling maxfilter for movement compensation
+            origin = apply_maxfilter(sssname_nomovecomp, sssname, frame=frame,
+                                     mv_hp=mv_hp, mv_comp='inter',
                                      mv_headpos=mv_headpos, mv_hpicons=True,
                                      mx_args=mx_args, verbose='DEBUG')
             print 'Done with file:', rawname
@@ -140,7 +154,7 @@ for subj in subjlist:
             # Transform everything to the coil definition of run 1
             run1name = fpath + subj + '_' + paradigm + ('_1_raw_sss.fif')
             mv_trans = run1name
-            mx_args = '-in 9 -out 3 -v | tee ' + logname
+            mx_args = '-in 9 -out 3 -v | tee -a ' + logname
 
             # Maxfilter parameters
             frame = 'head'
@@ -175,7 +189,7 @@ for subj in subjlist:
             run1name = fpath + subj + '_' + paradigm + ('_1_raw_sss.fif')
             mv_trans = run1name
 
-            mx_args = '-in 9 -out 3 -v | tee ' + logname
+            mx_args = '-in 9 -out 3 -v | tee -a ' + logname
 
             # Calling maxfiler
             origin = apply_maxfilter(fpath + sss_old, sssname, frame=frame,
