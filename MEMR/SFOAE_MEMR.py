@@ -54,11 +54,11 @@ def rejecttrials(x, thresh=1.5, bipolar=True):
 # Adding Files and locations
 froot = '/Users/Hari/Documents/Data/MEMR/'
 
-subjlist = ['I50']
+subjlist = ['Hari_Coarse']
 fs = 48828.125  # Hz
 ear = 'right'
-freqs = range(650, 751, 25) + range(1000, 1101, 25)
-
+# freqs = range(650, 751, 25) + range(1000, 1101, 25)
+freqs = range(200, 1001, 100) + [750, ]
 for subj in subjlist:
 
     subj += ('_' + ear)
@@ -84,23 +84,29 @@ for subj in subjlist:
                                "frequency! Cannot continue!")
 
         P = dat['Pcanal']
-        goods = rejecttrials(P, thresh=1.0)
+        goods = rejecttrials(P, thresh=1.5)
         P_ave = np.mean(P[goods, :], axis=0)
 
         # Wavelet analysis
         P_env, itc, t = tfr_multitaper(P_ave[None, None, :], fs,
                                        frequencies=[freq, ],
-                                       time_bandwidth=2.0, n_cycles=40.)
+                                       time_bandwidth=2.0, n_cycles=100.)
         P_env = rescale(P_env, t, baseline=(0.3, 0.5), mode='logratio',
                         copy=False)
         pl.figure(1)
-        pl.plot(t, P_env.squeeze(), label=(str(freq) + ' Hz'))
+        label = str(int(freq))
+        pl.plot(t, P_env.squeeze(), label=label)
         pl.hold(True)
         pl.show()
     pl.figure(1)
     pl.xlabel('Time (s)', fontsize=16)
     pl.ylabel('Ear canal pressure change (dB)', fontsize=16)
     pl.title('Wavelet analysis of MEMR effect', fontsize=16)
-    pl.xlim((0.1, 1.2))
-    pl.ylim((-0.015, 0.015))
-    pl.legend(freqs, loc='best')
+    pl.xlim((0.3, 1.7))
+    ax = pl.gca()
+    ax.tick_params(labelsize=16)
+    pl.ylim((-0.01, 0.005))
+    pl.grid(which='both')
+    leg = pl.legend(freqs, loc='best', fontsize=16, title='Frequency (Hz)',
+                    frameon=False)
+    pl.setp(leg.get_title(), fontsize=16)
