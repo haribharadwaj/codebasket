@@ -113,3 +113,4 @@ for subj in subjlist:
         ax = pl.gca()
         ax.set_xlim([200, 500])
         ax.tick_params(labelsize=16)
+        pl.show()
