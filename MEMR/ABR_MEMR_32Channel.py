@@ -6,12 +6,12 @@ import fnmatch
 import pylab as pl
 
 # Adding Files and locations
-# froot = '/cluster/transcend/hari/MEMR/'
+froot = '/cluster/transcend/hari/MEMR/'
 # froot = '/Users/Hari/Documents/Data/MEMR/ABR/'
-froot = '/home/hari/Documents/PythonCodes/MEMR'
+# froot = '/home/hari/Documents/PythonCodes/MEMR'
 
-subjlist = ['I02', ]
-ear = 'Right'
+subjlist = ['I03', ]
+ear = 'left'
 conds = [[2, 5], [3, 6]]
 for subj in subjlist:
 
@@ -20,7 +20,7 @@ for subj in subjlist:
     print 'Running Subject', subj
     rawlist = []
     evelist = []
-    nruns = 3
+    nruns = 6
     for run in range(nruns):
         bdfs = fnmatch.filter(os.listdir(fpath), subj + '_MEMR_' + ear +
                               '_' + str(run + 1) + '_ABR.bdf')
@@ -42,15 +42,16 @@ for subj in subjlist:
                 pass
             else:
                 RuntimeError('More than one bdf file for same run!!')
-        # Filter the data
-        # raw.filter(l_freq=33., h_freq=3000, picks=np.arange(30, 35, 1))
+
     raw, eves = mne.concatenate_raws(rawlist, events_list=evelist)
+    # Filter the data
+    raw.filter(l_freq=70., h_freq=3000, picks=np.arange(30, 35, 1))
     abrs = []
     pl.figure()
     for cond in conds:
         print 'Doing condition ', cond
         epochs = mne.Epochs(raw, eves, cond, tmin=-0.005, proj=False,
-                            tmax=0.014, baseline=(0., 0.002),
+                            tmax=0.014, baseline=(0.001, 0.002),
                             picks=np.arange(30, 35, 1),
                             reject=dict(eeg=100e-6),
                             verbose='WARNING')
@@ -62,10 +63,10 @@ for subj in subjlist:
         pl.hold(True)
 pl.xlabel('Time (ms)', fontsize=16)
 pl.ylabel('ABR (uV)', fontsize=16)
-pl.xlim((0., 9.))
+pl.xlim((-3., 9.))
 ax = pl.gca()
 ax.tick_params(labelsize=16)
 # pl.legend(('Condensation', 'Rarefaction'), loc='best')
 pl.legend(('80 dB peSPL', '100 dB peSPL'), loc='best')
 pl.show()
-mne.write_evokeds(fpath + subj + '_abr-ave.fif', abrs)
+mne.write_evokeds(fpath + subj + '_' + ear + '_abr-ave.fif', abrs)

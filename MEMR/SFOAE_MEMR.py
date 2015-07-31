@@ -52,13 +52,13 @@ def rejecttrials(x, thresh=1.5, bipolar=True):
 
 
 # Adding Files and locations
-froot = '/Users/Hari/Documents/Data/MEMR/'
-
-subjlist = ['Hari_Coarse']
+# froot = '/Users/Hari/Documents/Data/MEMR/'
+froot = '/cluster/transcend/hari/MEMR/'
+subjlist = ['I11']
 fs = 48828.125  # Hz
 ear = 'right'
 # freqs = range(650, 751, 25) + range(1000, 1101, 25)
-freqs = range(200, 1001, 100) + [750, ]
+freqs = range(200, 1501, 100)
 for subj in subjlist:
 
     subj += ('_' + ear)
@@ -95,9 +95,8 @@ for subj in subjlist:
                         copy=False)
         pl.figure(1)
         label = str(int(freq))
-        pl.plot(t, P_env.squeeze(), label=label)
+        pl.plot(t, 10 * P_env.squeeze(), label=label)
         pl.hold(True)
-        pl.show()
     pl.figure(1)
     pl.xlabel('Time (s)', fontsize=16)
     pl.ylabel('Ear canal pressure change (dB)', fontsize=16)
@@ -105,8 +104,9 @@ for subj in subjlist:
     pl.xlim((0.3, 1.7))
     ax = pl.gca()
     ax.tick_params(labelsize=16)
-    pl.ylim((-0.01, 0.005))
+    pl.ylim((-0.2, 0.2))
     pl.grid(which='both')
     leg = pl.legend(freqs, loc='best', fontsize=16, title='Frequency (Hz)',
                     frameon=False)
     pl.setp(leg.get_title(), fontsize=16)
+    pl.show()
