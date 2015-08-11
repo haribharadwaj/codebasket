@@ -10,9 +10,14 @@ froot = '/cluster/transcend/hari/MEMR/'
 # froot = '/Users/Hari/Documents/Data/MEMR/ABR/'
 # froot = '/home/hari/Documents/PythonCodes/MEMR'
 
-subjlist = ['I03', ]
-ear = 'left'
-conds = [[2, 5], [3, 6]]
+subjlist = ['I52', ]
+ear = 'right'
+MLR = False
+if MLR:
+    conds = [[3, 6]]
+else:
+    conds = [[2, 5], [3, 6]]
+
 for subj in subjlist:
 
     fpath = froot + '/' + subj + '/'
@@ -28,7 +33,7 @@ for subj in subjlist:
         if len(bdfs) == 1:
             edfname = fpath + bdfs[0]
             # Load data and read event channel
-            if ear == 'Right':
+            if ear == 'right':
                 refchans = ['EXG2']
             else:
                 refchans = ['EXG1', ]
@@ -45,28 +50,38 @@ for subj in subjlist:
 
     raw, eves = mne.concatenate_raws(rawlist, events_list=evelist)
     # Filter the data
-    raw.filter(l_freq=70., h_freq=3000, picks=np.arange(30, 35, 1))
+    if MLR:
+        raw.filter(l_freq=30., h_freq=1500, picks=np.arange(35))
+        tmin, tmax = -0.005, 0.08
+    else:
+        raw.filter(l_freq=70., h_freq=3000, picks=np.arange(35))
+        tmin, tmax = -0.002, 0.015
     abrs = []
     pl.figure()
     for cond in conds:
         print 'Doing condition ', cond
-        epochs = mne.Epochs(raw, eves, cond, tmin=-0.005, proj=False,
-                            tmax=0.014, baseline=(0.001, 0.002),
-                            picks=np.arange(30, 35, 1),
+        epochs = mne.Epochs(raw, eves, cond, tmin=-0.002, proj=False,
+                            tmax=0.015, baseline=(0.001, 0.002),
+                            picks=np.arange(35),
                             reject=dict(eeg=100e-6),
                             verbose='WARNING')
         abr = epochs.average()
         abrs += [abr, ]
         x = abr.data * 1e6  # microV
-        t = abr.times * 1e3 - 1.6  # Adjust for delay and use milliseconds
-        pl.plot(t, x[1, :] - x[4, :], linewidth=2)
+        t = abr.times * 1e3 - 1.0  # Adjust for delay and use milliseconds
+        pl.plot(t, x[:32, :].mean(axis=0) - x[34, :], linewidth=2)
         pl.hold(True)
 pl.xlabel('Time (ms)', fontsize=16)
-pl.ylabel('ABR (uV)', fontsize=16)
-pl.xlim((-3., 9.))
+if MLR:
+    pl.ylabel('MLR (uV)', fontsize=16)
+    pl.xlim((-5., 60.))
+else:
+    pl.ylabel('ABR (uV)', fontsize=16)
+    pl.xlim((-4., 13.))
+
 ax = pl.gca()
 ax.tick_params(labelsize=16)
-# pl.legend(('Condensation', 'Rarefaction'), loc='best')
-pl.legend(('80 dB peSPL', '100 dB peSPL'), loc='best')
+if not MLR:
+    # pl.legend(('Condensation', 'Rarefaction'), loc='best')
+    pl.legend(('80 dB peSPL', '100 dB peSPL'), loc='best')
 pl.show()
-mne.write_evokeds(fpath + subj + '_' + ear + '_abr-ave.fif', abrs)
