@@ -19,8 +19,10 @@ from mayavi import mlab
 from mne import setup_source_space, setup_volume_source_space
 
 
-meg_path = '/autofs/cluster/transcend/hari/ASSRnew/'
-subjects_dir = '/autofs/cluster/transcend/MRI/WMA/recons/'
+# meg_path = '/autofs/cluster/transcend/hari/ASSRnew/'
+meg_path = '/Users/Hari/Documents/Data/ASSR_MEG/'
+# subjects_dir = '/autofs/cluster/transcend/MRI/WMA/recons/'
+subjects_dir = '/Applications/freesurfer/subjects/'
 subj = '092201'
 aseg_fname = subjects_dir + subj + '/mri/aseg.mgz'
 
@@ -75,7 +77,7 @@ mlab.roll(85)
 # Compare volume source locations to segmentation file in freeview
 
 # Export source positions to nifti file
-nii_fname = meg_path + subj + '/mne_brainstem-lh-cortex.nii'
+nii_fname = meg_path + subj + '/brainstem-lh-cortex.nii'
 
 # Combine the source spaces
 src = surf + brainstem
