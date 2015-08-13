@@ -10,7 +10,7 @@ froot = '/cluster/transcend/hari/MEMR/'
 # froot = '/Users/Hari/Documents/Data/MEMR/ABR/'
 # froot = '/home/hari/Documents/PythonCodes/MEMR'
 
-subjlist = ['I52', ]
+subjlist = ['I41', ]
 ear = 'right'
 MLR = False
 if MLR:
@@ -60,8 +60,8 @@ for subj in subjlist:
     pl.figure()
     for cond in conds:
         print 'Doing condition ', cond
-        epochs = mne.Epochs(raw, eves, cond, tmin=-0.002, proj=False,
-                            tmax=0.015, baseline=(0.001, 0.002),
+        epochs = mne.Epochs(raw, eves, cond, tmin=tmin, proj=False,
+                            tmax=tmax, baseline=(0.001, 0.002),
                             picks=np.arange(35),
                             reject=dict(eeg=100e-6),
                             verbose='WARNING')

@@ -12,7 +12,7 @@ import pylab as pl
 froot = '/autofs/cluster/transcend/hari/MEMR/'
 
 
-subjlist = ['I51', ]
+subjlist = ['I41', ]
 ear = 'right'
 
 for subj in subjlist:
@@ -112,7 +112,7 @@ for subj in subjlist:
         io.savemat(respath + save_raw_name, dict(x=x, subj=subj))
 
     pl.figure()
-    pl.plot(f, cplv)
+    pl.plot(f, cplv, linewidth=2)
     pl.xlabel('Frequency (Hz)', fontsize=16)
     pl.ylabel('Phase Locking', fontsize=16)
     ax = pl.gca()
