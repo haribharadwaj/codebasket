@@ -111,8 +111,8 @@ for subj in subjlist:
     f_AM = AMlist[cond - 1]
     ind_AM = np.argmin(np.abs(f - f_AM))
     pl.figure()
-    mne.viz.plot_topomap(plv[:, ind_AM], pos, sensors='ok', vmin=-0.07,
-                         vmax=0.07)
+    mne.viz.plot_topomap(plv[:, ind_AM], pos, sensors='ok', vmin=-0.01,
+                         vmax=0.01)
     pl.show()
     figname_mag_topo = subj + '_' + condstem + '_mag_topo-results.pdf'
     pl.savefig(fpath + figname_mag_topo)
@@ -140,8 +140,8 @@ for subj in subjlist:
     f_AM = AMlist[cond - 1]
     ind_AM = np.argmin(np.abs(f - f_AM))
     pl.figure()
-    mne.viz.plot_topomap(plv[:, ind_AM], pos, sensors='ok', vmin=-0.07,
-                         vmax=0.07)
+    mne.viz.plot_topomap(plv[:, ind_AM], pos, sensors='ok', vmin=-0.01,
+                         vmax=0.01)
     pl.show()
     figname_grad_topo = (subj + '_' + condstem + '_grad_topo-results.pdf')
     pl.savefig(fpath + figname_grad_topo)
@@ -154,7 +154,7 @@ for subj in subjlist:
     pl.plot(f, plv.T, linewidth=2)
     pl.xlabel('Frequency (Hz)', fontsize=16)
     pl.ylabel('Intertrial PLV', fontsize=16)
-    pl.title('MEG Gradiometers', fontsize=16)
+    pl.title('EEG', fontsize=16)
     pl.xlim([100, 300])
     pl.show()
     figname_grad = subj + '_' + condstem + '_eeg-results.pdf'
