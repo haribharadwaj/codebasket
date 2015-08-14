@@ -24,18 +24,20 @@ def pow2db(x):
     return y
 
     # Adding Files and locations
-froot = '/autofs/cluster/transcend/hari/MEMR/'
-saveResults = True
+# froot = '/autofs/cluster/transcend/hari/MEMR/'
+froot = '/home/hari/Documents/SubcorticalSource/'
+saveRaw = False
 subjlist = ['HB', ]
 
 ch = range(1, 307)  # Channels of interest
 mags = range(2, 306, 3)
 grads = range(0, 306, 3) + range(1, 306, 3)
+eeg = [306, ]
 freqs = np.arange(5, 500, 2)  # define frequencies of interest
 n_cycles = freqs / float(3)  # different number of cycle per frequency
 n_cycles[freqs < 15] = 2
 
-cond = 1
+cond = 3
 AMlist = [163, 193, 223, 253, 283]
 for subj in subjlist:
     fpath = froot + subj + '/'
@@ -69,16 +71,15 @@ for subj in subjlist:
         raw.set_channel_types({'EMG061': 'eeg'})
         raw.info['bads'] += ['MEG0223', 'MEG1623']
         # Filter the data for SSRs
-        raw.filter(l_freq=70., h_freq=300., l_trans_bandwidth=0.15,
-                   picks=np.arange(0, 306, 1))
+        raw.filter(l_freq=70., h_freq=300., picks=None)
 
         # Epoching events of type
-        epochs = mne.Epochs(raw, eves, cond, tmin=-0.1, proj=False,
-                            tmax=1.3, baseline=(-0.1, 0.),
+        epochs = mne.Epochs(raw, eves, cond, tmin=-0.05, proj=False,
+                            tmax=1.25, baseline=(-0.05, 0.),
                             reject=dict(grad=5000e-13, mag=4e-12))
 
         x = epochs.get_data()
-        if saveResults:
+        if saveRaw:
             epochs.save(fpath + save_raw_name)
 
     # Calculate power, plv
@@ -144,3 +145,17 @@ for subj in subjlist:
     pl.show()
     figname_grad_topo = (subj + '_' + condstem + '_grad_topo-results.pdf')
     pl.savefig(fpath + figname_grad_topo)
+
+    # EEG
+    pl.figure()
+    params = dict(Fs=Fs, fpass=[100, 300], tapers=[1, 1], itc=0)
+    y = x[:, eeg, :].transpose((1, 0, 2))
+    plv, f = spectral.mtplv(y, params, verbose='DEBUG')
+    pl.plot(f, plv.T, linewidth=2)
+    pl.xlabel('Frequency (Hz)', fontsize=16)
+    pl.ylabel('Intertrial PLV', fontsize=16)
+    pl.title('MEG Gradiometers', fontsize=16)
+    pl.xlim([100, 300])
+    pl.show()
+    figname_grad = subj + '_' + condstem + '_eeg-results.pdf'
+    pl.savefig(fpath + figname_grad)
