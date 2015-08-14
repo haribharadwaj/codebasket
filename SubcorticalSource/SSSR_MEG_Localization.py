@@ -3,8 +3,6 @@ import numpy as np
 import os
 import fnmatch
 from anlffr import spectral
-from anlffr.preproc import find_blinks
-from mne.preprocessing.ssp import compute_proj_epochs
 import pylab as pl
 
 
@@ -68,10 +66,8 @@ for subj in subjlist:
         eves = mne.find_events(raw, stim_channel='STI101',
                                shortest_event=1)
 
-        raw.info['bads'] += ['MEG2033', 'MEG0442', 'MEG2343', 'MEG1643',
-                             'MEG1211', 'MEG2522', 'MEG0731']
-
-        raw.info['bads'] += ['EEG009', 'EEG027', 'EEG067']
+        raw.set_channel_types({'EMG061': 'eeg'})
+        raw.info['bads'] += ['MEG0223', 'MEG1623']
         # Filter the data for SSRs
         raw.filter(l_freq=70., h_freq=300., l_trans_bandwidth=0.15,
                    picks=np.arange(0, 306, 1))
