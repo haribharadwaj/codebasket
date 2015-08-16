@@ -39,7 +39,7 @@ freqs = np.arange(5, 500, 2)  # define frequencies of interest
 n_cycles = freqs / float(3)  # different number of cycle per frequency
 n_cycles[freqs < 15] = 2
 
-cond = 5
+cond = 4
 AMlist = [163, 193, 223, 253, 283]
 for subj in subjlist:
     fpath = froot + subj + '/'
@@ -92,7 +92,6 @@ for subj in subjlist:
 
     #########################################################################
     # Fourier domain stuff
-    pl.figure()
     params = dict(Fs=Fs, fpass=[100, 300], tapers=[1, 1], itc=0)
 
     # EEG
@@ -111,6 +110,7 @@ for subj in subjlist:
     y_eeg = y
 
     # Magnetometers
+    pl.figure()
     for badname in epochs.info['bads']:
         bad_ind = epochs.info['ch_names'].index(badname)
         if bad_ind in mags:
@@ -143,46 +143,49 @@ for subj in subjlist:
     pos_mag = pos
     topo_mag = plv[:, ind_AM]
 
-    # Gradiometers
-    pl.figure()
-    params = dict(Fs=Fs, fpass=[100, 300], tapers=[1, 1], itc=0)
-    for badname in epochs.info['bads']:
-        bad_ind = epochs.info['ch_names'].index(badname)
-        if bad_ind in grads:
-            grads.remove(bad_ind)
+    doGrad = False
+    if doGrad:
+        # Gradiometers
+        pl.figure()
+        params = dict(Fs=Fs, fpass=[100, 300], tapers=[1, 1], itc=0)
+        for badname in epochs.info['bads']:
+            bad_ind = epochs.info['ch_names'].index(badname)
+            if bad_ind in grads:
+                grads.remove(bad_ind)
 
-    plv = np.zeros((len(grads), plv.shape[1]))
-    for k, ch in enumerate(grads):
-        print 'Computing PLV for channel', k
-        y = x[:, [ch, ], :].transpose((1, 0, 2))
-        plv[k, :], f = spectral.mtplv(y, params, verbose='DEBUG')
-    f_AM = AMlist[cond - 1]
-    ind_AM = np.argmin(np.abs(f - f_AM))
-    best10Chans = plv[:, ind_AM].argsort()[:-10:-1]
-    pl.plot(f, plv[best10Chans, :].mean(axis=0), linewidth=2)
-    pl.xlabel('Frequency (Hz)', fontsize=16)
-    pl.ylabel('Intertrial PLV', fontsize=16)
-    pl.title('MEG Gradiometers', fontsize=16)
-    pl.xlim([100, 300])
-    pl.show()
-    figname_grad = subj + '_' + condstem + '_grad-results.pdf'
-    pl.savefig(fpath + figname_grad)
-    lout = mne.find_layout(epochs.info)
-    pos = lout.pos[grads]
-    f_AM = AMlist[cond - 1]
-    ind_AM = np.argmin(np.abs(f - f_AM))
-    pl.figure()
-    mne.viz.plot_topomap(plv[:, ind_AM], pos, sensors='ok', vmin=-0.01,
-                         vmax=0.01)
-    pl.show()
-    figname_grad_topo = (subj + '_' + condstem + '_grad_topo-results.pdf')
-    pl.savefig(fpath + figname_grad_topo)
-    y_grad = x[:, np.asarray(grads)[best10Chans], :].transpose((1, 0, 2))
-    pos_grad = pos
-    topo_grad = plv[:, ind_AM]
-
-    saveDict = dict(Fs=Fs, params=params, y_mag=y_mag, y_grad=y_grad,
-                    y_eeg=y_eeg, topo_mag=topo_mag, topo_grad=topo_grad,
-                    f_AM=f_AM, t=times)
+        plv = np.zeros((len(grads), plv.shape[1]))
+        for k, ch in enumerate(grads):
+            print 'Computing PLV for channel', k
+            y = x[:, [ch, ], :].transpose((1, 0, 2))
+            plv[k, :], f = spectral.mtplv(y, params, verbose='DEBUG')
+        f_AM = AMlist[cond - 1]
+        ind_AM = np.argmin(np.abs(f - f_AM))
+        best10Chans = plv[:, ind_AM].argsort()[:-10:-1]
+        pl.plot(f, plv[best10Chans, :].mean(axis=0), linewidth=2)
+        pl.xlabel('Frequency (Hz)', fontsize=16)
+        pl.ylabel('Intertrial PLV', fontsize=16)
+        pl.title('MEG Gradiometers', fontsize=16)
+        pl.xlim([100, 300])
+        pl.show()
+        figname_grad = subj + '_' + condstem + '_grad-results.pdf'
+        pl.savefig(fpath + figname_grad)
+        lout = mne.find_layout(epochs.info)
+        pos = lout.pos[grads]
+        pl.figure()
+        mne.viz.plot_topomap(plv[:, ind_AM], pos, sensors='ok', vmin=-0.01,
+                             vmax=0.01)
+        pl.show()
+        figname_grad_topo = (subj + '_' + condstem + '_grad_topo-results.pdf')
+        pl.savefig(fpath + figname_grad_topo)
+        y_grad = x[:, np.asarray(grads)[best10Chans], :].transpose((1, 0, 2))
+        pos_grad = pos
+        topo_grad = plv[:, ind_AM]
+        saveDict = dict(Fs=Fs, params=params, y_mag=y_mag, y_grad=y_grad,
+                        y_eeg=y_eeg, topo_mag=topo_mag, topo_grad=topo_grad,
+                        f_AM=f_AM, t=times)
+    else:
+        saveDict = dict(Fs=Fs, params=params, y_mag=y_mag,
+                        y_eeg=y_eeg, topo_mag=topo_mag,
+                        f_AM=f_AM, t=times)
     save_res_name = subj + '_' + condstem + '_results.mat'
     io.savemat(fpath + save_res_name, saveDict)
