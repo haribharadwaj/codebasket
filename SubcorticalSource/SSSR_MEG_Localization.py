@@ -24,8 +24,8 @@ def pow2db(x):
     return y
 
     # Adding Files and locations
-# froot = '/autofs/cluster/transcend/hari/MEMR/'
-froot = '/home/hari/Documents/SubcorticalSource/'
+froot = '/autofs/cluster/transcend/hari/MEMR/'
+# froot = '/home/hari/Documents/SubcorticalSource/'
 saveRaw = False
 subjlist = ['HB', ]
 
@@ -70,8 +70,9 @@ for subj in subjlist:
 
         raw.set_channel_types({'EMG061': 'eeg'})
         raw.info['bads'] += ['MEG0223', 'MEG1623']
+        raw.resample(raw.info['sfreq'] / 2.0)
         # Filter the data for SSRs
-        raw.filter(l_freq=70., h_freq=300., picks=None)
+        # raw.filter(l_freq=70., h_freq=300., picks=None)
 
         # Epoching events of type
         epochs = mne.Epochs(raw, eves, cond, tmin=-0.05, proj=False,
