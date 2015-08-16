@@ -98,7 +98,7 @@ for subj in subjlist:
 
     y = x[:, mags, :].transpose((1, 0, 2))
     plv, f = spectral.mtplv(y, params, verbose='DEBUG')
-    pl.plot(f, plv.T, linewidth=2)
+    pl.plot(f, plv.mean(axis=0), linewidth=2)
     pl.xlabel('Frequency (Hz)', fontsize=16)
     pl.ylabel('Intertrial PLV', fontsize=16)
     pl.title('MEG Magnetometers', fontsize=16)
@@ -127,7 +127,7 @@ for subj in subjlist:
 
     y = x[:, grads, :].transpose((1, 0, 2))
     plv, f = spectral.mtplv(y, params, verbose='DEBUG')
-    pl.plot(f, plv.T, linewidth=2)
+    pl.plot(f, plv.mean(axis=0), linewidth=2)
     pl.xlabel('Frequency (Hz)', fontsize=16)
     pl.ylabel('Intertrial PLV', fontsize=16)
     pl.title('MEG Gradiometers', fontsize=16)
