@@ -39,7 +39,7 @@ freqs = np.arange(5, 500, 2)  # define frequencies of interest
 n_cycles = freqs / float(3)  # different number of cycle per frequency
 n_cycles[freqs < 15] = 2
 
-cond = 4
+cond = 1
 AMlist = [163, 193, 223, 253, 283]
 for subj in subjlist:
     fpath = froot + subj + '/'
@@ -74,12 +74,12 @@ for subj in subjlist:
         raw.info['bads'] += ['MEG0223', 'MEG1623']
         # raw.resample(raw.info['sfreq'] / 2.0)
         # Filter the data for SSRs
-        # raw.filter(l_freq=70., h_freq=300., picks=None)
+        raw.filter(l_freq=70., h_freq=None, filter_length='500ms', picks=None)
 
         # Epoching events of type
         epochs = mne.Epochs(raw, eves, cond, tmin=-0.05, proj=False,
                             tmax=1.25, baseline=(-0.05, 0.),
-                            reject=dict(grad=5000e-12, mag=4e-11))
+                            reject=dict(grad=5000e-13, mag=4e-12))
 
         x = epochs.get_data()
         if saveRaw:
@@ -189,3 +189,5 @@ for subj in subjlist:
                         f_AM=f_AM, t=times)
     save_res_name = subj + '_' + condstem + '_results.mat'
     io.savemat(fpath + save_res_name, saveDict)
+    evoked = epochs.average()
+    evoked.save(fpath + subj + '_' + condstem + '-ave.fif')
