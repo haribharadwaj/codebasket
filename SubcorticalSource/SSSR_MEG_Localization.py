@@ -39,7 +39,7 @@ freqs = np.arange(5, 500, 2)  # define frequencies of interest
 n_cycles = freqs / float(3)  # different number of cycle per frequency
 n_cycles[freqs < 15] = 2
 
-cond = 1
+cond = 5
 AMlist = [163, 193, 223, 253, 283]
 for subj in subjlist:
     fpath = froot + subj + '/'
@@ -191,3 +191,6 @@ for subj in subjlist:
     io.savemat(fpath + save_res_name, saveDict)
     evoked = epochs.average()
     evoked.save(fpath + subj + '_' + condstem + '-ave.fif')
+    cov = mne.cov.compute_covariance(epochs, tmin=None, tmax=0.002,
+                                     verbose='DEBUG')
+    cov.save(fpath + subj + '_' + condstem + '-cov.fif')

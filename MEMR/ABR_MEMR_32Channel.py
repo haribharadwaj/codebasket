@@ -10,8 +10,8 @@ froot = '/cluster/transcend/hari/MEMR/'
 # froot = '/Users/Hari/Documents/Data/MEMR/ABR/'
 # froot = '/home/hari/Documents/PythonCodes/MEMR'
 
-subjlist = ['I41', ]
-ear = 'right'
+subjlist = ['I52', ]
+ear = 'left'
 MLR = False
 if MLR:
     conds = [[3, 6]]
