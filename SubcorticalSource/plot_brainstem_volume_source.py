@@ -23,7 +23,8 @@ from mne import setup_source_space, setup_volume_source_space
 meg_path = '/Users/Hari/Documents/Data/ASSR_MEG/'
 # subjects_dir = '/autofs/cluster/transcend/MRI/WMA/recons/'
 subjects_dir = '/Applications/freesurfer/subjects/'
-subj = '092201'
+subj = 'RON026_AKCLEE'
+subj_meg = 'HB'
 aseg_fname = subjects_dir + subj + '/mri/aseg.mgz'
 
 ###############################################################################
@@ -31,6 +32,7 @@ aseg_fname = subjects_dir + subj + '/mri/aseg.mgz'
 
 # setup a cortical surface source space and extract left hemisphere
 surf = setup_source_space(subj, subjects_dir=subjects_dir,
+                          spacing='ico5', n_jobs=2,
                           add_dist=False, overwrite=True)
 lh_surf = surf[0]
 
@@ -77,7 +79,7 @@ mlab.roll(85)
 # Compare volume source locations to segmentation file in freeview
 
 # Export source positions to nifti file
-nii_fname = meg_path + subj + '/brainstem-lh-cortex.nii'
+nii_fname = meg_path + subj_meg + '/brainstem-lh-cortex.nii'
 
 # Combine the source spaces
 src = surf + brainstem

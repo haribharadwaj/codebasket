@@ -85,3 +85,4 @@ if not MLR:
     # pl.legend(('Condensation', 'Rarefaction'), loc='best')
     pl.legend(('80 dB peSPL', '100 dB peSPL'), loc='best')
 pl.show()
+mne.write_evokeds(fpath + subj + '_' + ear + '-ave.fif', abrs)
