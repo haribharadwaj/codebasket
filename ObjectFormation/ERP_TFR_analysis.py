@@ -10,7 +10,7 @@ from mne.preprocessing.ssp import compute_proj_epochs
 froot = '/Users/hari/Documents/Data/ObjectFormation/'
 # froot = '/autofs/cluster/transcend/hari/ObjectFormation/'
 
-subjlist = ['Hari', ]
+subjlist = ['082802', ]
 para = 'object'
 epochs = []
 sss = False
@@ -40,18 +40,19 @@ for subj in subjlist:
     eves = mne.find_events(raw, stim_channel='STI101', shortest_event=1)
 
     if not sss:
-        raw.info['bads'] += ['MEG1013', 'MEG1623']
+        raw.info['bads'] += ['MEG1013', 'MEG1623', 'MEG2342', 'MEG2513',
+                             'MEG2542']
     # Filter the data for ERPs
     raw.filter(l_freq=1.0, h_freq=144, l_trans_bandwidth=0.15,
                picks=np.arange(0, 306, 1))
 
     # raw.apply_proj()
     fs = raw.info['sfreq']
-    removeblinks = False
+    removeblinks = True
 
     if removeblinks:
         # SSP for blinks
-        blinks = find_blinks(raw, ch_name='EOG062')
+        blinks = find_blinks(raw, ch_name=['EOG062', ])
         blinkname = (fpath + subj + '_' + para + '_blinks_erp' + ssstag +
                      '-eve.fif')
         mne.write_events(blinkname, blinks)
@@ -82,17 +83,27 @@ for subj in subjlist:
 
     evokeds = []
     condnames = ['coh07', 'coh14', 'coh20']
-    condlists = [259, 258, 257]
+    condlists = [3, 2, 1]
+    eves2 = np.zeros((eves.shape[0]*2, 3), dtype=np.int)
+    fs_int = int(raw.info['sfreq'])
+    for k, row in enumerate(eves):
+        eves2[2*k, :] = row + np.asarray([fs_int, 0, 0])
+        eves2[2*k + 1, :] = row + np.asarray([2*fs_int, 0, 0])
 
     for k, condstem in enumerate(condnames):
         condlist = condlists[k]
         print 'Running Subject', subj, 'Condition', condstem
 
         # Epoching events of type
-        epochs = mne.Epochs(raw, eves, condlist, tmin=-0.3, proj=True,
-                            tmax=4.0, baseline=(-0.3, 0.0), name=condstem,
+        epochs = mne.Epochs(raw, eves2, condlist, tmin=-0.2, proj=True,
+                            tmax=1.5, baseline=(-0.2, 0.0), name=condstem,
                             reject=dict(grad=5000e-13, mag=5e-12))
         evokeds += [epochs.average(), ]
 
-    avename = subj + ssstag + '_' + para + '-ave.fif'
+    # Now save overall onset N100
+    epochs = mne.Epochs(raw, eves, condlists, tmin=-0.2, proj=True,
+                        tmax=1.5, baseline=(-0.2, 0.0), name=condstem,
+                        reject=dict(grad=5000e-13, mag=5e-12))
+    evokeds += [epochs.average(), ]
+    avename = subj + ssstag + '_' + para + '_collapse-ave.fif'
     mne.write_evokeds(fpath + avename, evokeds)
