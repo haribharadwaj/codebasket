@@ -28,7 +28,7 @@ def pow2db(x):
     # Adding Files and locations
 froot = '/autofs/cluster/transcend/hari/ASSRnew/'
 saveResults = True
-subjlist = ['084601', ]
+subjlist = ['082802', ]
 ch = range(1, 307)  # Channels of interest
 mags = range(2, 306, 3)
 grads = range(0, 306, 3) + range(1, 306, 3)
@@ -36,9 +36,9 @@ freqs = np.arange(5, 500, 2)  # define frequencies of interest
 n_cycles = freqs / float(3)  # different number of cycle per frequency
 n_cycles[freqs < 15] = 2
 
-SSSR = True
-ASSR25 = True  # Set false for ASSR43
-sss = True
+SSSR = False
+ASSR25 = False  # Set false for ASSR43
+sss = False
 eeg = False
 for subj in subjlist:
 

@@ -10,8 +10,8 @@ froot = '/cluster/transcend/hari/MEMR/'
 # froot = '/Users/Hari/Documents/Data/MEMR/ABR/'
 # froot = '/home/hari/Documents/PythonCodes/MEMR'
 
-subjlist = ['I52', ]
-ear = 'left'
+subjlist = ['I50', ]
+ear = 'right'
 MLR = False
 if MLR:
     conds = [[3, 6]]
@@ -56,6 +56,9 @@ for subj in subjlist:
     else:
         raw.filter(l_freq=70., h_freq=3000, picks=np.arange(35))
         tmin, tmax = -0.002, 0.015
+    raw.info['bads'] += ['EXG3', 'A1', 'A2', 'A30', 'A7', 'A6',
+                         'A24', 'A28', 'A29', 'A3', 'A11', 'A15',
+                         'A16', 'A17', 'A10', 'A21', 'A20', 'A25']
     abrs = []
     pl.figure()
     for cond in conds:
