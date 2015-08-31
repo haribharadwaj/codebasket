@@ -10,8 +10,8 @@ froot = '/cluster/transcend/hari/MEMR/'
 # froot = '/Users/Hari/Documents/Data/MEMR/ABR/'
 # froot = '/home/hari/Documents/PythonCodes/MEMR'
 
-subjlist = ['I50', ]
-ear = 'right'
+subjlist = ['I03', ]
+ear = 'left'
 MLR = False
 if MLR:
     conds = [[3, 6]]
@@ -59,6 +59,7 @@ for subj in subjlist:
     raw.info['bads'] += ['EXG3', 'A1', 'A2', 'A30', 'A7', 'A6',
                          'A24', 'A28', 'A29', 'A3', 'A11', 'A15',
                          'A16', 'A17', 'A10', 'A21', 'A20', 'A25']
+    goods = [28, 3, 30, 26, 4, 25, 7, 31, 22, 9, 8, 21, 11, 12, 18]
     abrs = []
     pl.figure()
     for cond in conds:
@@ -66,13 +67,13 @@ for subj in subjlist:
         epochs = mne.Epochs(raw, eves, cond, tmin=tmin, proj=False,
                             tmax=tmax, baseline=(0.001, 0.002),
                             picks=np.arange(35),
-                            reject=dict(eeg=100e-6),
+                            reject=dict(eeg=40e-6),
                             verbose='WARNING')
         abr = epochs.average()
         abrs += [abr, ]
         x = abr.data * 1e6  # microV
         t = abr.times * 1e3 - 1.0  # Adjust for delay and use milliseconds
-        pl.plot(t, x[:32, :].mean(axis=0) - x[34, :], linewidth=2)
+        pl.plot(t, x[goods, :].mean(axis=0) - x[34, :], linewidth=2)
         pl.hold(True)
 pl.xlabel('Time (ms)', fontsize=16)
 if MLR:
@@ -88,4 +89,4 @@ if not MLR:
     # pl.legend(('Condensation', 'Rarefaction'), loc='best')
     pl.legend(('80 dB peSPL', '100 dB peSPL'), loc='best')
 pl.show()
-mne.write_evokeds(fpath + subj + '_' + ear + '-ave.fif', abrs)
+mne.write_evokeds(fpath + subj + '_' + ear + '_strict-ave.fif', abrs)

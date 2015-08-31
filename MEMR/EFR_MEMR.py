@@ -13,9 +13,9 @@ froot = '/autofs/cluster/transcend/hari/MEMR/'
 
 
 # subjlist = ['I52', 'I54', 'I13', 'I14', 'I56', 'I53', 'I55', 'I41', 'I56',
- #            'I51', 'I03']
-subjlist = ['I02', 'I07']
-earlist = ['left', ]
+#            'I51', 'I03']
+subjlist = ['I11']
+earlist = ['left', 'right']
 
 overwriteOld = True
 for subj in subjlist:
