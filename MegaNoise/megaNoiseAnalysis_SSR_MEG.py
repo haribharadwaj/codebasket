@@ -36,9 +36,9 @@ freqs = np.arange(5, 500, 2)  # define frequencies of interest
 n_cycles = freqs / float(3)  # different number of cycle per frequency
 n_cycles[freqs < 15] = 2
 
-SSSR = True
+SSSR = False
 ASSR25 = True  # Set false for ASSR43
-sss = False
+sss = True
 eeg = False
 for subj in subjlist:
 

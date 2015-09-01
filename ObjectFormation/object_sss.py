@@ -4,16 +4,16 @@ import os
 
 # Adding Files and locations
 # froot = '/home/hari/Documents/PythonCodes/voices/'
-froot = '/autofs/cluster/transcend/hari/ASSRnew/'
+froot = '/autofs/cluster/transcend/hari/ObjectFormation/'
 
 subjlist = ['082901', ]
-paradigm = 'assrnew'
+paradigm = 'object'
 hp_est = True
 for subj in subjlist:
 
     fpath = froot + subj + '/'
 
-    fifs = fnmatch.filter(os.listdir(fpath), subj + '*raw.fif')
+    fifs = fnmatch.filter(os.listdir(fpath), subj + '*object_*raw.fif')
     print 'Viola!', len(fifs),  'files found!'
     if len(fifs) > 1:
         nruns = len(fifs)
@@ -71,7 +71,7 @@ for subj in subjlist:
             hpname = (fpath + subj + '_' + paradigm + '_' + str(k+1) +
                       '_hp-1.txt')
             mv_hp = hpname
-            mv_headpos = True
+            mv_headpos = False
         else:
             mv_hp = None
             mv_headpos = False

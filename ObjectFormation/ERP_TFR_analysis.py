@@ -10,7 +10,7 @@ from mne.preprocessing.ssp import compute_proj_epochs
 froot = '/Users/hari/Documents/Data/ObjectFormation/'
 # froot = '/autofs/cluster/transcend/hari/ObjectFormation/'
 
-subjlist = ['082802', ]
+subjlist = ['082901', ]
 para = 'object'
 epochs = []
 sss = False
