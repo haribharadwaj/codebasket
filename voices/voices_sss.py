@@ -52,7 +52,7 @@ for subj in subjlist:
             hpname = (fpath + subj + '_' + paradigm + '_' + str(run) +
                       transtag + '_hp.txt')
             mv_hp = hpname
-            mv_headpos = True
+            mv_headpos = False  # Otherwise compensation wont be applied
         else:
             mv_hp = None
             mv_headpos = False
@@ -99,7 +99,7 @@ for subj in subjlist:
                 hpname = (fpath + subj + '_' + paradigm + '_' + str(run) +
                           transtag + '_hp-1.txt')
                 mv_hp = hpname
-                mv_headpos = True
+                mv_headpos = False  # Otherwise compensation wont be applied
             else:
                 mv_hp = None
                 mv_headpos = False

@@ -4,11 +4,12 @@ import os
 import fnmatch
 from anlffr.preproc import find_blinks
 from mne.preprocessing.ssp import compute_proj_epochs
+from mne.cov import compute_covariance
 
 
 # Adding Files and locations
-froot = '/Users/hari/Documents/Data/ObjectFormation/'
-# froot = '/autofs/cluster/transcend/hari/ObjectFormation/'
+# froot = '/Users/hari/Documents/Data/ObjectFormation/'
+froot = '/autofs/cluster/transcend/hari/ObjectFormation/'
 
 subjlist = ['082901', ]
 para = 'object'
@@ -107,3 +108,8 @@ for subj in subjlist:
     evokeds += [epochs.average(), ]
     avename = subj + ssstag + '_' + para + '_collapse-ave.fif'
     mne.write_evokeds(fpath + avename, evokeds)
+
+    # Compute covatiance
+    cov = compute_covariance(epochs, tmin=-0.2, tmax=0.0)
+    covname = subj + ssstag + '_' + para + '_collapse-cov.fif'
+    cov.save(covname)
