@@ -5,16 +5,16 @@ import fnmatch
 from anlffr.preproc import find_blinks
 from mne.preprocessing.ssp import compute_proj_epochs
 from mne.cov import compute_covariance
-
+from mne.time_frequency import tfr_multitaper
 
 # Adding Files and locations
 # froot = '/Users/hari/Documents/Data/ObjectFormation/'
 froot = '/autofs/cluster/transcend/hari/ObjectFormation/'
 
-subjlist = ['082901', ]
+subjlist = ['086901', ]
 para = 'object'
 epochs = []
-sss = False
+sss = True
 eog = False
 ekg = False
 for subj in subjlist:
@@ -28,7 +28,7 @@ for subj in subjlist:
     else:
         ssstag = ''
 
-    fifs = fnmatch.filter(os.listdir(fpath), subj + '_' + para + '*raw' +
+    fifs = fnmatch.filter(os.listdir(fpath), subj + '_' + para + '_?_raw' +
                           ssstag + '.fif')
     print 'Viola!', len(fifs),  'files found!'
     if len(fifs) > 1:
@@ -100,6 +100,14 @@ for subj in subjlist:
                             tmax=1.5, baseline=(-0.2, 0.0), name=condstem,
                             reject=dict(grad=5000e-13, mag=5e-12))
         evokeds += [epochs.average(), ]
+        freqs = np.arange(5., 70., 1.)
+        n_cycles = freqs * 0.2
+        power, itc = tfr_multitaper(epochs, freqs, n_cycles,
+                                    time_bandwidth=2.0, n_jobs=-1)
+        fname_pow = subj + ssstag + '_' + para + '_pow_' + condstem + '-tfr.h5'
+        fname_itc = subj + ssstag + '_' + para + '_itc_' + condstem + '-tfr.h5'
+        power.save(fpath + fname_pow)
+        itc.save(fpath + fname_itc)
 
     # Now save overall onset N100
     epochs = mne.Epochs(raw, eves, condlists, tmin=-0.2, proj=True,
@@ -112,4 +120,4 @@ for subj in subjlist:
     # Compute covatiance
     cov = compute_covariance(epochs, tmin=-0.2, tmax=0.0)
     covname = subj + ssstag + '_' + para + '_collapse-cov.fif'
-    cov.save(covname)
+    cov.save(fpath + covname)

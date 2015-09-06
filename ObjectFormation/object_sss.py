@@ -5,7 +5,7 @@ import os
 # Adding Files and locations
 froot = '/autofs/cluster/transcend/hari/ObjectFormation/'
 
-subjlist = ['082901', ]
+subjlist = ['086901', ]
 paradigm = 'object'
 
 hp_est = True
@@ -57,7 +57,7 @@ for subj in subjlist:
             mv_hp = None
             mv_headpos = False
 
-        mx_args = '-in 11 -out 5  -v | tee ' + logname
+        mx_args = '-hpisubt amp -in 9 -out 3  -v | tee ' + logname
         badchname = fpath + 'badch.txt'
         if os.path.isfile(badchname):
             bads = open(badchname, 'r').read().strip('\n')
@@ -70,7 +70,6 @@ for subj in subjlist:
         origin = apply_maxfilter(fpath + rawname, sssname, frame=frame,
                                  bad=bads, mv_hp=mv_hp, mv_comp='inter',
                                  mv_headpos=mv_headpos, mv_hpistep=200,
-                                 mv_hpisubt='amp',
                                  mx_args=mx_args, verbose='DEBUG')
         print 'Done with file:', rawname
 
@@ -106,7 +105,7 @@ for subj in subjlist:
                 mv_headpos = False
 
             mv_trans = None
-            mx_args = '-in 11 -out 5  -v | tee ' + logname
+            mx_args = '-hpisubt amp -in 9 -out 3  -v | tee ' + logname
             badchname = fpath + 'badch.txt'
             if os.path.isfile(badchname):
                 bads = open(badchname, 'r').read().strip('\n')
@@ -119,7 +118,7 @@ for subj in subjlist:
             origin = apply_maxfilter(fpath + rawname, sssname, frame=frame,
                                      bad=bads, mv_hp=mv_hp, mv_comp='inter',
                                      mv_headpos=mv_headpos, mv_hpistep=200,
-                                     mv_hpisubt='amp', mv_hpicons=True,
+                                     mv_hpicons=True,
                                      mx_args=mx_args, verbose='DEBUG')
             print 'Done with file:', rawname
 
@@ -139,15 +138,15 @@ for subj in subjlist:
             sssname = fpath + subj + '_' + paradigm + ('_' + str(run) +
                                                        '_raw_sss.fif')
 
-            # Transform everything to the coil definition of run 1
-            run1name = fpath + subj + '_' + paradigm + ('_1_raw_sss.fif')
-            mv_trans = run1name
-            mx_args = '-in 11 -out 5  -v | tee ' + logname
-
             # Maxfilter parameters
             frame = 'head'
             logname = fpath + subj + '_' + paradigm + ('_' + str(run) +
                                                        '_trans_maxfilter.log')
+            # Transform everything to the coil definition of run 1
+            run1name = fpath + subj + '_' + paradigm + ('_1_raw.fif')
+            mv_trans = run1name
+            mx_args = '-force -in 9 -out 3  -v | tee ' + logname
+
             # Calling maxfiler
             origin = apply_maxfilter(fpath + sss_old, sssname, frame=frame,
                                      mv_trans=mv_trans, mx_args=mx_args,
@@ -167,7 +166,7 @@ for subj in subjlist:
         if len(fifs) == 1:
             sss_old = fifs[0]
             sssname = fpath + subj + '_' + paradigm + ('_' + str(run) +
-                                                       '_raw_sss-1.fif')
+                                                       '_raw-1.fif')
             # Maxfilter parameters
             frame = 'head'
             logname = fpath + subj + '_' + paradigm + ('_' + str(run) + '_'
@@ -177,7 +176,7 @@ for subj in subjlist:
             run1name = fpath + subj + '_' + paradigm + ('_1_raw_sss.fif')
             mv_trans = run1name
 
-            mx_args = '-in 11 -out 5  -v | tee ' + logname
+            mx_args = '-force -in 9 -out 3  -v | tee ' + logname
 
             # Calling maxfiler
             origin = apply_maxfilter(fpath + sss_old, sssname, frame=frame,
