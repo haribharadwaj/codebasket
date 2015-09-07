@@ -11,7 +11,7 @@ from mne.time_frequency import tfr_multitaper
 # froot = '/Users/hari/Documents/Data/ObjectFormation/'
 froot = '/autofs/cluster/transcend/hari/ObjectFormation/'
 
-subjlist = ['086901', ]
+subjlist = ['082901', ]
 para = 'object'
 epochs = []
 sss = True
@@ -28,8 +28,12 @@ for subj in subjlist:
     else:
         ssstag = ''
 
-    fifs = fnmatch.filter(os.listdir(fpath), subj + '_' + para + '_?_raw' +
-                          ssstag + '.fif')
+    fifs = fnmatch.filter(os.listdir(fpath), subj + '_' + para +
+                          '_decim_?_raw' + ssstag + '.fif')
+    if len(fifs) == 0:
+        print 'No decimated files found.. Ucing undecimated files'
+        fifs = fnmatch.filter(os.listdir(fpath), subj + '_' + para +
+                              '_?_raw' + ssstag + '.fif')
     print 'Viola!', len(fifs),  'files found!'
     if len(fifs) > 1:
         print 'Warning! Using multitple raw files!'

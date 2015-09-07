@@ -28,7 +28,7 @@ def pow2db(x):
     # Adding Files and locations
 froot = '/autofs/cluster/transcend/hari/ASSRnew/'
 saveResults = True
-subjlist = ['082901', ]
+subjlist = ['093101', ]
 ch = range(1, 307)  # Channels of interest
 mags = range(2, 306, 3)
 grads = range(0, 306, 3) + range(1, 306, 3)
