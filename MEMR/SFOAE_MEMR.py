@@ -52,13 +52,14 @@ def rejecttrials(x, thresh=1.5, bipolar=True):
 
 
 # Adding Files and locations
-# froot = '/Users/Hari/Documents/Data/MEMR/'
-froot = '/cluster/transcend/hari/MEMR/'
-subjlist = ['I11']
+froot = '/Users/Hari/Documents/Data/MEMR/'
+# froot = '/cluster/transcend/hari/MEMR/'
+subjlist = ['I51']
 fs = 48828.125  # Hz
 ear = 'right'
 # freqs = range(650, 751, 25) + range(1000, 1101, 25)
 freqs = range(200, 1501, 100)
+# freqs = [400, 500]
 for subj in subjlist:
 
     subj += ('_' + ear)
@@ -90,7 +91,7 @@ for subj in subjlist:
         # Wavelet analysis
         P_env, itc, t = tfr_multitaper(P_ave[None, None, :], fs,
                                        frequencies=[freq, ],
-                                       time_bandwidth=2.0, n_cycles=100.)
+                                       time_bandwidth=2.0, n_cycles=freq*0.05)
         P_env = rescale(P_env, t, baseline=(0.3, 0.5), mode='logratio',
                         copy=False)
         pl.figure(1)

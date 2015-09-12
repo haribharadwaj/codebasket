@@ -3,90 +3,185 @@ import fnmatch
 import os
 
 # Adding Files and locations
-# froot = '/home/hari/Documents/PythonCodes/voices/'
 froot = '/autofs/cluster/transcend/hari/ASSRnew/'
 
-subjlist = ['082901', ]
-paradigm = 'assrnew'
+subjlist = ['093101', ]
+paradigm = 'assr'
+
 hp_est = True
+
+
+class FileConventionError(Exception):
+    pass
+
+
+class BadChannelListMissingError(Exception):
+    pass
+
+
 for subj in subjlist:
 
     fpath = froot + subj + '/'
+    nruns = 2
+    for run in range(1, nruns + 1):
+        fifs = fnmatch.filter(os.listdir(fpath), subj + '*' + paradigm + '*' +
+                              str(run) + '_raw.fif')
+        print 'Viola!', len(fifs),  'files found!'
+        if len(fifs) > 1:
+            nruns = len(fifs)
+            raise FileConventionError('ERROR: Multiple raw files '
+                                      'found for same run! \n'
+                                      'Check that files and file names'
+                                      'stick to convention!')
 
-    fifs = fnmatch.filter(os.listdir(fpath), subj + '*raw.fif')
-    print 'Viola!', len(fifs),  'files found!'
-    if len(fifs) > 1:
-        nruns = len(fifs)
-        print 'WARNING! Multiple raw files found'
-    else:
-        nruns = 1
+        rawname = fifs[0]
+        if run > 1:
+            transtag = '_notrans'
+        else:
+            transtag = ''
 
-    for k, rawname in enumerate(fifs):
-        sssname = fpath + subj + '_' + paradigm + ('_' + str(k+1) +
+        sssname = fpath + subj + '_' + paradigm + ('_' + str(run) +
+                                                   transtag +
                                                    '_raw_sss.fif')
         # Maxfilter parameters
         frame = 'head'
-        logname = fpath + subj + '_' + paradigm + ('_' + str(k+1) +
+        logname = fpath + subj + '_' + paradigm + ('_' + str(run) +
+                                                   transtag +
                                                    '_maxfilter.log')
         if hp_est:
-            hpname = fpath + subj + '_' + paradigm + '_' + str(k+1) + '_hp.txt'
+            hpname = (fpath + subj + '_' + paradigm + '_' + str(run) +
+                      transtag + '_hp.txt')
             mv_hp = hpname
-            mv_headpos = False
+            mv_headpos = False  # Otherwise compensation wont be applied
         else:
             mv_hp = None
             mv_headpos = False
 
-        mx_args = '-in 9 -out 3 -v | tee ' + logname
+        mx_args = '-hpisubt amp -in 9 -out 3  -v | tee ' + logname
         badchname = fpath + 'badch.txt'
         if os.path.isfile(badchname):
             bads = open(badchname, 'r').read().strip('\n')
         else:
-            print 'Sorry.. bad channel list not found! skipping subject'
-            continue
+            raise BadChannelListMissingError('ERROR: Bad channel list '
+                                             'not found!\n'
+                                             'Cannot Continue!')
+
         # Calling maxfiler
         origin = apply_maxfilter(fpath + rawname, sssname, frame=frame,
                                  bad=bads, mv_hp=mv_hp, mv_comp='inter',
-                                 mv_headpos=mv_headpos, mv_hpicons=True,
+                                 mv_headpos=mv_headpos, mv_hpistep=200,
                                  mx_args=mx_args, verbose='DEBUG')
-        print 'Estimated head center was ', origin
-        print '----- YAY! Done with subject ', subj
+        print 'Done with file:', rawname
 
-    # Do overflow files... doing only 1 for now
-    fifs = fnmatch.filter(os.listdir(fpath), subj + '*raw-1.fif')
-    print 'Viola!', len(fifs),  'files found!'
-    if len(fifs) > 1:
-        nruns = len(fifs)
-        print 'WARNING! Multiple raw files found'
-    else:
-        nruns = 1
+    # Do overflow files... doing only 1 per run for now
+    for run in range(1, nruns + 1):
+        fifs = fnmatch.filter(os.listdir(fpath), subj + '*' + paradigm + '*' +
+                              str(run) + '_raw-1.fif')
+        print 'Viola!', len(fifs),  'files found!'
+        if len(fifs) > 1:
+            nruns = len(fifs)
+            raise FileConventionError('ERROR: Multiple overflow files '
+                                      'found for same run! \n'
+                                      'Check that files and file names'
+                                      'stick to convention!')
+        if len(fifs) == 1:
+            rawname = fifs[0]
+            transtag = '_notrans'
+            sssname = fpath + subj + '_' + paradigm + ('_' + str(run) +
+                                                       transtag +
+                                                       '_raw_sss-1.fif')
+            # Maxfilter parameters
+            frame = 'head'
+            logname = fpath + subj + '_' + paradigm + ('_' + str(run) +
+                                                       transtag +
+                                                       '_maxfilter-1.log')
+            if hp_est:
+                hpname = (fpath + subj + '_' + paradigm + '_' + str(run) +
+                          transtag + '_hp-1.txt')
+                mv_hp = hpname
+                mv_headpos = False  # Otherwise compensation wont be applied
+            else:
+                mv_hp = None
+                mv_headpos = False
 
-    for k, rawname in enumerate(fifs):
-        sssname = fpath + subj + '_' + paradigm + ('_' + str(k+1) +
-                                                   '_raw_sss-1.fif')
-        # Maxfilter parameters
-        frame = 'head'
-        logname = fpath + subj + '_' + paradigm + ('_' + str(k+1) +
-                                                   '_maxfilter-1.log')
-        if hp_est:
-            hpname = (fpath + subj + '_' + paradigm + '_' + str(k+1) +
-                      '_hp-1.txt')
-            mv_hp = hpname
-            mv_headpos = True
-        else:
-            mv_hp = None
-            mv_headpos = False
+            mv_trans = None
+            mx_args = '-hpisubt amp -in 9 -out 3  -v | tee ' + logname
+            badchname = fpath + 'badch.txt'
+            if os.path.isfile(badchname):
+                bads = open(badchname, 'r').read().strip('\n')
+            else:
+                raise BadChannelListMissingError('ERROR: Bad channel list '
+                                                 'not found!\n'
+                                                 'Cannot Continue!')
 
-        mx_args = '-in 9 -out 3 -v | tee ' + logname
-        badchname = fpath + 'badch.txt'
-        if os.path.isfile(badchname):
-            bads = open(badchname, 'r').read().strip('\n')
-        else:
-            print 'Sorry.. bad channel list not found! skipping subject'
-            continue
-        # Calling maxfiler
-        origin = apply_maxfilter(fpath + rawname, sssname, frame=frame,
-                                 bad=bads, mv_hp=mv_hp, mv_comp='inter',
-                                 mv_headpos=mv_headpos, mv_hpicons=True,
-                                 mx_args=mx_args, verbose='DEBUG')
-        print 'Estimated head center was ', origin
-        print '----- YAY! Done with subject ', subj
+            # Calling maxfiler
+            origin = apply_maxfilter(fpath + rawname, sssname, frame=frame,
+                                     bad=bads, mv_hp=mv_hp, mv_comp='inter',
+                                     mv_headpos=mv_headpos, mv_hpistep=200,
+                                     mv_hpicons=True,
+                                     mx_args=mx_args, verbose='DEBUG')
+            print 'Done with file:', rawname
+
+    # Separately run --trans to the coil definitions of run 1
+    for run in range(2, nruns + 1):  # Only from run 2
+        fifs = fnmatch.filter(os.listdir(fpath), subj + '*' + paradigm + '*' +
+                              str(run) + '_notrans_raw_sss.fif')
+        print 'Viola!', len(fifs),  'files found!'
+        if len(fifs) > 1:
+            nruns = len(fifs)
+            raise FileConventionError('ERROR: Multiple notrans files '
+                                      'found for same run! \n'
+                                      'Check that files and file names'
+                                      'stick to convention!')
+        if len(fifs) == 1:
+            sss_old = fifs[0]
+            sssname = fpath + subj + '_' + paradigm + ('_' + str(run) +
+                                                       '_raw_sss.fif')
+
+            # Maxfilter parameters
+            frame = 'head'
+            logname = fpath + subj + '_' + paradigm + ('_' + str(run) +
+                                                       '_trans_maxfilter.log')
+            # Transform everything to the coil definition of run 1
+            run1name = fpath + subj + '_' + paradigm + ('_1_raw.fif')
+            mv_trans = run1name
+            mx_args = '-force -in 9 -out 3  -v | tee ' + logname
+
+            # Calling maxfiler
+            origin = apply_maxfilter(fpath + sss_old, sssname, frame=frame,
+                                     mv_trans=mv_trans, mx_args=mx_args,
+                                     verbose='DEBUG')
+            print 'Transformed file:', sss_old
+
+    # Transforming overflow files... Remember doing only 1 per run for now
+    for run in range(1, nruns + 1):
+        fifs = fnmatch.filter(os.listdir(fpath), subj + '*' + paradigm + '*' +
+                              str(run) + '_notrans_raw_sss-1.fif')
+        if len(fifs) > 1:
+            nruns = len(fifs)
+            raise FileConventionError('ERROR: Multiple notrans overflow files'
+                                      'found for same run! \n'
+                                      'Check that files and file names'
+                                      'stick to convention!')
+        if len(fifs) == 1:
+            sss_old = fifs[0]
+            sssname = fpath + subj + '_' + paradigm + ('_' + str(run) +
+                                                       '_raw-1.fif')
+            # Maxfilter parameters
+            frame = 'head'
+            logname = fpath + subj + '_' + paradigm + ('_' + str(run) + '_'
+                                                       'trans_maxfilter-1.log')
+
+            # Transform everything to the coil definition of run 1
+            run1name = fpath + subj + '_' + paradigm + ('_1_raw_sss.fif')
+            mv_trans = run1name
+
+            mx_args = '-force -in 9 -out 3  -v | tee ' + logname
+
+            # Calling maxfiler
+            origin = apply_maxfilter(fpath + sss_old, sssname, frame=frame,
+                                     mv_trans=mv_trans, mx_args=mx_args,
+                                     verbose='DEBUG')
+            print 'Transformed file:', sss_old
+
+    print '----- YAY! Done with subject ', subj
