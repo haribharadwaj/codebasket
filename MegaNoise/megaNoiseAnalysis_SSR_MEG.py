@@ -5,6 +5,7 @@ import fnmatch
 from anlffr import spectral
 from anlffr.preproc import find_blinks
 from mne.preprocessing.ssp import compute_proj_epochs
+from mne.cov import compute_covariance
 import pylab as pl
 
 
@@ -53,7 +54,7 @@ for subj in subjlist:
         condstem = 'allEvents'
         l_freq = 70
     else:
-        l_freq = 2.0
+        l_freq = 1.0
         if ASSR25:
             condlist = [1, 3, 5, 7, 9, 11]
             condstem = 'ASSR25'
@@ -133,6 +134,10 @@ for subj in subjlist:
         x = epochs.get_data()
         if saveResults:
             epochs.save(fpath + save_raw_name)
+            # Compute covatiance
+            cov = compute_covariance(epochs, tmin=-0.2, tmax=0.0)
+            covname = subj + ssstag + '_' + condstem + '-cov.fif'
+            cov.save(fpath + covname)
 
     # Calculate power, plv
     if not preEpoched:
