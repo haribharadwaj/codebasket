@@ -7,6 +7,7 @@ from anlffr.preproc import find_blinks
 from mne.preprocessing.ssp import compute_proj_epochs
 from mne.cov import compute_covariance
 import pylab as pl
+from scipy import io
 
 
 def pow2db(x):
@@ -29,16 +30,16 @@ def pow2db(x):
     # Adding Files and locations
 froot = '/autofs/cluster/transcend/hari/ASSRnew/'
 saveResults = True
-subjlist = ['093101', ]
+subjlist = ['093901', ]
 ch = range(1, 307)  # Channels of interest
 mags = range(2, 306, 3)
 grads = range(0, 306, 3) + range(1, 306, 3)
 freqs = np.arange(5, 500, 2)  # define frequencies of interest
 n_cycles = freqs / float(3)  # different number of cycle per frequency
 n_cycles[freqs < 15] = 2
-
-SSSR = False
-ASSR25 = True  # Set false for ASSR43
+para = 'assr'
+SSSR = True
+ASSR25 = False  # Set false for ASSR43
 sss = True
 eeg = False
 for subj in subjlist:
@@ -53,8 +54,10 @@ for subj in subjlist:
         condlist = range(1, 13)
         condstem = 'allEvents'
         l_freq = 70
+        h_freq = 144.
     else:
         l_freq = 1.0
+        h_freq = 144.
         if ASSR25:
             condlist = [1, 3, 5, 7, 9, 11]
             condstem = 'ASSR25'
@@ -76,7 +79,7 @@ for subj in subjlist:
         times = epochs.times
     else:
         preEpoched = False
-        fifs = fnmatch.filter(os.listdir(fpath), subj + '*raw' +
+        fifs = fnmatch.filter(os.listdir(fpath), subj + '_' + para + '_?_raw' +
                               ssstag + '.fif')
         print 'No pre-epoched data found, looking for raw files'
         print 'Viola!', len(fifs),  'files found!'
@@ -93,7 +96,7 @@ for subj in subjlist:
             # raw.info['bads'] += ['EEG004', 'EEG038', 'EEG040', 'EEG067']
             raw.info['bads'] += ['EEG009', 'EEG027', 'EEG067']
         # Filter the data for SSRs
-        raw.filter(l_freq=l_freq, h_freq=144, l_trans_bandwidth=0.15,
+        raw.filter(l_freq=l_freq, h_freq=h_freq, l_trans_bandwidth=0.15,
                    picks=np.arange(0, 306, 1))
 
         if not SSSR:
@@ -165,6 +168,8 @@ for subj in subjlist:
         pl.xlim([15, 90])
     pl.show()
     figname_mag = subj + '_' + condstem + ssstag + '_mag-results.pdf'
+    matname_mag = subj + '_' + condstem + ssstag + '_mag_results.mat'
+    io.savemat(fpath + matname_mag, dict(f=f, plv=plv, chans=mags))
     pl.savefig(fpath + figname_mag)
     lout = mne.find_layout(epochs.info)
     pos = lout.pos[mags]
@@ -203,6 +208,8 @@ for subj in subjlist:
         pl.xlim([15, 90])
     pl.show()
     figname_grad = subj + '_' + condstem + ssstag + '_grad-results.pdf'
+    matname_grad = subj + '_' + condstem + ssstag + '_grad_results.mat'
+    io.savemat(fpath + matname_grad, dict(f=f, plv=plv, chans=grads))
     pl.savefig(fpath + figname_grad)
     lout = mne.find_layout(epochs.info)
     pos = lout.pos[grads]

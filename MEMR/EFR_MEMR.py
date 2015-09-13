@@ -14,8 +14,8 @@ froot = '/autofs/cluster/transcend/hari/MEMR/'
 
 # subjlist = ['I52', 'I54', 'I13', 'I14', 'I56', 'I53', 'I55', 'I41', 'I56',
 #            'I51', 'I03']
-subjlist = ['I11']
-earlist = ['left', 'right']
+subjlist = ['I08']
+earlist = ['left', ]
 
 overwriteOld = True
 for subj in subjlist:
@@ -117,7 +117,7 @@ for subj in subjlist:
         if not os.path.isfile(respath + save_raw_name):
             io.savemat(respath + save_raw_name, dict(x=x, subj=subj))
 
-        plotStuff = False
+        plotStuff = True
         if plotStuff:
             pl.figure()
             pl.plot(f, cplv, linewidth=2)
