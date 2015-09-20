@@ -30,7 +30,7 @@ def pow2db(x):
     # Adding Files and locations
 froot = '/autofs/cluster/transcend/hari/ASSRnew/'
 saveResults = True
-subjlist = ['093901', ]
+subjlist = ['087401', ]
 ch = range(1, 307)  # Channels of interest
 mags = range(2, 306, 3)
 grads = range(0, 306, 3) + range(1, 306, 3)
@@ -39,7 +39,7 @@ n_cycles = freqs / float(3)  # different number of cycle per frequency
 n_cycles[freqs < 15] = 2
 para = 'assr'
 SSSR = True
-ASSR25 = False  # Set false for ASSR43
+ASSR25 = True  # Set false for ASSR43
 sss = True
 eeg = False
 for subj in subjlist:
@@ -89,6 +89,9 @@ for subj in subjlist:
         raw = mne.io.Raw(fifs, preload=True, add_eeg_ref=False)
         eves = mne.find_events(raw, stim_channel='STI101',
                                shortest_event=1)
+        if eves.shape[0] == 0:
+            eves = mne.find_events(raw, stim_channel='STI102',
+                                   shortest_event=1)
         if not sss:
             raw.info['bads'] += ['MEG2033', 'MEG0442', 'MEG2343', 'MEG1643',
                                  'MEG1211', 'MEG2522', 'MEG0731']

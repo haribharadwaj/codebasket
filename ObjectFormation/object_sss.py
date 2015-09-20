@@ -5,7 +5,7 @@ import os
 # Adding Files and locations
 froot = '/autofs/cluster/transcend/hari/ObjectFormation/'
 
-subjlist = ['093101', ]
+subjlist = ['092301', ]
 paradigm = 'object'
 
 hp_est = True

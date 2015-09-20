@@ -5,7 +5,7 @@ import os
 # Adding Files and locations
 froot = '/autofs/cluster/transcend/hari/ASSRnew/'
 
-subjlist = ['085701', ]
+subjlist = ['087401', '075901', '082501', '082802']
 paradigm = 'assr'
 
 hp_est = True
@@ -22,7 +22,7 @@ class BadChannelListMissingError(Exception):
 for subj in subjlist:
 
     fpath = froot + subj + '/'
-    nruns = 3
+    nruns = 2
     for run in range(1, nruns + 1):
         fifs = fnmatch.filter(os.listdir(fpath), subj + '*' + paradigm + '*' +
                               str(run) + '_raw.fif')
