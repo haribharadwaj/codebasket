@@ -29,7 +29,7 @@ for subj in subjlist:
     bem = mriroot + subj + '/bem/' + subj + '-5120-bem-sol.fif'
     raw = mne.io.Raw(rawname)
     fwd = mne.make_forward_solution(raw.info, trans, src, bem, fname=fwdname,
-                                    meg=True, eeg=False, verbose=True)\
+                                    meg=True, eeg=False, verbose=True)
 
     # convert to surface orientation for fixed orientation to work
     fwd = mne.convert_forward_solution(fwd, surf_ori=True)
