@@ -5,7 +5,7 @@ import os
 # Adding Files and locations
 froot = '/autofs/cluster/transcend/hari/voices/'
 
-subjlist = ['082501', '013703', '053001', '083701']
+subjlist = ['053001', '083701']
 paradigm = 'speech'
 
 hp_est = True
@@ -169,7 +169,7 @@ for subj in subjlist:
         if len(fifs) == 1:
             sss_old = fifs[0]
             sssname = fpath + subj + '_' + paradigm + ('_' + str(run) +
-                                                       '_raw-1.fif')
+                                                       '_raw_sss-1.fif')
             # Maxfilter parameters
             frame = 'head'
             logname = fpath + subj + '_' + paradigm + ('_' + str(run) + '_'
