@@ -3,9 +3,9 @@ import fnmatch
 import os
 
 # Adding Files and locations
-froot = '/autofs/cluster/transcend/hari/ObjectFormation/'
+froot = '/autofs/cluster/transcend/hari/voices/'
 
-subjlist = ['092301', ]
+subjlist = ['082501', '013703', '053001', '083701']
 paradigm = 'speech'
 
 hp_est = True

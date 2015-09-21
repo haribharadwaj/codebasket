@@ -4,21 +4,26 @@ import os
 import fnmatch
 from anlffr.preproc import find_blinks
 from mne.preprocessing.ssp import compute_proj_epochs
-
+from mne.cov import compute_covariance
 
 # Adding Files and locations
 # froot = '/home/hari/Documents/PythonCodes/voices/'
 froot = '/autofs/cluster/transcend/hari/voices/'
 
 subjlist = ['082501', ]
-para = 'voices'
+para = 'speech'
 epochs = []
+sss = True
 for subj in subjlist:
 
     fpath = froot + subj + '/'
+    if sss:
+        ssstag = '_sss'
+    else:
+        ssstag = ''
 
     fifs = fnmatch.filter(os.listdir(fpath), subj + '_' + para +
-                          '_?_raw_sss.fif')
+                          '_?_raw' + ssstag + '.fif')
     print 'Viola!', len(fifs),  'files found!'
     if len(fifs) > 1:
         print 'Concatenating multiple files..'
@@ -37,7 +42,7 @@ for subj in subjlist:
 
     # SSP for blinks
     blinks = find_blinks(raw, ch_name='EOG062')
-    blinkname = fpath + subj + '_' + para + '_blinks_sss-eve.fif'
+    blinkname = fpath + subj + '_' + para + '_blinks' + ssstag + '-eve.fif'
     mne.write_events(blinkname, blinks)
     epochs_blinks = mne.Epochs(raw, blinks, 998, tmin=-0.25,
                                tmax=0.25, proj=True,
@@ -54,7 +59,7 @@ for subj in subjlist:
     ekg_thresh = 300e-6 if 'ECG063' in raw.ch_names else 1.5e-12
     qrs = find_blinks(raw, ch_name=ekg_name, h_freq=100.0,
                       thresh=ekg_thresh, event_id=999)
-    qrsname = fpath + subj + '_' + para + '_qrs_sss-eve.fif'
+    qrsname = fpath + subj + '_' + para + '_qrs' + ssstag + '-eve.fif'
     mne.write_events(qrsname, qrs)
     epochs_qrs = mne.Epochs(raw, qrs, 999, tmin=-0.1,
                             tmax=0.1, proj=True,
@@ -68,21 +73,30 @@ for subj in subjlist:
     useProj = True
 
     evokeds = []
-    condlists = [1, 2, 3, 4, 5, 6, 7, 8]
+    condlist = [1, 2, 3, 4, 5, 6, 7, 8]
     condnames = ['SpeechA', 'SpeechB', 'JabberA', 'JabberB',
-                 'SWSA', 'SWSB', 'NoiseA', 'NoiseB']
+                 'MSSB', 'SWSB', 'NoiseA', 'NoiseB']
 
     for k, condstem in enumerate(condnames):
-        condlist = condlists[k]
+        cond = condlist[k]
         print 'Running Subject', subj, 'Condition', condstem
 
         # Epoching events of type
-        epochs = mne.Epochs(raw, eves, condlist, tmin=-0.5, proj=useProj,
+        epochs = mne.Epochs(raw, eves, cond, tmin=-0.5, proj=useProj,
                             tmax=2.0, baseline=(-0.3, 0.0), name=condstem,
                             reject=dict(grad=5000e-13, mag=5e-12))
-        epo_name = fpath + subj + '_' + para + '_' + condstem + '-epo.fif'
+        epo_name = (fpath + subj + '_' + para + '_' + condstem +
+                    ssstag + '-epo.fif')
         epochs.save(epo_name)
         evokeds += [epochs.average(), ]
 
-avename = subj + '_' + para + '-ave.fif'
-mne.write_evokeds(fpath + avename, evokeds)
+    avename = subj + '_' + para + ssstag + '-ave.fif'
+    mne.write_evokeds(fpath + avename, evokeds)
+
+    # Compute covariance
+    epochs_all = mne.Epochs(raw, eves, condlist, tmin=-0.3, proj=useProj,
+                            tmax=0.0, baseline=(-0.3, 0.0), name=condstem,
+                            reject=dict(grad=5000e-13, mag=5e-12))
+    cov = compute_covariance(epochs_all, tmin=-0.3, tmax=0.0)
+    covname = subj + ssstag + '_' + para + ssstag + '_collapse-cov.fif'
+    cov.save(fpath + covname)
