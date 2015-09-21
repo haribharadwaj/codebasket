@@ -10,7 +10,7 @@ from mne.cov import compute_covariance
 # froot = '/home/hari/Documents/PythonCodes/voices/'
 froot = '/autofs/cluster/transcend/hari/voices/'
 
-subjlist = ['082501', ]
+subjlist = ['013703', ]
 para = 'speech'
 epochs = []
 sss = True
@@ -98,5 +98,5 @@ for subj in subjlist:
                             tmax=0.0, baseline=(-0.3, 0.0), name=condstem,
                             reject=dict(grad=5000e-13, mag=5e-12))
     cov = compute_covariance(epochs_all, tmin=-0.3, tmax=0.0)
-    covname = subj + ssstag + '_' + para + ssstag + '_collapse-cov.fif'
+    covname = subj + '_' + para + ssstag + '_collapse-cov.fif'
     cov.save(fpath + covname)
