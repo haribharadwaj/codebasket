@@ -9,11 +9,10 @@ from mne.preprocessing.ssp import compute_proj_epochs
 # froot = '/home/hari/Documents/PythonCodes/ASSRmartinos/'
 froot = '/autofs/cluster/transcend/hari/ASSRnew/'
 
-subjlist = ['092201', ]
-para = 'assrnew'
+subjlist = ['011201', ]
+para = 'assr'
 epochs = []
 sss = True
-decimtag = '_decim'
 for subj in subjlist:
 
     fpath = froot + subj + '/'
@@ -23,8 +22,8 @@ for subj in subjlist:
     else:
         ssstag = ''
 
-    fifs = fnmatch.filter(os.listdir(fpath),
-                          subj + '*' + decimtag + 'raw' + ssstag + '.fif')
+    fifs = fnmatch.filter(os.listdir(fpath), subj + '_' + para + '_?_raw' +
+                          ssstag + '.fif')
     print 'Viola!', len(fifs),  'files found!'
     if len(fifs) > 1:
         print 'Warning! Using multitple raw files!'

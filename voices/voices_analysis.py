@@ -10,7 +10,7 @@ from mne.cov import compute_covariance
 # froot = '/home/hari/Documents/PythonCodes/voices/'
 froot = '/autofs/cluster/transcend/hari/voices/'
 
-subjlist = ['013703', ]
+subjlist = ['053001', ]
 para = 'speech'
 epochs = []
 sss = True

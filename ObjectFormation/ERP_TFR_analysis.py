@@ -11,7 +11,7 @@ from mne.time_frequency import tfr_multitaper
 # froot = '/Users/hari/Documents/Data/ObjectFormation/'
 froot = '/autofs/cluster/transcend/hari/ObjectFormation/'
 
-subjlist = ['092301', ]
+subjlist = ['093901', ]
 para = 'object'
 epochs = []
 sss = True
@@ -115,7 +115,7 @@ for subj in subjlist:
 
     # Now save overall onset N100
     epochs = mne.Epochs(raw, eves, condlists, tmin=-0.2, proj=True,
-                        tmax=1.5, baseline=(-0.2, 0.0), name=condstem,
+                        tmax=1.5, baseline=(-0.2, 0.0), name='onset',
                         reject=dict(grad=5000e-13, mag=5e-12))
     evokeds += [epochs.average(), ]
     avename = subj + ssstag + '_' + para + '_collapse-ave.fif'

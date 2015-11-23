@@ -14,8 +14,8 @@ froot = '/autofs/cluster/transcend/hari/MEMR/'
 
 # subjlist = ['I52', 'I54', 'I13', 'I14', 'I56', 'I53', 'I55', 'I41', 'I56',
 #            'I51', 'I03']
-subjlist = ['I08']
-earlist = ['left', ]
+subjlist = ['I08', 'I33']
+earlist = ['left', 'right']
 
 overwriteOld = True
 for subj in subjlist:
@@ -66,7 +66,7 @@ for subj in subjlist:
                 epochs = mne.Epochs(
                     raw, eves, cond, tmin=-0.025, proj=False,
                     tmax=1.025, baseline=(-0.025, 0.0),
-                    reject=dict(eeg=50e-6))
+                    reject=dict(eeg=200e-6))  # 200 regular, 50 strict
 
                 xtemp = epochs.get_data()
 
@@ -108,7 +108,7 @@ for subj in subjlist:
         res = dict(cpow=cpow, plv=plv, cplv=cplv, Sraw=Sraw,
                    f=f, S=S, N=N, Ntrials=Ntrials)
 
-        save_name = subj + '_' + ear + condstem + '_strict_results.mat'
+        save_name = subj + '_' + ear + condstem + '_results.mat'
 
         if (not os.path.isdir(respath)):
             os.mkdir(respath)
