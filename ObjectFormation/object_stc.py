@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 import mne
 from mne.minimum_norm import apply_inverse_epochs, read_inverse_operator
 from mne.minimum_norm import apply_inverse
+from anlffr.tfr import tfr_multitaper, rescale, plot_tfr
 
 froot = '/autofs/cluster/transcend/hari/ObjectFormation/'
 subj = '093302'
@@ -116,3 +117,23 @@ plt.xlabel('time (ms)')
 plt.ylabel('dSPM value')
 plt.legend()
 plt.show()
+
+###############################################################################
+epo_array = np.zeros((len(stcs), 1, stcs[0].shape[1]))
+nVerts = stc_evoked_label.shape[0]
+corr_list = np.zeros(nVerts)
+for k in range(nVerts):
+    corr_list[k] = np.corrcoef(label_mean_evoked,
+                               stc_evoked_label.data[k, :])[0, 1]
+topvert = np.argmax(np.abs(corr_list))
+for k, stc in enumerate(stcs):
+    epo_array[k, 0, :] = stc.data[topvert, :]
+
+freqs = np.arange(5., 90., 2.)
+n_cycles = freqs * 0.2
+power, itc, faketimes = tfr_multitaper(epo_array, epochs.info['sfreq'],
+                                       freqs, n_cycles=n_cycles,
+                                       time_bandwidth=2.0, zero_mean=True)
+power_scaled = rescale(power, times, baseline=(-0.2, 0.),
+                       mode='zlogratio')
+plot_tfr(power_scaled, times, freqs)
