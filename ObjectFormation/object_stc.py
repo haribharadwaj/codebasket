@@ -27,8 +27,8 @@ if sss:
 else:
     ssstag = ''
 
-fname_inv = froot + '/' + subj + '/' + subj + '_' + para + '-inv.fif'
-label_name = 'aud-lh'
+fname_inv = froot + '/' + subj + '/' + subj + '_' + para + ssstag + '-inv.fif'
+label_name = 'object_manual-lh'
 fname_label = froot + '/' + subj + '/' + subj + '_%s.label' % label_name
 
 # Using the same inverse operator when inspecting single trials Vs. evoked
@@ -43,7 +43,7 @@ label = mne.read_label(fname_label)
 
 
 # Read epochs
-fname_epochs = (froot + '/' + subj + '/' + subj + ssstag + '_' + para +
+fname_epochs = (froot + '/' + subj + '/' + subj + ssstag + '_' + para + '_' +
                 cond + '-epo.fif')
 epochs = mne.read_epochs(fname_epochs)
 
@@ -54,10 +54,9 @@ evoked = epochs.average()
 # Use the same inverse operator as with evoked data (i.e., set nave)
 # If you use a different nave, dSPM just scales by a factor sqrt(nave)
 stcs = apply_inverse_epochs(epochs, inverse_operator, lambda2, method, label,
-                            pick_ori="normal", nave=evoked.nave)
+                            nave=evoked.nave)
 
-stc_evoked = apply_inverse(evoked, inverse_operator, lambda2, method,
-                           pick_ori="normal")
+stc_evoked = apply_inverse(evoked, inverse_operator, lambda2, method)
 
 stc_evoked_label = stc_evoked.in_label(label)
 
@@ -71,8 +70,7 @@ label_mean = np.mean(mean_stc.data, axis=0)
 label_mean_flip = np.mean(flip[:, np.newaxis] * mean_stc.data, axis=0)
 
 # Get inverse solution by inverting evoked data
-stc_evoked = apply_inverse(evoked, inverse_operator, lambda2, method,
-                           pick_ori="normal")
+stc_evoked = apply_inverse(evoked, inverse_operator, lambda2, method)
 
 # apply_inverse() does whole brain, so sub-select label of interest
 stc_evoked_label = stc_evoked.in_label(label)

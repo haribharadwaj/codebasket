@@ -11,7 +11,7 @@ from mne.time_frequency import tfr_multitaper
 # froot = '/Users/hari/Documents/Data/ObjectFormation/'
 froot = '/autofs/cluster/transcend/hari/ObjectFormation/'
 
-subjlist = ['093901', ]
+subjlist = ['093302', ]
 para = 'object'
 epochs = []
 sss = True
@@ -19,6 +19,7 @@ eog = False
 ekg = False
 doTFR = False
 saveEpochs = True
+saveAveCov = False
 for subj in subjlist:
 
     fpath = froot + subj + '/'
@@ -119,7 +120,7 @@ for subj in subjlist:
 
         if saveEpochs:
             fname_epochs = fstem + '_' + condstem + '-epo.fif'
-            epochs.save(fname_epochs)
+            epochs.save(fpath + fname_epochs)
 
     # Now save overall onset N100
     epochs = mne.Epochs(raw, eves, condlists, tmin=-0.4, proj=True,
@@ -128,12 +129,13 @@ for subj in subjlist:
     evokeds += [epochs.average(), ]
     if saveEpochs:
             fname_epochs = fstem + '_onset-epo.fif'
-            epochs.save(fname_epochs)
+            epochs.save(fpath + fname_epochs)
 
-    avename = subj + ssstag + '_' + para + '_collapse-ave.fif'
-    mne.write_evokeds(fpath + avename, evokeds)
+    if saveAveCov:
+        avename = subj + ssstag + '_' + para + '_collapse-ave.fif'
+        mne.write_evokeds(fpath + avename, evokeds)
 
-    # Compute covatiance
-    cov = compute_covariance(epochs, tmin=-0.2, tmax=0.0)
-    covname = subj + ssstag + '_' + para + '_collapse-cov.fif'
-    cov.save(fpath + covname)
+        # Compute covatiance
+        cov = compute_covariance(epochs, tmin=-0.2, tmax=0.0)
+        covname = subj + ssstag + '_' + para + '_collapse-cov.fif'
+        cov.save(fpath + covname)
