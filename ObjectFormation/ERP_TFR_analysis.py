@@ -17,6 +17,8 @@ epochs = []
 sss = True
 eog = False
 ekg = False
+doTFR = False
+saveEpochs = True
 for subj in subjlist:
 
     fpath = froot + subj + '/'
@@ -100,24 +102,34 @@ for subj in subjlist:
         print 'Running Subject', subj, 'Condition', condstem
 
         # Epoching events of type
-        epochs = mne.Epochs(raw, eves2, condlist, tmin=-0.2, proj=True,
-                            tmax=1.5, baseline=(-0.2, 0.0), name=condstem,
+        epochs = mne.Epochs(raw, eves2, condlist, tmin=-0.4, proj=True,
+                            tmax=1.0, baseline=(-0.2, 0.0), name=condstem,
                             reject=dict(grad=5000e-13, mag=5e-12))
         evokeds += [epochs.average(), ]
-        freqs = np.arange(5., 70., 1.)
-        n_cycles = freqs * 0.2
-        power, itc = tfr_multitaper(epochs, freqs, n_cycles,
-                                    time_bandwidth=2.0, n_jobs=-1)
-        fname_pow = subj + ssstag + '_' + para + '_pow_' + condstem + '-tfr.h5'
-        fname_itc = subj + ssstag + '_' + para + '_itc_' + condstem + '-tfr.h5'
-        power.save(fpath + fname_pow)
-        itc.save(fpath + fname_itc)
+        fstem = subj + ssstag + '_' + para
+        if doTFR:
+            freqs = np.arange(5., 70., 1.)
+            n_cycles = freqs * 0.2
+            power, itc = tfr_multitaper(epochs, freqs, n_cycles,
+                                        time_bandwidth=2.0, n_jobs=-1)
+            fname_pow = fstem + '_pow_' + condstem + '-tfr.h5'
+            fname_itc = fstem + '_itc_' + condstem + '-tfr.h5'
+            power.save(fpath + fname_pow)
+            itc.save(fpath + fname_itc)
+
+        if saveEpochs:
+            fname_epochs = fstem + '_' + condstem + '-epo.fif'
+            epochs.save(fname_epochs)
 
     # Now save overall onset N100
-    epochs = mne.Epochs(raw, eves, condlists, tmin=-0.2, proj=True,
-                        tmax=1.5, baseline=(-0.2, 0.0), name='onset',
+    epochs = mne.Epochs(raw, eves, condlists, tmin=-0.4, proj=True,
+                        tmax=1.0, baseline=(-0.2, 0.0), name='onset',
                         reject=dict(grad=5000e-13, mag=5e-12))
     evokeds += [epochs.average(), ]
+    if saveEpochs:
+            fname_epochs = fstem + '_onset-epo.fif'
+            epochs.save(fname_epochs)
+
     avename = subj + ssstag + '_' + para + '_collapse-ave.fif'
     mne.write_evokeds(fpath + avename, evokeds)
 
