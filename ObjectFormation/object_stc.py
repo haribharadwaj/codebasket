@@ -12,8 +12,8 @@ to a brain label.
 # Compyright 2015. All Rights Reserved.
 
 import numpy as np
-import matplotlib.pyplot as plt
 import mne
+import pylab as pl
 from mne.minimum_norm import apply_inverse_epochs, read_inverse_operator
 from mne.minimum_norm import apply_inverse
 from anlffr.tfr import tfr_multitaper, rescale, plot_tfr
@@ -21,7 +21,7 @@ from anlffr.tfr import tfr_multitaper, rescale, plot_tfr
 froot = '/autofs/cluster/transcend/hari/ObjectFormation/'
 subj = '093302'
 para = 'object'
-cond = 'coh20'
+conds = ['coh20', 'coh14']
 sss = True
 if sss:
     ssstag = '_sss'
@@ -42,98 +42,57 @@ method = "dSPM"  # use dSPM method (could also be MNE or sLORETA)
 inverse_operator = read_inverse_operator(fname_inv)
 label = mne.read_label(fname_label)
 
+powers = []
+itcs = []
 
-# Read epochs
-fname_epochs = (froot + '/' + subj + '/' + subj + ssstag + '_' + para + '_' +
-                cond + '-epo.fif')
-epochs = mne.read_epochs(fname_epochs)
+for k, cond in enumerate(conds):
 
-# Get evoked data (averaging across trials in sensor space)
-evoked = epochs.average()
+    # Read epochs
+    fname_epochs = (froot + '/' + subj + '/' + subj + ssstag + '_' + para +
+                    '_' + cond + '-epo.fif')
+    epochs = mne.read_epochs(fname_epochs)
+    times = epochs.times
+    # Get evoked data (averaging across trials in sensor space)
+    evoked = epochs.average()
 
-# Compute inverse solution and stcs for each epoch
-# Use the same inverse operator as with evoked data (i.e., set nave)
-# If you use a different nave, dSPM just scales by a factor sqrt(nave)
-stcs = apply_inverse_epochs(epochs, inverse_operator, lambda2, method, label,
-                            nave=evoked.nave)
+    # Compute inverse solution and stcs for each epoch
+    # Use the same inverse operator as with evoked data (i.e., set nave)
+    # If you use a different nave, dSPM just scales by a factor sqrt(nave)
+    stcs = apply_inverse_epochs(epochs, inverse_operator, lambda2, method,
+                                label, nave=evoked.nave)
 
-stc_evoked = apply_inverse(evoked, inverse_operator, lambda2, method)
+    stc_evoked = apply_inverse(evoked, inverse_operator, lambda2, method)
 
-stc_evoked_label = stc_evoked.in_label(label)
+    stc_evoked_label = stc_evoked.in_label(label)
 
-# Mean across trials but not across vertices in label
-mean_stc = sum(stcs) / len(stcs)
+    # Average over label (not caring to align polarities here)
+    label_mean_evoked = np.mean(stc_evoked_label.data, axis=0)
 
-# compute sign flip to avoid signal cancelation when averaging signed values
-flip = mne.label_sign_flip(label, inverse_operator['src'])
+    #######################################################
+    # Calculating label TFR stuff
 
-label_mean = np.mean(mean_stc.data, axis=0)
-label_mean_flip = np.mean(flip[:, np.newaxis] * mean_stc.data, axis=0)
+    epo_array = np.zeros((len(stcs), 1, stcs[0].shape[1]))
+    nVerts = stc_evoked_label.shape[0]
+    nTopVerts = 1
+    corr_list = np.zeros(nVerts)
+    for k in range(nVerts):
+        corr_list[k] = np.corrcoef(label_mean_evoked,
+                                   stc_evoked_label.data[k, :])[0, 1]
+    topverts = np.argsort(corr_list)[-nTopVerts:]
+    for k, stc in enumerate(stcs):
+        epo_array[k, 0, :] = stc.data[topverts, :].mean(axis=0)
 
-# Get inverse solution by inverting evoked data
-stc_evoked = apply_inverse(evoked, inverse_operator, lambda2, method)
+    freqs = np.arange(5., 130., 2.)
+    n_cycles = freqs * 0.250
+    power, itc, faketimes = tfr_multitaper(epo_array, epochs.info['sfreq'],
+                                           freqs, n_cycles=n_cycles,
+                                           time_bandwidth=2.0, zero_mean=False,
+                                           verbose='DEBUG')
+    powers += [power, ]
+    itcs += [itcs, ]
 
-# apply_inverse() does whole brain, so sub-select label of interest
-stc_evoked_label = stc_evoked.in_label(label)
-
-# Average over label (not caring to align polarities here)
-label_mean_evoked = np.mean(stc_evoked_label.data, axis=0)
-
-###############################################################################
-# View activation time-series to illustrate the benefit of aligning/flipping
-
-times = 1e3 * stcs[0].times  # times in ms
-
-plt.figure()
-h0 = plt.plot(times, mean_stc.data.T, 'k')
-h1, = plt.plot(times, label_mean, 'r', linewidth=3)
-h2, = plt.plot(times, label_mean_flip, 'g', linewidth=3)
-plt.legend((h0[0], h1, h2), ('all dipoles in label', 'mean',
-                             'mean with sign flip'))
-plt.xlabel('time (ms)')
-plt.ylabel('dSPM value')
-plt.show()
-
-###############################################################################
-# Viewing single trial dSPM and average dSPM for unflipped pooling over label
-# Compare to (1) Inverse (dSPM) then average, (2) Evoked then dSPM
-
-# Single trial
-plt.figure()
-for k, stc_trial in enumerate(stcs):
-    plt.plot(times, np.mean(stc_trial.data, axis=0).T, 'k--',
-             label='Single Trials' if k == 0 else '_nolegend_',
-             alpha=0.5)
-
-# Single trial inverse then average.. making linewidth large to not be masked
-plt.plot(times, label_mean, 'b', linewidth=6,
-         label='dSPM first, then average')
-
-# Evoked and then inverse
-plt.plot(times, label_mean_evoked, 'r', linewidth=2,
-         label='Average first, then dSPM')
-
-plt.xlabel('time (ms)')
-plt.ylabel('dSPM value')
-plt.legend()
-plt.show()
-
-###############################################################################
-epo_array = np.zeros((len(stcs), 1, stcs[0].shape[1]))
-nVerts = stc_evoked_label.shape[0]
-corr_list = np.zeros(nVerts)
-for k in range(nVerts):
-    corr_list[k] = np.corrcoef(label_mean_evoked,
-                               stc_evoked_label.data[k, :])[0, 1]
-topvert = np.argmax(np.abs(corr_list))
-for k, stc in enumerate(stcs):
-    epo_array[k, 0, :] = stc.data[topvert, :]
-
-freqs = np.arange(5., 90., 2.)
-n_cycles = freqs * 0.2
-power, itc, faketimes = tfr_multitaper(epo_array, epochs.info['sfreq'],
-                                       freqs, n_cycles=n_cycles,
-                                       time_bandwidth=2.0, zero_mean=True)
-power_scaled = rescale(power, times, baseline=(-0.2, 0.),
-                       mode='zlogratio')
-plot_tfr(power_scaled, times, freqs)
+power_contrast = 20. * np.log10(powers[0] / powers[1])
+power_contrast_scaled = rescale(power_contrast, times, baseline=(-0.2, 0.),
+                                mode='mean')
+plot_tfr(power_contrast, times, freqs)
+pl.show()
