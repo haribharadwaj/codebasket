@@ -8,7 +8,7 @@ import pyNN.neuron as sim
 import pylab as pl
 from quantities import nA
 
-sim.setup()
+sim.setup(timestep=0.01)
 
 cell = sim.Population(1, sim.HH_cond_exp())
 step_current = sim.DCSource(start=20.0, stop=150.0)
@@ -16,7 +16,7 @@ step_current.inject_into(cell)
 
 cell.record('v')
 
-for amp in [-0.2, 0.5]:
+for amp in [-0.2, 0.1]:
     step_current.amplitude = amp
     sim.run(200.0)
     sim.reset(annotations={"amplitude": amp*nA})
