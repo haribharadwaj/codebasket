@@ -11,11 +11,11 @@ from pyNN.random import RandomDistribution
 
 
 sim.setup(timestep=0.01)
-nE = 20
-nI = 10
-Ecells = sim.Population(nE, sim.HH_cond_exp(tau_syn_E=1.0, tau_syn_I=4.0),
+nE = 40
+nI = 20
+Ecells = sim.Population(nE, sim.HH_cond_exp(tau_syn_E=1.0, tau_syn_I=5.0),
                         label='E-Cells')
-Icells = sim.Population(nI, sim.HH_cond_exp(tau_syn_E=1.0, tau_syn_I=4.0),
+Icells = sim.Population(nI, sim.HH_cond_exp(tau_syn_E=1.0, tau_syn_I=5.0),
                         label='I-Cells')
 Net = Ecells + Icells
 vinit_distr = RandomDistribution('uniform', (-70., -55.))
@@ -25,17 +25,18 @@ Esyn = sim.StaticSynapse(weight=0.05, delay=1.0)
 random = sim.FixedProbabilityConnector(p_connect=0.3)
 Econnections = sim.Projection(Ecells, Net, random, Esyn,
                               receptor_type='excitatory')
-Isyn = sim.StaticSynapse(weight=0.2, delay=1.0)
+Isyn = sim.StaticSynapse(weight=0.15, delay=1.0)
 Iconnections = sim.Projection(Icells, Net, random, Isyn,
                               receptor_type='inhibitory')
 
-noise = sim.NoisyCurrentSource(mean=0.5, stdev=0.2, start=50.0,
-                               stop=450.0, dt=1.0)
+noise = sim.NoisyCurrentSource(mean=0.6, stdev=0.3, start=50.0,
+                               stop=450.0, dt=0.01)
+
 Ecells.inject(noise)
 Net.record(['v', 'spikes'])
 sim.run(1000.0)
 
-data = Net.get_data()
+data = Net.get_data()  # Neo data format for electrophysiology data
 
 sim.end()
 
@@ -78,7 +79,7 @@ for k in range(nE + nI):
             lab = 'I-Cells'
         else:
             lab = None
-    pl.plot(spike, np.ones_like(spike) * k, col, markersize=10,
+    pl.plot(spike, np.ones_like(spike) * k, col, markersize=200/nE,
             label=lab)
     pl.hold(True)
 
