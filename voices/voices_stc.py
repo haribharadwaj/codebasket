@@ -18,10 +18,10 @@ from mne.minimum_norm import apply_inverse_epochs, read_inverse_operator
 from mne.minimum_norm import apply_inverse
 from anlffr.tfr import tfr_multitaper, rescale, plot_tfr
 
-froot = '/autofs/cluster/transcend/hari/ObjectFormation/'
-subj = '089402'
-para = 'object'
-conds = ['coh20', 'coh07']
+froot = '/autofs/cluster/transcend/hari/voices/'
+subj = '093302'
+para = 'speech'
+conds = ['MSSB', 'SWSB']
 sss = True
 if sss:
     ssstag = '_sss'
@@ -29,7 +29,7 @@ else:
     ssstag = ''
 
 fname_inv = froot + '/' + subj + '/' + subj + '_' + para + ssstag + '-inv.fif'
-label_name = 'object_manual-rh'
+label_name = 'speech_manual-lh'
 fname_label = froot + '/' + subj + '/' + subj + '_%s.label' % label_name
 
 # Using the same inverse operator when inspecting single trials Vs. evoked
@@ -48,8 +48,8 @@ itcs = []
 for k, cond in enumerate(conds):
 
     # Read epochs
-    fname_epochs = (froot + '/' + subj + '/' + subj + ssstag + '_' + para +
-                    '_' + cond + '-epo.fif')
+    fname_epochs = (froot + '/' + subj + '/' + subj + '_' + para +
+                    '_' + cond + ssstag + '-epo.fif')
     epochs = mne.read_epochs(fname_epochs)
     times = epochs.times
     # Get evoked data (averaging across trials in sensor space)
@@ -89,10 +89,10 @@ for k, cond in enumerate(conds):
                                            time_bandwidth=2.0, zero_mean=False,
                                            verbose='DEBUG')
     powers += [power, ]
-    itcs += [itcs, ]
+    itcs += [itc, ]
 
 power_contrast = 20. * np.log10(powers[0] / powers[1])
-power_contrast_scaled = rescale(power_contrast, times, baseline=(-0.2, 0.),
+power_contrast_scaled = rescale(power_contrast, times, baseline=(-0.1, 0.),
                                 mode='zscore')
-plot_tfr(power_contrast_scaled, times, freqs)
+plot_tfr(power_contrast, times, freqs)
 pl.show()

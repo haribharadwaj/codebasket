@@ -5,7 +5,7 @@ import os
 # Adding Files and locations
 froot = '/autofs/cluster/transcend/hari/voices/'
 
-subjlist = ['053001', '083701']
+subjlist = ['093302', ]
 paradigm = 'speech'
 
 hp_est = True

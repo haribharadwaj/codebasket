@@ -5,7 +5,7 @@ import mne
 # froot = '/Users/hari/Documents/Data/ObjectFormation/'
 froot = '/autofs/cluster/transcend/hari/ObjectFormation/'
 mriroot = '/autofs/cluster/transcend/MRI/WMA/recons/'
-subjlist = ['093302', ]
+subjlist = ['089402', ]
 para = 'object'
 sss = True
 

@@ -5,7 +5,7 @@ import mne
 # froot = '/Users/hari/Documents/Data/ObjectFormation/'
 froot = '/autofs/cluster/transcend/hari/voices/'
 mriroot = '/autofs/cluster/transcend/MRI/WMA/recons/'
-subjlist = ['013703', ]
+subjlist = ['093302', ]
 para = 'speech'
 sss = True
 

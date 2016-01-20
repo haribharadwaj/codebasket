@@ -11,7 +11,7 @@ from mne.time_frequency import tfr_multitaper
 # froot = '/Users/hari/Documents/Data/ObjectFormation/'
 froot = '/autofs/cluster/transcend/hari/ObjectFormation/'
 
-subjlist = ['093302', ]
+subjlist = ['089402', ]
 para = 'object'
 epochs = []
 sss = True
