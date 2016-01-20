@@ -82,7 +82,7 @@ def savitzky_golay(y, window_size, order, deriv=0, rate=1):
     return np.convolve(m[::-1], y, mode='valid')
 
 
-def rejecttrials(x, thresh=1.5, bipolar=True):
+def rejecttrials(x, thresh=1.2, bipolar=True):
     """Simple function to reject trials from numpy array data
 
     Parameters
@@ -122,10 +122,10 @@ def rejecttrials(x, thresh=1.5, bipolar=True):
 
 
 # Adding Files and locations
-froot = '/autofs/cluster/transcend/hari/MEMR/CEOAE/'
-# froot = /Users/Hari/Documents/Data/MEMR/CEOAE/'
+# froot = '/autofs/cluster/transcend/hari/MEMR/CEOAE/'
+froot = '/Users/Hari/Documents/Data/MEMR/CEOAE/'
 
-subjlist = ['I33_left']
+subjlist = ['I52_left']
 fs = 48828.125  # Hz
 input_delay = 2.2e-3  # ms
 for subj in subjlist:
@@ -142,7 +142,7 @@ for subj in subjlist:
         P = band_pass_filter(Praw, fs, 250, 20e3, filter_length='5ms')
         # P = Praw
         locs, peaks = peak_finder(inputClick, thresh=0.2)
-        oaewin = (6., 20.)
+        oaewin = (6., 21.)
         win_start = np.int(oaewin[0] * fs / 1000.)
         win_end = np.int(oaewin[1] * fs / 1000.)
         win_length = win_end - win_start
@@ -164,11 +164,16 @@ t = np.arange(0, ceoae.shape[0] / fs, 1. / fs) * 1000.
 clicks_noise = clicks_good
 clicks_noise[::2, ] *= -1.0
 noise = np.mean(clicks_noise, axis=0).squeeze()
-N = np.int(2 ** np.ceil(np.log2(ceoae.shape[0]) + 2))
+N = np.int(2 ** np.ceil(np.log2(ceoae.shape[0]) + 3))
 f = np.arange(N) * fs / N
+fmin, fmax = 300, 5000
 w, e = dpss_windows(ceoae.shape[0], 1., 1.)
 S = np.fft.fft(w * ceoae, n=N).squeeze()
 N = np.fft.fft(w * noise, n=N).squeeze()
+ind = np.logical_and(f >= fmin, f <= fmax)
+f = f[ind]
+S = S[ind]
+N = N[ind]
 f_kHz = f / 1e3
 ax1 = pl.subplot(311)
 pl.plot(f_kHz, np.log10(np.abs(S)) * 20, 'b', linewidth=2)
@@ -178,13 +183,17 @@ pl.ylabel('CEOAE Magnitude (dB)', fontsize=20)
 ax2 = pl.subplot(312, sharex=ax1)
 phase_correction = np.exp(-2 * np.pi * f * (oaewin[0] - input_delay))
 phi = np.unwrap(np.angle(S))
+phi_smooth = savitzky_golay(phi, window_size=101, order=3)
 pl.plot(f_kHz, phi, 'b', linewidth=2)
+pl.hold(True)
+pl.plot(f_kHz, phi_smooth, 'r', linewidth=2)
 pl.ylabel('CEOAE Phase (rad)', fontsize=20)
-# pl.ylim((-100., 0.))
 ax3 = pl.subplot(313, sharex=ax1)
 group_delay = (np.diff(phi) / np.diff(f)) * 1000. / (2 * np.pi)
 pl.plot(f_kHz[1:], group_delay, linewidth=2)
+group_delay_smooth = savitzky_golay(group_delay, window_size=201, order=3)
+pl.hold(True)
+pl.plot(f_kHz[1:], group_delay_smooth, 'r', linewidth=2)
 pl.xlabel('Frequency (kHz)', fontsize=16)
 pl.ylabel('Group Delay (ms)', fontsize=20)
-pl.xlim((0.3, 7.0))
 pl.show()
