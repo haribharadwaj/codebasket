@@ -125,24 +125,25 @@ def rejecttrials(x, thresh=1.2, bipolar=True):
 # froot = '/autofs/cluster/transcend/hari/MEMR/CEOAE/'
 froot = '/Users/Hari/Documents/Data/MEMR/CEOAE/'
 
-subjlist = ['I52_left']
+subjlist = ['I07_right']
+cancelinput = True
 fs = 48828.125  # Hz
 input_delay = 2.2e-3  # ms
+oaewin = (1., 21.)
 for subj in subjlist:
 
     fpath = froot + subj + '/'
 
     print 'Running Subject', subj
 
-    matnames = fnmatch.filter(os.listdir(fpath), subj + '*CEOAE*.mat')
+    matnames = fnmatch.filter(os.listdir(fpath), subj + '*CEOAE_trial*.mat')
     print 'Hmm.. %d files found' % len(matnames)
     for kfile, matfile in enumerate(matnames):
         inputClick = loadmat(fpath + matfile)['y'].squeeze()
         Praw = loadmat(fpath + matfile)['Pcanal'].squeeze()
-        P = band_pass_filter(Praw, fs, 250, 20e3, filter_length='5ms')
-        # P = Praw
+        # P = band_pass_filter(Praw, fs, 250, 20e3, filter_length='5ms')
+        P = Praw
         locs, peaks = peak_finder(inputClick, thresh=0.2)
-        oaewin = (6., 21.)
         win_start = np.int(oaewin[0] * fs / 1000.)
         win_end = np.int(oaewin[1] * fs / 1000.)
         win_length = win_end - win_start
@@ -157,9 +158,42 @@ for subj in subjlist:
         else:
             clicks = np.concatenate((clicks, click), axis=0)
 
-ceoae = np.mean(clicks, axis=0).squeeze()
+    if cancelinput:
+        matnames = fnmatch.filter(os.listdir(fpath),
+                                  subj + '*CEOAE_3xtrial*.mat')
+        print 'Hmm.. %d files found' % len(matnames)
+        for kfile, matfile in enumerate(matnames):
+            inputClick = loadmat(fpath + matfile)['y'].squeeze()
+            Praw = loadmat(fpath + matfile)['Pcanal'].squeeze()
+            # P = band_pass_filter(Praw, fs, 250, 20e3, filter_length='5ms')
+            P = Praw
+            locs, peaks = peak_finder(inputClick, thresh=0.2, extrema=-1)
+            win_start = np.int(oaewin[0] * fs / 1000.)
+            win_end = np.int(oaewin[1] * fs / 1000.)
+            win_length = win_end - win_start
+            if locs.shape[0] < 117 or locs.shape[0] > 115:
+                nclicks_current = locs.shape[0]
+                click3x = np.zeros((nclicks_current, win_length))
+                for k, loc in enumerate(locs):
+                    ind = np.arange(win_start, win_end) + loc
+                    click3x[k, :] = P[ind]
+            if kfile == 0:
+                clicks3x = click3x
+            else:
+                clicks3x = np.concatenate((clicks3x, click3x), axis=0)
+
 goods = rejecttrials(clicks)
 clicks_good = clicks[goods, :]
+ceoae_orig = np.mean(clicks_good, axis=0).squeeze()
+
+if cancelinput:
+    goods = rejecttrials(clicks3x)
+    clicks3x_good = clicks3x[goods, :]
+    ceoae3x = clicks3x_good.mean(axis=0)
+    ceoae = (3.0 * ceoae_orig + ceoae3x) / 4.0
+else:
+    ceoae = ceoae_orig
+
 t = np.arange(0, ceoae.shape[0] / fs, 1. / fs) * 1000.
 clicks_noise = clicks_good
 clicks_noise[::2, ] *= -1.0
@@ -181,19 +215,19 @@ pl.hold(True)
 pl.plot(f_kHz, np.log10(np.abs(N)) * 20, 'r--', linewidth=2)
 pl.ylabel('CEOAE Magnitude (dB)', fontsize=20)
 ax2 = pl.subplot(312, sharex=ax1)
-phase_correction = np.exp(-2 * np.pi * f * (oaewin[0] - input_delay))
-phi = np.unwrap(np.angle(S))
+phase_correction = np.exp(-2 * np.pi * f * (oaewin[0] * 1e-3 - input_delay))
+phi = np.unwrap(np.angle(S * phase_correction))
 phi_smooth = savitzky_golay(phi, window_size=101, order=3)
 pl.plot(f_kHz, phi, 'b', linewidth=2)
 pl.hold(True)
 pl.plot(f_kHz, phi_smooth, 'r', linewidth=2)
 pl.ylabel('CEOAE Phase (rad)', fontsize=20)
 ax3 = pl.subplot(313, sharex=ax1)
-group_delay = (np.diff(phi) / np.diff(f)) * 1000. / (2 * np.pi)
+group_delay = (np.diff(phi_smooth) / np.diff(f)) * 1000. / (2 * np.pi)
 pl.plot(f_kHz[1:], group_delay, linewidth=2)
 group_delay_smooth = savitzky_golay(group_delay, window_size=201, order=3)
 pl.hold(True)
-pl.plot(f_kHz[1:], group_delay_smooth, 'r', linewidth=2)
+pl.plot(f_kHz[1:], group_delay, 'r', linewidth=2)
 pl.xlabel('Frequency (kHz)', fontsize=16)
 pl.ylabel('Group Delay (ms)', fontsize=20)
 pl.show()
