@@ -125,11 +125,11 @@ def rejecttrials(x, thresh=1.2, bipolar=True):
 # froot = '/autofs/cluster/transcend/hari/MEMR/CEOAE/'
 froot = '/Users/Hari/Documents/Data/MEMR/CEOAE/'
 
-subjlist = ['I07_right']
+subjlist = ['I54_left']
 cancelinput = True
 fs = 48828.125  # Hz
 input_delay = 2.2e-3  # ms
-oaewin = (1., 21.)
+oaewin = (6., 21.)
 for subj in subjlist:
 
     fpath = froot + subj + '/'
@@ -141,8 +141,8 @@ for subj in subjlist:
     for kfile, matfile in enumerate(matnames):
         inputClick = loadmat(fpath + matfile)['y'].squeeze()
         Praw = loadmat(fpath + matfile)['Pcanal'].squeeze()
-        # P = band_pass_filter(Praw, fs, 250, 20e3, filter_length='5ms')
-        P = Praw
+        P = band_pass_filter(Praw, fs, 250, 20e3, filter_length='5ms')
+        # P = Praw
         locs, peaks = peak_finder(inputClick, thresh=0.2)
         win_start = np.int(oaewin[0] * fs / 1000.)
         win_end = np.int(oaewin[1] * fs / 1000.)
@@ -165,8 +165,8 @@ for subj in subjlist:
         for kfile, matfile in enumerate(matnames):
             inputClick = loadmat(fpath + matfile)['y'].squeeze()
             Praw = loadmat(fpath + matfile)['Pcanal'].squeeze()
-            # P = band_pass_filter(Praw, fs, 250, 20e3, filter_length='5ms')
-            P = Praw
+            P = band_pass_filter(Praw, fs, 250, 20e3, filter_length='5ms')
+            # P = Praw
             locs, peaks = peak_finder(inputClick, thresh=0.2, extrema=-1)
             win_start = np.int(oaewin[0] * fs / 1000.)
             win_end = np.int(oaewin[1] * fs / 1000.)
@@ -190,7 +190,9 @@ if cancelinput:
     goods = rejecttrials(clicks3x)
     clicks3x_good = clicks3x[goods, :]
     ceoae3x = clicks3x_good.mean(axis=0)
-    ceoae = (3.0 * ceoae_orig + ceoae3x) / 4.0
+    # Factor should be approx 3.0
+    factor = np.abs(ceoae3x).max() / np.abs(ceoae_orig).max()
+    ceoae = (factor * ceoae_orig + ceoae3x) / (factor + 1.)
 else:
     ceoae = ceoae_orig
 
