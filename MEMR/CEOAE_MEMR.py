@@ -7,6 +7,7 @@ from anlffr.preproc import band_pass_filter, peak_finder
 from anlffr.dpss import dpss_windows
 from math import factorial
 from statsmodels.robust.scale import stand_mad as mad
+from scipy.optimize import minimize_scalar
 
 
 def savitzky_golay(y, window_size, order, deriv=0, rate=1):
@@ -122,11 +123,11 @@ def rejecttrials(x, thresh=1.2, bipolar=True):
 
 
 # Adding Files and locations
-# froot = '/autofs/cluster/transcend/hari/MEMR/CEOAE/'
-froot = '/Users/Hari/Documents/Data/MEMR/CEOAE/'
+froot = '/autofs/cluster/transcend/hari/MEMR/CEOAE/'
+# froot = '/Users/Hari/Documents/Data/MEMR/CEOAE/'
 
 subjlist = ['I54_left']
-cancelinput = True
+cancelinput = False
 fs = 48828.125  # Hz
 input_delay = 2.2e-3  # ms
 oaewin = (6., 21.)
@@ -185,18 +186,22 @@ for subj in subjlist:
 goods = rejecttrials(clicks)
 clicks_good = clicks[goods, :]
 ceoae_orig = np.mean(clicks_good, axis=0).squeeze()
-
+t = np.arange(0, ceoae_orig.shape[0] / fs, 1. / fs) * 1000. - oaewin[0]
 if cancelinput:
     goods = rejecttrials(clicks3x)
     clicks3x_good = clicks3x[goods, :]
     ceoae3x = clicks3x_good.mean(axis=0)
     # Factor should be approx 3.0
-    factor = np.abs(ceoae3x).max() / np.abs(ceoae_orig).max()
+    ind = (t < 5.0) & (t > 0.)
+
+    def match(x): return ((x * ceoae_orig + ceoae3x)[ind] ** 2.).sum()
+
+    optimal = minimize_scalar(match, bounds=(2.5, 3.5))
+    factor = optimal['x']
     ceoae = (factor * ceoae_orig + ceoae3x) / (factor + 1.)
 else:
     ceoae = ceoae_orig
 
-t = np.arange(0, ceoae.shape[0] / fs, 1. / fs) * 1000.
 clicks_noise = clicks_good
 clicks_noise[::2, ] *= -1.0
 noise = np.mean(clicks_noise, axis=0).squeeze()
@@ -227,7 +232,7 @@ pl.ylabel('CEOAE Phase (rad)', fontsize=20)
 ax3 = pl.subplot(313, sharex=ax1)
 group_delay = (np.diff(phi_smooth) / np.diff(f)) * 1000. / (2 * np.pi)
 pl.plot(f_kHz[1:], group_delay, linewidth=2)
-group_delay_smooth = savitzky_golay(group_delay, window_size=201, order=3)
+group_delay_smooth = savitzky_golay(group_delay, window_size=501, order=3)
 pl.hold(True)
 pl.plot(f_kHz[1:], group_delay, 'r', linewidth=2)
 pl.xlabel('Frequency (kHz)', fontsize=16)
