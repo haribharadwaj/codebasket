@@ -83,7 +83,7 @@ def savitzky_golay(y, window_size, order, deriv=0, rate=1):
     return np.convolve(m[::-1], y, mode='valid')
 
 
-def rejecttrials(x, thresh=1.2, bipolar=True):
+def rejecttrials(x, thresh=1.5, bipolar=True):
     """Simple function to reject trials from numpy array data
 
     Parameters
@@ -123,14 +123,14 @@ def rejecttrials(x, thresh=1.2, bipolar=True):
 
 
 # Adding Files and locations
-froot = '/autofs/cluster/transcend/hari/MEMR/CEOAE/'
-# froot = '/Users/Hari/Documents/Data/MEMR/CEOAE/'
+# froot = '/autofs/cluster/transcend/hari/MEMR/CEOAE_CANCELLATION/'
+froot = '/Users/Hari/Documents/Data/MEMR/CEOAE_CANCELLATION/'
 
 subjlist = ['I54_left']
-cancelinput = False
+cancelinput = True
 fs = 48828.125  # Hz
 input_delay = 2.2e-3  # ms
-oaewin = (6., 21.)
+oaewin = (0., 21.)
 for subj in subjlist:
 
     fpath = froot + subj + '/'
@@ -186,55 +186,107 @@ for subj in subjlist:
 goods = rejecttrials(clicks)
 clicks_good = clicks[goods, :]
 ceoae_orig = np.mean(clicks_good, axis=0).squeeze()
-t = np.arange(0, ceoae_orig.shape[0] / fs, 1. / fs) * 1000. - oaewin[0]
+t0 = oaewin[0]
+t = np.arange(0, ceoae_orig.shape[0] / fs, 1. / fs) * 1000. - t0
+oaewin2 = (0., 21.)
+
 if cancelinput:
+    reffile = loadmat('/Users/Hari/Documents/Data/MEMR/nonlinearHeadphone.mat')
+    ref = reffile['ref'].squeeze()
     goods = rejecttrials(clicks3x)
     clicks3x_good = clicks3x[goods, :]
     ceoae3x = clicks3x_good.mean(axis=0)
-    # Factor should be approx 3.0
-    ind = (t < 5.0) & (t > 0.)
+    loadfac = True
+    if loadfac is True:
+        factor = reffile['factor'][0][0]
+    else:
+        # Factor should be approx 3.0
+        ind = (t < 5.0) & (t > 0.)
 
-    def match(x): return ((x * ceoae_orig + ceoae3x)[ind] ** 2.).sum()
+        def match(x): return ((x * ceoae_orig + ceoae3x)[ind] ** 2.).sum()
 
-    optimal = minimize_scalar(match, bounds=(2.5, 3.5))
-    factor = optimal['x']
+        optimal = minimize_scalar(match, bounds=(2.5, 3.5))
+        factor = optimal['x']
     ceoae = (factor * ceoae_orig + ceoae3x) / (factor + 1.)
+    ceoae = ceoae - ref
+    win_start = np.int(oaewin2[0] * fs / 1000.)
+    win_end = np.int(oaewin2[1] * fs / 1000.)
+    ceoae = ceoae[win_start:win_end]
+    t0 = t[win_start]
+    t = t[win_start:win_end]
 else:
-    ceoae = ceoae_orig
+    win_start = np.int(oaewin2[0] * fs / 1000.)
+    win_end = np.int(oaewin2[1] * fs / 1000.)
+    ceoae = ceoae_orig[win_start:win_end]
 
 clicks_noise = clicks_good
 clicks_noise[::2, ] *= -1.0
 noise = np.mean(clicks_noise, axis=0).squeeze()
-N = np.int(2 ** np.ceil(np.log2(ceoae.shape[0]) + 3))
-f = np.arange(N) * fs / N
+noise = noise[win_start:win_end]
+Nfft = np.int(2 ** np.ceil(np.log2(ceoae.shape[0]) + 1))
+f = np.arange(Nfft) * fs / Nfft
 fmin, fmax = 300, 5000
 w, e = dpss_windows(ceoae.shape[0], 1., 1.)
-S = np.fft.fft(w * ceoae, n=N).squeeze()
-N = np.fft.fft(w * noise, n=N).squeeze()
+w_orig, e = dpss_windows(ceoae_orig.shape[0], 1., 1.)
+S_orig = np.fft.fft(w_orig * ceoae_orig, n=Nfft).squeeze()
+S = np.fft.fft(w * ceoae, n=Nfft).squeeze()
+N = np.fft.fft(w * noise, n=Nfft).squeeze()
 ind = np.logical_and(f >= fmin, f <= fmax)
 f = f[ind]
 S = S[ind]
 N = N[ind]
+S_orig = S_orig[ind]
 f_kHz = f / 1e3
+
+# plot absolute
+pl.figure()
 ax1 = pl.subplot(311)
 pl.plot(f_kHz, np.log10(np.abs(S)) * 20, 'b', linewidth=2)
 pl.hold(True)
 pl.plot(f_kHz, np.log10(np.abs(N)) * 20, 'r--', linewidth=2)
 pl.ylabel('CEOAE Magnitude (dB)', fontsize=20)
 ax2 = pl.subplot(312, sharex=ax1)
-phase_correction = np.exp(-2 * np.pi * f * (oaewin[0] * 1e-3 - input_delay))
+phase_correction = np.exp(-2 * np.pi * f * (t0 * 1e-3 - input_delay))
 phi = np.unwrap(np.angle(S * phase_correction))
-phi_smooth = savitzky_golay(phi, window_size=101, order=3)
+phi -= phi[np.argmin(np.abs(f_kHz - 0.8))]
+wlen = 2 ** np.ceil(np.log2(1./np.diff(f_kHz).mean())) + 1
+phi_smooth = savitzky_golay(phi, window_size=wlen, order=3)
 pl.plot(f_kHz, phi, 'b', linewidth=2)
 pl.hold(True)
 pl.plot(f_kHz, phi_smooth, 'r', linewidth=2)
 pl.ylabel('CEOAE Phase (rad)', fontsize=20)
 ax3 = pl.subplot(313, sharex=ax1)
 group_delay = (np.diff(phi_smooth) / np.diff(f)) * 1000. / (2 * np.pi)
-pl.plot(f_kHz[1:], group_delay, linewidth=2)
-group_delay_smooth = savitzky_golay(group_delay, window_size=501, order=3)
-pl.hold(True)
 pl.plot(f_kHz[1:], group_delay, 'r', linewidth=2)
 pl.xlabel('Frequency (kHz)', fontsize=16)
 pl.ylabel('Group Delay (ms)', fontsize=20)
+pl.xlim((0.8, 3.8))
 pl.show()
+
+# plot relative
+relative = False
+if relative is True:
+    pl.figure()
+    ax1 = pl.subplot(311)
+    pl.plot(f_kHz, np.log10(np.abs(S / S_orig)) * 20, 'b', linewidth=2)
+    pl.hold(True)
+    pl.plot(f_kHz, np.log10(np.abs(N / S_orig)) * 20, 'r--', linewidth=2)
+    pl.ylabel('CEOAE Magnitude (dB)', fontsize=20)
+    ax2 = pl.subplot(312, sharex=ax1)
+    phase_correction = np.exp(-2 * np.pi * f *
+                              (oaewin2[0] * 1e-3 - oaewin[0] * 1e-3))
+    phi = np.unwrap(np.angle(S * phase_correction / S_orig))
+    phi -= phi[np.argmin(np.abs(f_kHz - 0.8))]
+    wlen = 2 ** np.ceil(np.log2(1./np.diff(f_kHz).mean())) + 1
+    phi_smooth = savitzky_golay(phi, window_size=wlen, order=3)
+    pl.plot(f_kHz, phi, 'b', linewidth=2)
+    pl.hold(True)
+    pl.plot(f_kHz, phi_smooth, 'r', linewidth=2)
+    pl.ylabel('CEOAE Phase (rad)', fontsize=20)
+    ax3 = pl.subplot(313, sharex=ax1)
+    group_delay = (np.diff(phi_smooth) / np.diff(f)) * 1000. / (2 * np.pi)
+    pl.plot(f_kHz[1:], group_delay, 'r', linewidth=2)
+    pl.xlabel('Frequency (kHz)', fontsize=16)
+    pl.ylabel('Group Delay (ms)', fontsize=20)
+    pl.xlim((0.8, 3.8))
+    pl.show()
