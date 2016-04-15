@@ -25,24 +25,24 @@ Esyn = sim.StaticSynapse(weight=0.05, delay=1.0)
 random = sim.FixedProbabilityConnector(p_connect=0.3)
 Econnections = sim.Projection(Ecells, Net, random, Esyn,
                               receptor_type='excitatory')
-Isyn = sim.StaticSynapse(weight=0.10, delay=1.0)
+Isyn = sim.StaticSynapse(weight=0.1, delay=1.0)
 Iconnections = sim.Projection(Icells, Net, random, Isyn,
                               receptor_type='inhibitory')
 
 noise1 = sim.NoisyCurrentSource(mean=0.6, stdev=0.3, start=50.0,
                                 stop=850.0, dt=0.01)
 
-Ecells.inject(noise1)
-# noise2 = sim.NoisyCurrentSource(mean=0.3, stdev=0.3, start=50.0,
-#                                 stop=850.0, dt=0.01)
+# Ecells.inject(noise1)
+noise2 = sim.NoisyCurrentSource(mean=0.3, stdev=0.3, start=50.0,
+                                stop=850.0, dt=0.01)
 
-# noise1.inject_into(Ecells[(0, 5, 10, 11)])
-# noise2.inject_into(Ecells[(3, 7, 15, 17)])
+noise1.inject_into(Ecells[(0, 5, 10, 11)])
+noise2.inject_into(Ecells[(3, 7, 15, 17)])
 
-# sine = sim.ACSource(start=50.0, stop=850.0, amplitude=1.0, offset=1.0,
-#                     frequency=25.0, phase=180.0)
+sine = sim.ACSource(start=50.0, stop=850.0, amplitude=2.0, offset=1.0,
+                    frequency=4.0, phase=180.0)
 
-# sine.inject_into(Ecells[(2, 25, 39)])
+sine.inject_into(Ecells[(2, 25, 39)])
 
 Net.record(['v', 'spikes'])
 sim.run(1000.0)
@@ -96,7 +96,7 @@ for k in range(nE + nI):
 
 pl.xlabel('Time (ms)', fontsize=16)
 pl.ylabel('Neuron Index', fontsize=16)
-pl.title('Simple E-I network', fontsize=16)
+pl.title('Network Properties', fontsize=16)
 pl.tick_params(labelsize=16)
 pl.legend(loc='best')
 pl.show()
