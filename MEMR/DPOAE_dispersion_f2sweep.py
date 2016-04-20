@@ -50,33 +50,36 @@ def rejecttrials(x, thresh=5.0, bipolar=True):
 # froot = '/autofs/cluster/transcend/hari/MEMR/CEOAE_TWOPHONE/'
 froot = '/Users/Hari/Dropbox/Data/MEMR/DPOAE_dispersion/'
 
-subjlist = ['I52_left']
+subjlist = ['I13_left']
 fs = 48828.125  # Hz
-f2c = 2000.  # [1000., 2000., 4000., 8000.]
-shift = f2c * np.asarray([-0.03, -0.02, 0., 0.01, 0.02, 0.03])
+f2c = 1000.  # [1000., 2000., 4000., 8000.]
+df = 12.2
+rat = 1.23  # f2/f1 ratio
+shift = df * np.arange(-3, 4)
 f2_list = f2c + shift
-rat = 1.22  # f2/f1 ratio
+
 for subj in subjlist:
 
-    fpath = froot + subj + '/'
+    fpath = froot + subj + '/f2sweep/'
 
     print 'Running Subject', subj
     dp_mag = []
     dp_phase = []
     prim_phase = []
+    f_dp_list = []
     for k, f2 in enumerate(f2_list):
         fstring = subj + '_DPOAE_RAW_' + str(np.int(f2)) + '*.mat'
         matname = fnmatch.filter(os.listdir(fpath), fstring)
         print 'Hmm.. %d files found: %s' % (len(matname), matname[0])
         P = loadmat(fpath + matname[0])['OAE'].squeeze()
-        good = rejecttrials(P, thresh=3.)
+        good = rejecttrials(P, thresh=5.)
         x = P[good].mean(axis=0)
         Nfft = np.int(2 ** np.ceil(np.log2(x.shape[0])))
         f = np.arange(Nfft) * fs / Nfft
         w, e = dpss_windows(x.shape[0], 1., 1.)
         w /= w.sum()
         S = np.fft.fft(w * x, n=Nfft).squeeze()
-        f1 = f2 / rat
+        f1 = f2c / rat
         f_dp = 2 * f1 - f2
         dp_ind = np.argmin(np.abs(f - f_dp))
         f1_ind = np.argmin(np.abs(f - f1))
@@ -86,11 +89,12 @@ for subj in subjlist:
         phi_prim = 2 * np.angle(S[f1_ind]) - np.angle(S[f2_ind])
         dp_phase += [phi_dp, ]
         prim_phase += [phi_prim, ]
+        f_dp_list += [f_dp, ]
 
-subtractPrim = False
+subtractPrim = True
 if subtractPrim is True:
-    # phi = np.unwrap(np.asarray(dp_phase) - np.asarray(prim_phase))
-    phi = np.unwrap(np.asarray(dp_phase)) - np.unwrap(np.asarray(prim_phase))
+    phi = np.unwrap(np.asarray(dp_phase) - np.asarray(prim_phase))
+    # phi = np.unwrap(np.asarray(dp_phase)) - np.unwrap(np.asarray(prim_phase))
 else:
     phi = np.unwrap(np.asarray(dp_phase))
 
