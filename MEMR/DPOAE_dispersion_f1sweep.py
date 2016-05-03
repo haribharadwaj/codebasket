@@ -4,6 +4,7 @@ import fnmatch
 import pylab as pl
 from scipy.io import loadmat
 from anlffr.dpss import dpss_windows
+from anlffr.preproc import band_pass_filter
 from statsmodels.robust.scale import stand_mad as mad
 
 
@@ -50,23 +51,23 @@ def rejecttrials(x, thresh=5.0, bipolar=True):
 # froot = '/autofs/cluster/transcend/hari/MEMR/CEOAE_TWOPHONE/'
 froot = '/Users/Hari/Dropbox/Data/MEMR/DPOAE_dispersion/'
 
-subjlist = ['I13_right']
+subjlist = ['I13_left']
 fs = 48828.125  # Hz
 names = ['a', 'b', 'c', 'd']
 f2s = dict(a=1000., b=2000., c=4000., d=8000.)
-dfs = dict(a=12.2, b=24.4, c=48.8, d=48.8)
-rats = dict(a=1.23, b=1.24, c=1.24, d=1.2)  # f2/f1 ratio
+dfs = dict(a=24.4, b=24.4, c=48.8, d=48.8)
+rat = 1.22  # f2/f1 ratio
 for name in names:
     f2 = f2s[name]
     df = dfs[name]
-    rat = rats[name]
+    rat = rat
     f1c = f2 / rat
-    shift = df * np.arange(-3, 4) / rat
+    shift = df * np.arange(-4, 5) / 2.
     f1_list = f1c + shift
 
     for subj in subjlist:
 
-        fpath = froot + subj + '/f1sweep/'
+        fpath = froot + subj + '/f1sweep_suppression/'
 
         print 'Running Subject', subj
         dp_mag = []
@@ -80,6 +81,7 @@ for name in names:
             P = loadmat(fpath + matname[0])['OAE'].squeeze()
             good = rejecttrials(P, thresh=5.)
             x = P[good].mean(axis=0)
+            x = band_pass_filter(x, fs, 250, 20e3, filter_length='5ms')
             Nfft = np.int(2 ** np.ceil(np.log2(x.shape[0])))
             f = np.arange(Nfft) * fs / Nfft
             w, e = dpss_windows(x.shape[0], 1., 1.)
@@ -103,7 +105,7 @@ for name in names:
     else:
         phi = np.unwrap(np.asarray(dp_phase))
 
-    pl.plot(f1_list, phi, 'o-', linewidth=2)
+    pl.plot(f_dp_list, phi, 'o-', linewidth=2)
     pl.xlabel('Frequency (kHz)', fontsize=16)
     pl.ylabel('Phase (radians)', fontsize=20)
     pl.show()

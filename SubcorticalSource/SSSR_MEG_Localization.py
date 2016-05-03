@@ -25,10 +25,10 @@ def pow2db(x):
     return y
 
     # Adding Files and locations
-# froot = '/autofs/cluster/transcend/hari/MEMR/'
+
 # froot = '/home/hari/Documents/SubcorticalSource/'
 froot = '/space/zazen/1/users/SubcorticalSource/'
-saveRaw = False
+saveRaw = True
 subjlist = ['HB', ]
 
 ch = range(1, 307)  # Channels of interest
@@ -39,7 +39,7 @@ freqs = np.arange(5, 500, 2)  # define frequencies of interest
 n_cycles = freqs / float(3)  # different number of cycle per frequency
 n_cycles[freqs < 15] = 2
 
-cond = 5
+cond = 3
 AMlist = [163, 193, 223, 253, 283]
 for subj in subjlist:
     fpath = froot + subj + '/'

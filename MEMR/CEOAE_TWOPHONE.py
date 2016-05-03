@@ -124,9 +124,9 @@ def rejecttrials(x, thresh=5.0, bipolar=True):
 
 # Adding Files and locations
 # froot = '/autofs/cluster/transcend/hari/MEMR/CEOAE_TWOPHONE/'
-froot = '/Users/Hari/Documents/Data/MEMR/CEOAE_TWOPHONE/'
+froot = '/Users/Hari/Dropbox/Data/MEMR/CEOAE_TWOPHONE/'
 
-subjlist = ['I33_right_60dB']
+subjlist = ['I13_left_50dB']
 cancelinput = True
 fs = 48828.125  # Hz
 input_delay = 2.2e-3  # ms
