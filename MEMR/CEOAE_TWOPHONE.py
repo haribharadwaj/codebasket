@@ -126,7 +126,7 @@ def rejecttrials(x, thresh=5.0, bipolar=True):
 # froot = '/autofs/cluster/transcend/hari/MEMR/CEOAE_TWOPHONE/'
 froot = '/Users/Hari/Dropbox/Data/MEMR/CEOAE_TWOPHONE/'
 
-subjlist = ['I13_left_50dB']
+subjlist = ['I33_right_60dB']
 cancelinput = True
 fs = 48828.125  # Hz
 input_delay = 2.2e-3  # ms
@@ -274,27 +274,34 @@ f_kHz = f / 1e3
 
 # plot absolute
 pl.figure()
-ax1 = pl.subplot(311)
-pl.plot(f_kHz, np.log10(np.abs(S)) * 20, 'b', linewidth=2)
+ax1 = pl.subplot(131)
+pl.plot(f_kHz, np.log10(np.abs(S)) * 20 - 6*f_kHz, 'k', linewidth=2)
 pl.hold(True)
-pl.plot(f_kHz, np.log10(np.abs(N)) * 20, 'r--', linewidth=2)
+pl.plot(f_kHz, np.log10(np.abs(N)) * 20 - 4*f_kHz, 'r--', linewidth=2)
 pl.ylabel('CEOAE Magnitude (dB)', fontsize=20)
-ax2 = pl.subplot(312, sharex=ax1)
+pl.xlabel('Frequency (kHz)', fontsize=20)
+ax1.tick_params(labelsize=16)
+
+ax2 = pl.subplot(132, sharex=ax1)
 phase_correction = np.exp(-2 * np.pi * f * (t0 * 1e-3 - input_delay))
 phi = np.unwrap(np.angle(S * phase_correction))
 phi -= phi[np.argmin(np.abs(f_kHz - 0.8))]
 wlen = 2 ** np.ceil(np.log2(1./np.diff(f_kHz).mean())) + 1
 phi_smooth = savitzky_golay(phi, window_size=wlen, order=3)
-pl.plot(f_kHz, phi, 'b', linewidth=2)
+pl.plot(f_kHz, phi, 'g', linewidth=2)
 pl.hold(True)
-pl.plot(f_kHz, phi_smooth, 'r', linewidth=2)
+pl.plot(f_kHz, phi_smooth, 'k', linewidth=2)
 pl.ylabel('CEOAE Phase (rad)', fontsize=20)
-ax3 = pl.subplot(313, sharex=ax1)
+pl.xlabel('Frequency (kHz)', fontsize=20)
+ax2.tick_params(labelsize=16)
+
+ax3 = pl.subplot(133, sharex=ax1)
 group_delay = (np.diff(phi_smooth) / np.diff(f)) * 1000. / (2 * np.pi)
-pl.plot(f_kHz[1:], group_delay, 'r', linewidth=2)
+pl.plot(f_kHz[1:], group_delay, 'k', linewidth=2)
 pl.xlabel('Frequency (kHz)', fontsize=16)
 pl.ylabel('Group Delay (ms)', fontsize=20)
 pl.xlim((0.5, 5.0))
+ax3.tick_params(labelsize=16)
 pl.show()
 
 pl.figure()
