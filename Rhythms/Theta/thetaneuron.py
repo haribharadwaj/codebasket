@@ -211,9 +211,10 @@ class network:
 
 if __name__ == "__main__":
     dt = 0.05
-    t = np.arange(0., 200, dt)
-    u = np.random.randn(t.shape[0]) * 0.1 + 0.3
+    t = np.arange(0., 1000, dt)
+    u = np.random.randn(t.shape[0]) * 0.15 + 0.2
     u[t < 50.] = 0.
+    u[t > 800.] = 0.
     driverin = singleunit()
     driverout = synapse(td=2.)
 
@@ -223,24 +224,31 @@ if __name__ == "__main__":
     Ninh = Ncells - Nex
     exOrInh = [1] * Nex + [-1] * Ninh
     cMat = np.random.rand(Ncells, Ncells) > 0.
-    N = network(Ncells, exOrInh, cMat)
+    N = network(Ncells, exOrInh, cMat, gie=0.005)
 
     # Choose cellw to input noise
     inputCell = [5, 7, 11]
 
     th = np.zeros((Ncells, t.shape[0]))
     curr = np.zeros((Ncells, t.shape[0]))
+    drive = np.zeros(t.shape[0])
     # Run simulation
     for k, uk in enumerate(u):
         driverin.update(s=uk)
         driverin.step(dt=dt)
         driverout.step(driverin, dt=dt)
+        drive[k] = driverout.m
         if np.mod(k, t.shape[0]/20) == 0:
             print 'time = %f / %f' % (t[k], t[-1])
+
         for i in range(Nex):
-            N.units[i].update(s=driverout.m * 0.3)
+            N.units[i].update(s=driverout.m * 0.3 * 0.1281 * 2.)
         for i in range(Ninh):
-            N.units[i + Nex].update(s=driverout.m * 0.08)
+            N.units[i + Nex].update(s=driverout.m * 0.08 * 0.1281)
+        '''
+        for i in inputCell:
+            N.units[i].update(s=driverout.m * 0.3)
+        '''
         N.step(dt=dt)
         for plotCell in range(Ncells):
             th[plotCell, k] = N.units[plotCell].theta
@@ -260,10 +268,17 @@ if __name__ == "__main__":
 
     # Plot results
     import pylab as pl
-    ax1 = pl.subplot(2, 1, 1)
-    pl.plot(t, th[:20].T)
+    ax1 = pl.subplot(3, 1, 1)
+    pl.plot(t, th[:20].T, 'b')
+    pl.hold(True)
+    pl.plot(t, th[20:].T, 'r')
     pl.ylabel('Neuron State (theta)')
-    ax2 = pl.subplot(2, 1, 2, sharex=ax1)
+    ax2 = pl.subplot(3, 1, 2, sharex=ax1)
     pl.plot(t, curr[:20].T)
-    pl.xlabel('Time (ms)')
+    pl.hold(True)
+    pl.plot(t, curr[20:].T, 'r')
     pl.ylabel('Input Current')
+    ax3 = pl.subplot(3, 1, 3, sharex=ax1)
+    pl.plot(t, drive)
+    pl.ylabel('Input Drive')
+    pl.xlabel('Time (ms)')
