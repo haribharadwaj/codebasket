@@ -225,6 +225,8 @@ if __name__ == "__main__":
     Ninh = Ncells - Nex
     exOrInh = [1] * Nex + [-1] * Ninh
     cMat = np.random.rand(Ncells, Ncells) > 0.
+    for k in range(Ncells):
+        cMat[k, k] = 0
     N = network(Ncells, exOrInh, cMat, gie=0.005)
 
     # Choose cellw to input noise
