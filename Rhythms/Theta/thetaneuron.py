@@ -210,8 +210,9 @@ class network:
 
 
 if __name__ == "__main__":
-    dt = 0.05
+    dt = 0.2
     t = np.arange(0., 1000, dt)
+
     u = np.random.randn(t.shape[0]) * 0.15 + 0.2
     u[t < 50.] = 0.
     u[t > 800.] = 0.
@@ -268,17 +269,20 @@ if __name__ == "__main__":
 
     # Plot results
     import pylab as pl
-    ax1 = pl.subplot(3, 1, 1)
+    ax1 = pl.subplot(4, 1, 1)
     pl.plot(t, th[:20].T, 'b')
     pl.hold(True)
     pl.plot(t, th[20:].T, 'r')
     pl.ylabel('Neuron State (theta)')
-    ax2 = pl.subplot(3, 1, 2, sharex=ax1)
+    ax2 = pl.subplot(4, 1, 2, sharex=ax1)
     pl.plot(t, curr[:20].T)
     pl.hold(True)
     pl.plot(t, curr[20:].T, 'r')
     pl.ylabel('Input Current')
-    ax3 = pl.subplot(3, 1, 3, sharex=ax1)
+    ax3 = pl.subplot(4, 1, 3, sharex=ax1)
     pl.plot(t, drive)
     pl.ylabel('Input Drive')
+    pl.hold(True)
+    ax4 = pl.subplot(4, 1, 4, sharex=ax1)
+    pl.plot(t, curr[:20].sum(axis=0))
     pl.xlabel('Time (ms)')
