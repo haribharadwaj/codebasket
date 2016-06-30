@@ -212,19 +212,27 @@ class network:
 if __name__ == "__main__":
     dt = 0.2
     t = np.arange(0., 1000, dt)
+    case = 'sine'
 
-    u = np.random.randn(t.shape[0]) * 0.15 + 0.2
-    u[t < 50.] = 0.
-    u[t > 800.] = 0.
+    ur = np.random.randn(t.shape[0]) * 0.15 + 0.2
+    ur[t < 50.] = 0.
+    ur[t > 800.] = 0.
+
+    fs = 40.
+    us = np.sin(2*np.pi*fs*t/1000.) * 0.1 + 0.1
+    us[t < 50.] = 0.
+    us[t > 800.] = 0.
+
     driverin = singleunit()
     driverout = synapse(td=2.)
-
+    inputlist = dict(random=ur, sine=us)
+    u = inputlist[case]
     # Initialize network
     Ncells = 30
     Nex = np.int(Ncells * 2/3)
     Ninh = Ncells - Nex
     exOrInh = [1] * Nex + [-1] * Ninh
-    cMat = np.random.rand(Ncells, Ncells) > 0.
+    cMat = np.random.rand(Ncells, Ncells) > 0.4
     for k in range(Ncells):
         cMat[k, k] = 0
     N = network(Ncells, exOrInh, cMat, gie=0.005)
@@ -288,3 +296,4 @@ if __name__ == "__main__":
     ax4 = pl.subplot(4, 1, 4, sharex=ax1)
     pl.plot(t, curr[:20].sum(axis=0))
     pl.xlabel('Time (ms)')
+    pl.show()
