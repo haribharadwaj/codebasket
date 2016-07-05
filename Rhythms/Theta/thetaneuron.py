@@ -211,38 +211,61 @@ class network:
 
 if __name__ == "__main__":
     dt = 0.2
-    t = np.arange(0., 1000, dt)
+    tmax = 1000.
+    t = np.arange(0., tmax, dt)
+    # Initialize network
+    Ncells = 30
+    Nex = np.int(Ncells * 2/3)
+    Ninh = Ncells - Nex
+    exOrInh = [1] * Nex + [-1] * Ninh
+
     case = 'sine'
 
     ur = np.random.randn(t.shape[0]) * 0.15 + 0.2
     ur[t < 50.] = 0.
     ur[t > 800.] = 0.
 
-    fs = 40.
-    us = np.sin(2*np.pi*fs*t/1000.) * 0.1 + 0.1
+    fs = 20.
+    us = np.zeros(t.shape[0])
+    ts_sine = np.arange(0., tmax, 1000./fs)
+    pulse = 0.5 * (np.exp(-t/0.1) - np.exp(-t/2.))/(-1.9)
+    for sp_sine in ts_sine:
+        us[np.argmin(np.abs(t - sp_sine))] = 1.
+    us = np.convolve(us, pulse)[:t.shape[0]]
     us[t < 50.] = 0.
     us[t > 800.] = 0.
 
+    # Noise input for each cell independently
+    inc = 30.
+    Nspikes = np.int(np.ceil(tmax / inc))
+    ts = np.cumsum(np.random.exponential(scale=inc, size=(Ncells, Nspikes)),
+                   axis=1)
+    noise = np.zeros((Ncells, t.shape[0]))
+    for cell in range(Ncells):
+        for sp in range(Nspikes):
+            noise[cell, np.argmin(np.abs(t - ts[cell, sp]))] = 1.
+    for cell in range(Ncells):
+        noise[cell, :] = np.convolve(noise[cell, :], pulse)[:t.shape[0]]
+
     driverin = singleunit()
     driverout = synapse(td=2.)
-    inputlist = dict(random=ur, sine=us)
+    inputlist = dict(random=ur, sine=us, spont=np.zeros(t.shape[0]))
     u = inputlist[case]
-    # Initialize network
-    Ncells = 30
-    Nex = np.int(Ncells * 2/3)
-    Ninh = Ncells - Nex
-    exOrInh = [1] * Nex + [-1] * Ninh
-    cMat = np.random.rand(Ncells, Ncells) > 0.4
+
+    # Connectivity matrix and initialize network
+    cMat = np.random.rand(Ncells, Ncells) > 0.
     for k in range(Ncells):
         cMat[k, k] = 0
-    N = network(Ncells, exOrInh, cMat, gie=0.005)
+    N = network(Ncells, exOrInh, cMat)  # gie=0.005
 
     # Choose cellw to input noise
-    inputCell = [5, 7, 11]
+    inputCell = range(Ncells)
 
     th = np.zeros((Ncells, t.shape[0]))
     curr = np.zeros((Ncells, t.shape[0]))
     drive = np.zeros(t.shape[0])
+    noisetest = np.zeros(t.shape[0])
+
     # Run simulation
     for k, uk in enumerate(u):
         driverin.update(s=uk)
@@ -253,9 +276,16 @@ if __name__ == "__main__":
             print 'time = %f / %f' % (t[k], t[-1])
 
         for i in range(Nex):
-            N.units[i].update(s=driverout.m * 0.3 * 0.1281 * 2.)
+            if i in inputCell:
+                N.units[i].update(s=driverout.m * 0.3 + noise[i, k])
+            else:
+                N.units[i].update(s=noise[i, k])
         for i in range(Ninh):
-            N.units[i + Nex].update(s=driverout.m * 0.08 * 0.1281)
+            if i+Nex in inputCell:
+                N.units[i + Nex].update(s=(driverout.m * 0.08 +
+                                           noise[i + Nex, k]))
+            else:
+                N.units[i + Nex].update(s=noise[i + Nex, k])
         '''
         for i in inputCell:
             N.units[i].update(s=driverout.m * 0.3)
