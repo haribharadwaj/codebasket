@@ -225,7 +225,7 @@ if __name__ == "__main__":
     ur[t < 50.] = 0.
     ur[t > 800.] = 0.
 
-    fs = 20.
+    fs = 40.
     us = np.zeros(t.shape[0])
     ts_sine = np.arange(0., tmax, 1000./fs)
     pulse = 0.5 * (np.exp(-t/0.1) - np.exp(-t/2.))/(-1.9)
@@ -256,34 +256,33 @@ if __name__ == "__main__":
     cMat = np.random.rand(Ncells, Ncells) > 0.
     for k in range(Ncells):
         cMat[k, k] = 0
-    N = network(Ncells, exOrInh, cMat)  # gie=0.005
+    N = network(Ncells, exOrInh, cMat)
+
+    gde = 0.3
+    gdi = 0.08
+    gne = 0.3
+    gni = 0.3
 
     # Choose cellw to input noise
     inputCell = range(Ncells)
 
     th = np.zeros((Ncells, t.shape[0]))
     curr = np.zeros((Ncells, t.shape[0]))
-    drive = np.zeros(t.shape[0])
-    noisetest = np.zeros(t.shape[0])
 
     # Run simulation
     for k, uk in enumerate(u):
-        driverin.update(s=uk)
-        driverin.step(dt=dt)
-        driverout.step(driverin, dt=dt)
-        drive[k] = driverout.m
         if np.mod(k, t.shape[0]/20) == 0:
             print 'time = %f / %f' % (t[k], t[-1])
 
         for i in range(Nex):
             if i in inputCell:
-                N.units[i].update(s=driverout.m * 0.3 + noise[i, k])
+                N.units[i].update(s=uk * gde + noise[i, k] * gne)
             else:
                 N.units[i].update(s=noise[i, k])
         for i in range(Ninh):
             if i+Nex in inputCell:
-                N.units[i + Nex].update(s=(driverout.m * 0.08 +
-                                           noise[i + Nex, k]))
+                N.units[i + Nex].update(s=(uk * gdi +
+                                           noise[i + Nex, k] * gni))
             else:
                 N.units[i + Nex].update(s=noise[i + Nex, k])
         '''
@@ -320,7 +319,7 @@ if __name__ == "__main__":
     pl.plot(t, curr[20:].T, 'r')
     pl.ylabel('Input Current')
     ax3 = pl.subplot(4, 1, 3, sharex=ax1)
-    pl.plot(t, drive)
+    pl.plot(t, u)
     pl.ylabel('Input Drive')
     pl.hold(True)
     ax4 = pl.subplot(4, 1, 4, sharex=ax1)
