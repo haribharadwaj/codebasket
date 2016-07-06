@@ -183,7 +183,7 @@ class network:
         for j in range(self._Ncells):
             temp = []
             for k in range(self._Ncells):
-                temp += [synapse(td=8.) if self.exOrInh[k] == -1.
+                temp += [synapse(td=8.) if self.exOrInh[j] == -1.
                          else synapse(td=2.)]
             self._syn += [temp, ]
 
@@ -232,7 +232,7 @@ if __name__ == "__main__":
     for sp_sine in ts_sine:
         us[np.argmin(np.abs(t - sp_sine))] = 1.
     us = np.convolve(us, pulse)[:t.shape[0]]
-    us[t < 50.] = 0.
+    us[t < 100.] = 0.
     us[t > 800.] = 0.
 
     # Noise input for each cell independently
@@ -258,10 +258,10 @@ if __name__ == "__main__":
         cMat[k, k] = 0
     N = network(Ncells, exOrInh, cMat)
 
-    gde = 0.3
-    gdi = 0.08
-    gne = 0.3
-    gni = 0.3
+    gde = 0.3 / pulse.max()
+    gdi = 0.08 / pulse.max()
+    gne = 0.8
+    gni = 0.8
 
     # Choose cellw to input noise
     inputCell = range(Ncells)
@@ -314,7 +314,7 @@ if __name__ == "__main__":
     pl.plot(t, th[20:].T, 'r')
     pl.ylabel('Neuron State (theta)')
     ax2 = pl.subplot(4, 1, 2, sharex=ax1)
-    pl.plot(t, curr[:20].T)
+    pl.plot(t, curr[:20].T, 'b')
     pl.hold(True)
     pl.plot(t, curr[20:].T, 'r')
     pl.ylabel('Input Current')
