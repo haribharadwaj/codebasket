@@ -225,7 +225,7 @@ if __name__ == "__main__":
     ur[t < 50.] = 0.
     ur[t > 800.] = 0.
 
-    fs = 40.
+    fs = 25.
     us = np.zeros(t.shape[0])
     ts_sine = np.arange(0., tmax, 1000./fs)
     pulse = 0.5 * (np.exp(-t/0.1) - np.exp(-t/2.))/(-1.9)
@@ -233,7 +233,7 @@ if __name__ == "__main__":
         us[np.argmin(np.abs(t - sp_sine))] = 1.
     us = np.convolve(us, pulse)[:t.shape[0]]
     us[t < 100.] = 0.
-    us[t > 800.] = 0.
+    # us[t > 800.] = 0.
 
     # Noise input for each cell independently
     inc = 30.
@@ -256,12 +256,12 @@ if __name__ == "__main__":
     cMat = np.random.rand(Ncells, Ncells) > 0.
     for k in range(Ncells):
         cMat[k, k] = 0
-    N = network(Ncells, exOrInh, cMat)
+    N = network(Ncells, exOrInh, cMat)  # gei=0.1, gii=0.05, gie=0.01, gee=0.)
 
     gde = 0.3 / pulse.max()
     gdi = 0.08 / pulse.max()
-    gne = 0.8
-    gni = 0.8
+    gne = 0.7
+    gni = 0.7
 
     # Choose cellw to input noise
     inputCell = range(Ncells)
@@ -285,10 +285,7 @@ if __name__ == "__main__":
                                            noise[i + Nex, k] * gni))
             else:
                 N.units[i + Nex].update(s=noise[i + Nex, k])
-        '''
-        for i in inputCell:
-            N.units[i].update(s=driverout.m * 0.3)
-        '''
+
         N.step(dt=dt)
         for plotCell in range(Ncells):
             th[plotCell, k] = N.units[plotCell].theta
