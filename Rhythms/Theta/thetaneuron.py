@@ -49,6 +49,9 @@ class singleunit:
     inhibition and altered gamma and beta range auditory entrainment. Journal
     of neurophysiology, 99(5), 2656-2671.
 
+    [3] Börgers, C., & Kopell, N. J. (2008). Gamma oscillations and stimulus
+    selection. Neural computation, 20(2), 383-414.
+
     """
     def __init__(self, b=-0.01, s=0., theta=0., label=None):
         self.theta = theta
@@ -227,7 +230,7 @@ if __name__ == "__main__":
 
     fs = 25.
     us = np.zeros(t.shape[0])
-    ts_sine = np.arange(0., tmax, 1000./fs)
+    ts_sine = np.arange(20., tmax, 1000./fs)
     pulse = 0.5 * (np.exp(-t/0.1) - np.exp(-t/2.))/(-1.9)
     for sp_sine in ts_sine:
         us[np.argmin(np.abs(t - sp_sine))] = 1.
@@ -320,6 +323,7 @@ if __name__ == "__main__":
     pl.ylabel('Input Drive')
     pl.hold(True)
     ax4 = pl.subplot(4, 1, 4, sharex=ax1)
-    pl.plot(t, curr[:20].sum(axis=0))
+    MEG = curr[:20, ].sum(axis=0)
+    pl.plot(t, MEG)
     pl.xlabel('Time (ms)')
     pl.show()

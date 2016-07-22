@@ -3,9 +3,11 @@ import fnmatch
 import os
 
 # Adding Files and locations
-froot = '/autofs/cluster/transcend/hari/ObjectFormation/'
+# froot = '/autofs/cluster/transcend/hari/ObjectFormation/'
+froot = '/autofs/cluster/transcend/MEG/objectformation/'
 
-subjlist = ['093901', ]
+subjlist = ['032902', ]
+visit = ['/4']
 paradigm = 'object'
 
 hp_est = True
@@ -21,7 +23,7 @@ class BadChannelListMissingError(Exception):
 
 for subj in subjlist:
 
-    fpath = froot + subj + '/'
+    fpath = froot + subj + visit + '/'
     nruns = 3
     for run in range(1, nruns + 1):
         fifs = fnmatch.filter(os.listdir(fpath), subj + '*' + paradigm + '*' +
