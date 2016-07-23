@@ -7,7 +7,7 @@ import os
 froot = '/autofs/cluster/transcend/MEG/objectformation/'
 
 subjlist = ['032902', ]
-visit = ['/4']
+visit = '/4'
 paradigm = 'object'
 
 hp_est = True
