@@ -6,8 +6,7 @@ import os
 # froot = '/autofs/cluster/transcend/hari/ObjectFormation/'
 froot = '/autofs/cluster/transcend/MEG/objectformation/'
 
-subjlist = ['032902', ]
-visit = '/4'
+subjlist = ['010401', '011302', '014002', '013703']
 paradigm = 'object'
 
 hp_est = True
@@ -22,8 +21,9 @@ class BadChannelListMissingError(Exception):
 
 
 for subj in subjlist:
-
-    fpath = froot + subj + visit + '/'
+    fpath = froot + subj + '/'
+    visit = fnmatch.filter(os.listdir(fpath), '?')[0]
+    fpath += visit + '/'
     nruns = 3
     for run in range(1, nruns + 1):
         fifs = fnmatch.filter(os.listdir(fpath), subj + '*' + paradigm + '*' +
