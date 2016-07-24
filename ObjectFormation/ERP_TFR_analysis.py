@@ -25,7 +25,7 @@ eog = False
 ekg = False
 doTFR = False
 saveEpochs = True
-saveAveCov = False
+saveAveCov = True
 for subj in subjlist:
 
     fpath = froot + subj + '/'
