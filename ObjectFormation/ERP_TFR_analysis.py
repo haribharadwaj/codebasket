@@ -9,9 +9,15 @@ from mne.time_frequency import tfr_multitaper
 
 # Adding Files and locations
 # froot = '/Users/hari/Documents/Data/ObjectFormation/'
-froot = '/autofs/cluster/transcend/hari/ObjectFormation/'
+# froot = '/autofs/cluster/transcend/hari/ObjectFormation/'
 
-subjlist = ['089402', ]
+froot = '/autofs/cluster/transcend/MEG/objectformation/'
+
+subjlist = ['035201', '038301', '038302', '039001', '042201', '092002',
+            '095801', '096301', '096302', '096603', '054401']
+# subjlist = ['053001', '030801', '032901', '032902', '013703', '014002',
+#             '063101', '075401', '010401', '011302']
+
 para = 'object'
 epochs = []
 sss = True
@@ -23,7 +29,8 @@ saveAveCov = False
 for subj in subjlist:
 
     fpath = froot + subj + '/'
-
+    visit = fnmatch.filter(os.listdir(fpath), '?')[0]
+    fpath += visit + '/'
     # These are so that the generated files are organized better
     respath = fpath + 'RES/'
     if sss:
@@ -51,7 +58,7 @@ for subj in subjlist:
         raw.info['bads'] += ['MEG1013', 'MEG1623', 'MEG2342', 'MEG2513',
                              'MEG2542']
     # Filter the data for ERPs
-    raw.filter(l_freq=1.0, h_freq=144, l_trans_bandwidth=0.15,
+    raw.filter(l_freq=0.5, h_freq=144, l_trans_bandwidth=0.15,
                picks=np.arange(0, 306, 1))
 
     # raw.apply_proj()
