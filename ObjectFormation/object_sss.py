@@ -7,7 +7,8 @@ import os
 froot = '/autofs/cluster/transcend/MEG/objectformation/'
 
 # subjlist = ['035201', '038301', '038302', '039001', '042201']
-subjlist = ['054401', '053001', '063101', '075401']
+# subjlist = ['054401', '053001', '063101', '075401']
+subjlist = ['092002', '095801', '096301', '096302', '096603']
 paradigm = 'object'
 
 hp_est = True
