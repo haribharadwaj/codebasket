@@ -1,5 +1,6 @@
 import mne
-
+import os
+import fnmatch
 
 # Adding Files and locations
 # froot = '/Users/hari/Documents/Data/ObjectFormation/'
@@ -13,6 +14,8 @@ sss = True
 for subj in subjlist:
 
     fpath = froot + subj + '/'
+    visit = fnmatch.filter(os.listdir(fpath), '?')[0]
+    fpath += visit + '/'
 
     if sss:
         ssstag = '_sss'
