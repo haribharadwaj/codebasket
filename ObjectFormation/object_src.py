@@ -3,9 +3,10 @@ import mne
 
 # Adding Files and locations
 # froot = '/Users/hari/Documents/Data/ObjectFormation/'
-froot = '/autofs/cluster/transcend/hari/ObjectFormation/'
+# froot = '/autofs/cluster/transcend/hari/ObjectFormation/'
+froot = '/autofs/cluster/transcend/MEG/objectformation/'
 mriroot = '/autofs/cluster/transcend/MRI/WMA/recons/'
-subjlist = ['089402', ]
+subjlist = ['096301', ]
 para = 'object'
 sss = True
 
@@ -21,7 +22,8 @@ for subj in subjlist:
     covname = fpath + subj + ssstag + '_' + para + '_collapse-cov.fif'
     fwdname = fpath + subj + '_' + para + ssstag + '-fwd.fif'
     rawname = fpath + subj + '_' + para + '_1_raw' + ssstag + '.fif'
-    trans = fpath + subj + '_' + para + '-trans.fif'
+    # trans = fpath + subj + '_' + para + '-trans.fif'
+    trans = fpath + subj + '_1-trans.fif'
     invname = fpath + subj + '_' + para + ssstag + '-inv.fif'
 
     # Assume source space setup and bem solution already done
