@@ -14,11 +14,12 @@ from mne.time_frequency import tfr_multitaper
 froot = '/autofs/cluster/transcend/MEG/objectformation/'
 
 # subjlist = ['095801', '096603']  # Need to use mask for trigger channel
+# subjlist = ['054401', ]  # This crashed when finding blinks...
 # subjlist = ['035201', '038301', '038302', '039001', '042201', '092002',
 #             '096301', '096302']
-subjlist = ['054401', ]
-# subjlist = ['053001', '030801', '032901', '032902', '013703', '014002',
-#             '063101', '075401', '010401', '011302']
+
+subjlist = ['053001', '030801', '032901', '032902', '013703', '014002',
+            '063101', '075401', '010401', '011302']
 
 para = 'object'
 epochs = []
