@@ -7,7 +7,7 @@ import fnmatch
 # froot = '/autofs/cluster/transcend/hari/ObjectFormation/'
 froot = '/autofs/cluster/transcend/MEG/objectformation/'
 mriroot = '/autofs/cluster/transcend/MRI/WMA/recons/'
-subjlist = ['032902', '092002']
+subjlist = ['096901', ]
 para = 'object'
 sss = True
 
