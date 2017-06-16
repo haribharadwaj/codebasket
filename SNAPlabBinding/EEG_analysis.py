@@ -26,18 +26,20 @@ for subj in subjlist:
 
     bdfs = fnmatch.filter(os.listdir(fpath), subj + '_' + para + '*.bdf')
     print 'Viola!', len(bdfs),  'files found!'
-    if len(bdfs) > 1:
-        print 'Warning! Multitple raw files found! Using only the first one'
+
 
     # Load data and read event channel
-    (raw, eves) = bs.importbdf(fpath + bdfs[0], nchans=34,
-                               refchans=None, extrachans=['EXG1', 'EXG2'],
-                               verbose='DEBUG')
-
+    rawlist = []
+    evelist = []
+    for k, rawname in enumerate(bdfs):
+        rawtemp, evestemp = bs.importbdf(fpath + rawname, verbose='DEBUG')
+        rawlist += [rawtemp, ]
+        evelist += [evestemp, ]
+    raw, eves = mne.concatenate_raws(rawlist, events_list=evelist)
+    
     # raw.info['bads'] += []
     # Filter the data for ERPs
-    raw.filter(l_freq=0.5, h_freq=100, l_trans_bandwidth=0.15,
-               picks=np.arange(0, 32, 1))
+    raw.filter(l_freq=2.0, h_freq=40, l_trans_bandwidth=0.15)
 
     # raw.apply_proj()
     fs = raw.info['sfreq']
@@ -53,7 +55,7 @@ for subj in subjlist:
                                    baseline=(-0.25, 0),
                                    reject=dict(eeg=500e-6))
         blink_projs = compute_proj_epochs(epochs_blinks, n_grad=0,
-                                          n_mag=0, n_eeg=2,
+                                          n_mag=0, n_eeg=4,
                                           verbose='DEBUG')
         raw.add_proj(blink_projs)
 
