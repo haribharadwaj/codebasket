@@ -8,9 +8,10 @@ import pylab as pl
 # Adding Files and locations
 froot = 'D:/DATA/ABR/'
 
-subjlist = ['S012', ]
+subjlist = ['S019', ]
 
-conds = [[3, 9], [5, 10], [6, 12], [48, 144], [80, 160], [96, 192]]
+conds = [[3, 9], [5, 10], [6, 12], [48, 144], [80, 160], [96, 192], [6], [12],
+         [96], [192]]
 
 for subj in subjlist:
 
@@ -26,7 +27,10 @@ for subj in subjlist:
         for k, bdf in enumerate(bdfs):
             edfname = fpath + bdf
             # Load data and read event channel
-            (rawtemp, evestemp) = bs.importbdf(edfname, nchans=36)
+            extrachans = [u'GSR1', u'GSR2', u'Erg1', u'Erg2', u'Resp',
+                          u'Plet', u'Temp']
+            (rawtemp, evestemp) = bs.importbdf(edfname, nchans=36,
+                                               extrachans=extrachans)
             rawtemp.set_channel_types({'EXG3': 'eeg', 'EXG4': 'eeg'})
             rawlist += [rawtemp, ]
             evelist += [evestemp, ]
@@ -35,7 +39,7 @@ for subj in subjlist:
 
     raw, eves = mne.concatenate_raws(rawlist, events_list=evelist)
     # Filter the data
-    raw.filter(l_freq=70., h_freq=3000, picks=np.arange(36))
+    raw.filter(l_freq=100., h_freq=3000, picks=np.arange(36))
     tmin, tmax = -0.002, 0.015
     raw.info['bads'] += ['EXG3', 'EXG4', 'A1', 'A2', 'A30', 'A7', 'A6',
                          'A24', 'A28', 'A29', 'A3', 'A11', 'A15',
@@ -48,19 +52,47 @@ for subj in subjlist:
         epochs = mne.Epochs(raw, eves, cond, tmin=tmin, proj=False,
                             tmax=tmax, baseline=(0.001, 0.002),
                             picks=np.arange(36),
-                            reject=dict(eeg=70e-6),
+                            reject=dict(eeg=100e-6),
                             verbose='WARNING')
         abr = epochs.average()
         abrs += [abr, ]
 
-x = abr.data * 1e6  # microV
-t = abr.times * 1e3 - 1.0  # Adjust for delay and use milliseconds
-pl.plot(t, x[goods, :].mean(axis=0) - x[35, :], linewidth=2)
+mne.write_evokeds(fpath + subj + '_ABR_100Hz-ave.fif', abrs)
+
+# Plot data
+R = [8, 9]  # [3, 4, 5]
+L = [6, 7]  # [0, 1, 2]
+for k in L:
+    abr = abrs[k]
+    x = abr.data * 1e6  # microV
+    t = abr.times * 1e3 - 1.0  # Adjust for delay and use milliseconds
+    y = x[goods, :].mean(axis=0) - x[34, :]
+    y = y - y[(t > 0.5) & (t < 1.0)].mean()
+    pl.plot(t, y, linewidth=2)
 pl.xlabel('Time (ms)', fontsize=16)
 pl.ylabel('ABR (uV)', fontsize=16)
-pl.xlim((0.5, 10.))
+pl.title('Left Ear', fontsize=20)
+pl.xlim((-1.0, 12.))
+pl.ylim((-1.0, 1.5))
 ax = pl.gca()
 ax.tick_params(labelsize=16)
-
+pl.legend(['85 dB peSPL', '100 dB peSPL', '115 dB peSPL'])
 pl.show()
-mne.write_evokeds(fpath + subj + '_ABR-ave.fif', abrs)
+
+pl.figure()
+for k in R:
+    abr = abrs[k]
+    x = abr.data * 1e6  # microV
+    t = abr.times * 1e3 - 1.0  # Adjust for delay and use milliseconds
+    y = x[goods, :].mean(axis=0) - x[35, :]
+    y = y - y[(t > 0.5) & (t < 1.0)].mean()
+    pl.plot(t, y, linewidth=2)
+pl.xlabel('Time (ms)', fontsize=16)
+pl.ylabel('ABR (uV)', fontsize=16)
+pl.title('Right Ear', fontsize=20)
+pl.xlim((0.5, 12.))
+pl.ylim((-1., 1.5))
+ax = pl.gca()
+ax.tick_params(labelsize=16)
+pl.legend(['85 dB peSPL', '100 dB peSPL', '115 dB peSPL'])
+pl.show()
