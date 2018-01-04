@@ -1,4 +1,4 @@
 clear all;
-mex -v model_IHC.c complex.c  
+mex -compatibleArrayDims -v model_IHC.c complex.c  
 clear all;
-mex -v model_Synapse.c complex.c 
+mex -compatibleArrayDims -v model_Synapse.c complex.c 
