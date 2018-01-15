@@ -10,7 +10,7 @@ import pylab as pl
 # Adding Files and locations
 froot = 'D:/DATA/EFR/'
 
-subjlist = ['S019', ]
+subjlist = ['S012', ]
 
 condlist = [1, 2, 4, 8]
 condnames = ['Lm4dB', 'L0dB', 'Rm4dB',  'R0dB']
@@ -77,7 +77,7 @@ for subj in subjlist:
         nPerDraw = 400
         nDraws = 100
         params = dict(Fs=fs, fpass=[5, 1000], tapers=[1, 1], Npairs=2000,
-                      itc=1, nfft=8192)
+                      itc=1, nfft=32768)
 
         Ntrials = x.shape[1]
 
@@ -112,7 +112,7 @@ for subj in subjlist:
         plotStuff = True
         if plotStuff:
             pl.figure()
-            pl.plot(f, cplv, linewidth=2)
+            pl.plot(f, cpow, linewidth=2)
             pl.xlabel('Frequency (Hz)', fontsize=16)
             pl.ylabel('Phase Locking', fontsize=16)
             ax = pl.gca()
