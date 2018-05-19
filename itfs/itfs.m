@@ -1,4 +1,4 @@
-function masked = itfs(noisy, oracle, noise, LC, fs)
+function masked = itfs(noisy, oracle, noise, LC, fs, nfilts)
 % Ideal time-frequency segregation using binary masks in TF domain using a
 % gammatone filterbank.
 %
@@ -12,12 +12,15 @@ function masked = itfs(noisy, oracle, noise, LC, fs)
 %       to noisy.
 %   LC - The local SNR criterion
 %   fs - Sampling rate of the signals involved
+%   nfilts - Number of bands to contruct TF representation with (optional)
 %
 % OUTPUTS:
 %   masked - The cleaned mixture after ITFS is done
 %
 
-nfilts  = 128;
+if ~exist('nfilts', 'var')
+    nfilts  = 128;
+end
 f_low = 80;
 f_high = 8000;
 
@@ -28,6 +31,7 @@ cfs = invcams(linspace(cams(f_low), cams(f_high), nfilts));
 % Make all inputs as column vectors
 noisy = noisy(:);
 oracle = oracle(:);
+noise = noise(:);
 
 % Extract BM responses for mixture and oracle
 % Phase align the filters so that resynthesizing is trivial
