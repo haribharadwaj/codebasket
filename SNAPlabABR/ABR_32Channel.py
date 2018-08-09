@@ -8,10 +8,9 @@ import pylab as pl
 # Adding Files and locations
 froot = 'D:/DATA/ABR/'
 
-subjlist = ['S050', ]
+subjlist = ['S114', ]
 
-conds = [[3, 9], [5, 10], [6, 12], [48, 144], [80, 160], [96, 192], [6], [12],
-         [96], [192]]
+conds = [[3, 9], [5, 10], [6, 12], [48, 144], [80, 160], [96, 192]]
 
 for subj in subjlist:
 
@@ -38,6 +37,7 @@ for subj in subjlist:
         RuntimeError('No BDF files found!!')
 
     raw, eves = mne.concatenate_raws(rawlist, events_list=evelist)
+
     # Filter the data
     raw.filter(l_freq=30., h_freq=3000, picks=np.arange(36))
     tmin, tmax = -0.01, 0.015
@@ -73,8 +73,8 @@ for k in L:
 pl.xlabel('Time (ms)', fontsize=14)
 pl.ylabel('ABR (uV)', fontsize=14)
 pl.title('Left Ear', fontsize=14)
-pl.xlim((0., 10.))
-pl.ylim((-1.0, 1.5))
+pl.xlim((-2., 12.))
+pl.ylim((-1.0, 2.))
 ax = pl.gca()
 ax.tick_params(labelsize=14)
 pl.legend(['48 dB nHL', '64 dB nHL', '80 dB nHL'])
@@ -92,9 +92,9 @@ for k in R:
 pl.xlabel('Time (ms)', fontsize=16)
 pl.ylabel('ABR (uV)', fontsize=16)
 pl.title('Right Ear', fontsize=20)
-pl.xlim((-1.0, 12.))
-pl.ylim((-1., 1.0))
+pl.xlim((-2.0, 12.))
+pl.ylim((-1., 2.))
 ax = pl.gca()
-ax.tick_params(labelsize=16)
+ax.tick_params(labelsize=14)
 pl.legend(['85 dB peSPL', '100 dB peSPL', '115 dB peSPL'])
 pl.show()
