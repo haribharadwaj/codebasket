@@ -2,13 +2,14 @@ import mne
 import os
 import fnmatch
 import pylab as pl
+from warnings import warn
 import numpy as np
 from anlffr.preproc import peak_finder
 
 # Adding Files and locations
 froot = 'D:/DATA/ABR/'
 
-subjlist = ['S050', ]
+subjlist = ['S051', ]
 
 
 def find_wave(t, y, whichwave='I'):
@@ -40,43 +41,54 @@ def find_wave(t, y, whichwave='I'):
     i2 = np.argmin(np.abs(t - tmax))
 
     # Peak locations and values
-    plocs, pvals = peak_finder(y, (max(y) - min(y))/8.)
+    plocs, pvals = peak_finder(y, (max(y) - min(y))/20.)
     valid = np.logical_and(plocs > i1, plocs < i2)
-    plocs = plocs[valid]
-    pvals = pvals[valid]
+    plocs = plocs[valid].tolist()
 
     # Trough locations and values
-    tlocs, tvals = peak_finder(y, (max(y) - min(y))/8., extrema=-1)
+    tlocs, tvals = peak_finder(y, (max(y) - min(y))/20., extrema=-1)
     valid = np.logical_and(tlocs > i1, tlocs < i2)
-    tlocs = tlocs[valid]
-    tvals = tvals[valid]
+    tlocs = tlocs[valid].tolist()
 
-    # Sort through peaks and troughs to get one pair in the right order
-    if plocs.shape[0] == 0 or tlocs.shape[0] == 0:
-        RuntimeWarning('No valid peak-trough pairs found')
-        locs = None
-        vals = None
-    if plocs.shape[0] + tlocs.shape[0] > 3:
-        RuntimeWarning('Too many peaks and troughs found')
-        locs = np.concatenate(plocs, tlocs)
-        vals = np.concatenate(pvals, tvals)
-    if plocs.shape[0] + tlocs.shape[0] == 2:
-        if tlocs[0] > plocs[0]:
-            locs = [plocs[0], tlocs[0]]
-            vals = [pvals[0], tvals[0]]
-        else:
-            RuntimeWarning('No valid peak-trough pairs found')
-            locs = None
-            vals = None
-    if plocs.shape[0] + tlocs.shape[0] == 3:
-        if tlocs[0] > plocs[0]:
-            locs = [plocs[0], tlocs[0]]
-            vals = [pvals[0], tvals[0]]
-        else:
-            locs = [plocs[0], tlocs[1]]
-            vals = [pvals[0], tvals[1]]
-    return locs, vals
+    # Sort through peaks and troughs to get adjacent pairs (P followed by T)
+    pairs = []
+    while len(plocs) > 0 and len(tlocs) > 0:
+        while len(tlocs) > 0 and tlocs[0] < plocs[0]:
+            print len(tlocs)
+            tlocs.pop(0)
+        if len(tlocs) > 0:
+            ploc = plocs.pop(0)
+            tloc = tlocs[0]
+            if len(plocs) > 0:
+                ploc_next = plocs[0]
+                if ploc_next > tloc:
+                    tloc = tlocs.pop(0)
+                    pair = [ploc, tloc]
+                    pairs = pairs + [pair]
+            else:
+                tloc = tlocs.pop(0)
+                pair = [ploc, tloc]
+                pairs = pairs + [pair]
 
+    # If there are multiple pairs return the largest peak-to-trough pair
+    if len(pairs) == 0:
+        warn('No peak-trough pair was found for requested wave')
+        locs = []
+        vals = []
+        return locs, vals
+    else:
+        if len(pairs) == 1:
+            locs = pairs[0]
+            vals = [y[locs[0]], y[locs[1]]]
+            return locs, vals
+        else:
+            warn('Multiple peak-trough pairs found. Returning the largest!')
+            p2t = np.zeros(len(pairs))
+            for pair in pairs:
+                p2t = p2t + [y[pair[0]] - y[pair[1]], ]
+            locs = pairs[np.argmax(p2t)]
+            vals = [y[locs[0]], y[locs[1]]]
+            return locs, vals
 
 rebase = True
 for subj in subjlist:
@@ -97,18 +109,18 @@ for subj in subjlist:
     # Plot data
     R = [3, 4, 5]
     L = [0, 1, 2]
-
-    for k in L:
+    labels = ['85 dB peSPL', '100 dB peSPL', '115 dB peSPL']
+    for ind, k in enumerate(L):
         abr = abrs[k]
         x = abr.data * 1e6  # microV
         t = abr.times * 1e3 - 1.6  # Adjust for delay and use milliseconds
         y = x[goods, :].mean(axis=0) - x[34, :]
         if rebase is True:
             y = y - y[(t > -2.) & (t < 0.)].mean()
-        pl.plot(t, y, linewidth=2)
-        locs, vals = find_wave(t, y)
-        pl.hold(True)
-        pl.plot(t[locs], y[locs], 'rx', markersize=10)
+        pl.plot(t, y, linewidth=2, label=labels[ind])
+        locs, vals = find_wave(t, y, whichwave='I')
+        # pl.hold(True)
+        pl.plot(t[locs], y[locs], 'ro', markersize=6)
     pl.xlabel('Time (ms)', fontsize=14)
     pl.ylabel('ABR (uV)', fontsize=14)
     pl.title('Left Ear', fontsize=14)
@@ -116,22 +128,21 @@ for subj in subjlist:
     pl.ylim((-1.0, 2.))
     ax = pl.gca()
     ax.tick_params(labelsize=14)
-    # pl.legend(['48 dB nHL', '64 dB nHL', '80 dB nHL'])
-    pl.legend(['85 dB peSPL', '100 dB peSPL', '115 dB peSPL'])
+    pl.legend()
     pl.show()
 
     pl.figure()
-    for k in R:
+    for ind, k in enumerate(R):
         abr = abrs[k]
         x = abr.data * 1e6  # microV
         t = abr.times * 1e3 - 1.6  # Adjust for delay and use milliseconds
         y = x[goods, :].mean(axis=0) - x[35, :]
         if rebase is True:
             y = y - y[(t > -2.) & (t < 0.)].mean()
-        pl.plot(t, y, linewidth=2)
-        locs, vals = find_wave(t, y)
-        pl.hold(True)
-        pl.plot(t[locs], y[locs], 'rx', markersize=10)
+        pl.plot(t, y, linewidth=2, label=labels[ind])
+        locs, vals = find_wave(t, y, whichwave='I')
+        # pl.hold(True)
+        pl.plot(t[locs], y[locs], 'ro', markersize=6)
     pl.xlabel('Time (ms)', fontsize=16)
     pl.ylabel('ABR (uV)', fontsize=16)
     pl.title('Right Ear', fontsize=20)
@@ -139,5 +150,5 @@ for subj in subjlist:
     pl.ylim((-1., 2.))
     ax = pl.gca()
     ax.tick_params(labelsize=14)
-    pl.legend(['85 dB peSPL', '100 dB peSPL', '115 dB peSPL'])
+    pl.legend()
     pl.show()
