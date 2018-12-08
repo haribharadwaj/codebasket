@@ -9,7 +9,7 @@ from anlffr.preproc import peak_finder
 # Adding Files and locations
 froot = 'D:/DATA/ABR/'
 
-subjlist = ['S051', ]
+subjlist = ['S028', ]
 
 
 def find_wave(t, y, whichwave='I'):
@@ -28,12 +28,11 @@ def find_wave(t, y, whichwave='I'):
     Note
     ----
 
-    To fit only a slope parameter, set w = 0 (t is immaterial then)
-    To fit a roex(p,r), set t = numpy.inf
+    Currently, the waves are defined from a peak to the following trough.
 
     """
     tmins = dict(I=1., SP=0., III=3., V=5.)
-    tmaxs = dict(I=3., SP=2., III=5., V=7.)
+    tmaxs = dict(I=3., SP=2., III=5., V=8.)
 
     tmin = tmins[whichwave]
     tmax = tmaxs[whichwave]
