@@ -35,10 +35,10 @@ earlist = ['L', 'R']
 for ear in earlist:
     if ear == 'L':
         conds = [[3, 9], [5, 10], [6, 12]]
-        names = ['L_soft', 'L_moderate', 'L_loud']
+        names = ['_L_soft', '_L_moderate', '_L_loud']
     else:
         conds = [[48, 144], [80, 160], [96, 192]]
-        names = ['L_soft', 'L_moderate', 'L_loud']
+        names = ['_R_soft', '_R_moderate', '_R_loud']
 
     for subj in subjlist:
         print 'Running Subject', subj
