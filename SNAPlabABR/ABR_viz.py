@@ -9,7 +9,7 @@ from anlffr.preproc import peak_finder
 # Adding Files and locations
 froot = 'D:/DATA/ABR/'
 
-subjlist = ['S028', ]
+subjlist = ['S050', ]
 
 
 def find_wave(t, y, whichwave='I'):
