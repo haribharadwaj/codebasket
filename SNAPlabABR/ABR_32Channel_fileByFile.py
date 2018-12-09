@@ -14,11 +14,10 @@ subjlist = ['S107', ]
 
 conds = [[3, 9], [5, 10], [6, 12]]
 for subj in subjlist:
-
+    print 'Running Subject', subj
     for cond in conds:
+        print 'Doing condition ', cond
         fpath = froot + '/' + subj + '/'
-
-        print 'Running Subject', subj
         bdfs = fnmatch.filter(os.listdir(fpath), subj + '_ABR*.bdf')
 
         if len(bdfs) >= 1:
@@ -42,7 +41,6 @@ for subj in subjlist:
                 # Epoch the data
                 tmin, tmax = -0.01, 0.015
                 bmin, bmax = tmin, 0.001
-                print 'Doing condition ', cond
                 epochs = mne.Epochs(raw, eves, cond, tmin=tmin, proj=False,
                                     tmax=tmax, baseline=(bmin, bmax),
                                     picks=np.arange(36),
