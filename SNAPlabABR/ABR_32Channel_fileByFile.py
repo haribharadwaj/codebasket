@@ -27,14 +27,18 @@ def bayesave(x, trialdim=0, timedim=1, method='mean', smoothtrials=19):
 # Adding Files and locations
 froot = 'D:/DATA/ABR/'
 
+# Done!
+# subjlist = ['S057', 'S064', 'S084', 'S078', 'S024', 'S026', 'S028', 'S011',
+#            'S025', 'S027', 'S034', 'S037', 'S039', 'S046', 'S043', 'S049',
+#            'S052', 'S053', 'S153', 'S150', 'S107', 'S050', 'S114',
+#            'S077', 'S059']
 
-subjlist = ['S057', 'S064', 'S084', 'S078', 'S024', 'S026', 'S028', 'S011',
-            'S025', 'S027', 'S034', 'S037', 'S039', 'S046', 'S043', 'S049',
-            'S052', 'S053', 'S072', 'S153', 'S150', 'S107', 'S050', 'S114',
-            'S077', 'S059', 'S040']
+subjlist = ['S073', 'S074', 'S083', 'S155', 'S158', 'S160', 'S162', 'S159',
+            'S061', 'S157', 'S166', 'S108', 'S052', 'S046', 'S088', 'S130',
+            'S069', 'S147', 'S076', 'S075', 'S125', 'S091', 'S051', 'S042',
+            'SM', 'S115', 'S134', 'S068', 'S148']
 
-# Missing: 'S147', 'S076', 'S075', 'S125', 'S091', 'S051', 'S042', 'SM', 'S115'
-# 'S148_R',
+# Redo S040 -- has both High-pass and regular clicks
 
 # One big file..grr: 'S111', 'S072'
 
@@ -78,12 +82,12 @@ for subj in subjlist:
                                          'A3', 'A11', 'A15', 'A16', 'A17',
                                          'A10', 'A21', 'A20', 'A25']
                     # Filter the data
-                    raw.filter(l_freq=130., h_freq=2000, picks=np.arange(36))
+                    raw.filter(l_freq=130., h_freq=3000, picks=np.arange(36))
 
                     # Epoch the data
                     tmin, tmax = -0.002, 0.015
                     bmin, bmax = -0.001, 0.001
-                    rejthresh = 20e-6  # Because of high-pass
+                    rejthresh = 50e-6  # Because of high-pass but using median
                     epochs = mne.Epochs(raw, eves, cond, tmin=tmin, proj=False,
                                         tmax=tmax, baseline=(bmin, bmax),
                                         picks=np.arange(36),
@@ -111,7 +115,7 @@ for subj in subjlist:
                 refchan = 35
 
             y = x[goods, :, :].mean(axis=0) - x[refchan, :, :]
-            z = bayesave(y) * 1e6  # microV
+            z = np.median(y, axis=0) * 1e6  # microV
 
             # Make dictionary and save
             mdict = dict(t=t, x=z)
