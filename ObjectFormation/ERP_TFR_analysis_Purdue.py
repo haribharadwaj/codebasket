@@ -15,15 +15,11 @@ froot = '/home/hari/Data/ObjectFormation/'
 
 # subjlist = ['095801', '096603']  # Need to use mask for trigger channel
 # subjlist = ['054401', ]  # This crashed when finding blinks...
-# subjlist = ['035201', '038301', '038302', '039001', '042201', '092002',
-#             '096301', '096302']
-
-# subjlist = ['053001', '030801', '032901', '032902', '013703', '014002',
-#             '063101', '075401', '010401', '011302']
-# subjlist = ['096901', ]
-# subjlist = ['096902', '097201', '097301', '097601', '097701',
-#             '098001', '098002', '098101', '098501']
-subjlist = ['010401', ]
+subjlist = ['035201', '038301', '038302', '039001', '042201', '092002',
+            '096301', '096302', '053001', '030801', '032901', '032902',
+            '013703', '014002', '063101', '075401', '010401', '011302',
+            '096901', '096902', '097201', '097301', '097601', '097701',
+            '098001', '098002', '098101', '098501', '010401']
 
 para = 'object'
 epochs = []
@@ -41,6 +37,8 @@ for subj in subjlist:
     fpath += visit + '/'
     # These are so that the generated files are organized better
     respath = fpath + 'RES/'
+    if (not os.path.isdir(respath)):
+            os.mkdir(respath)
     if sss:
         ssstag = '_sss'
     else:
@@ -92,8 +90,14 @@ for subj in subjlist:
         raw.add_proj(blink_projs)
 
     # SSP for cardiac artifact
-    qrs = find_blinks(raw, ch_name=['MEG1421', ], h_freq=100.0, event_id=999,
-                      thresh=1e-12, l_trans_bandwidth='auto')
+    if ('ECG063' in raw.ch_names) and ekg:
+        qrschan = 'ECG063'
+        thresh = 20e-6
+    else:
+        qrschan = 'MEG1711'
+        thresh = 1e-12
+    qrs = find_blinks(raw, ch_name=[qrschan, ], h_freq=100.0, event_id=999,
+                      thresh=thresh, l_trans_bandwidth='auto')
     qrsname = fpath + subj + '_' + para + '_qrs_erp' + ssstag + '-eve.fif'
     mne.write_events(qrsname, qrs)
     epochs_qrs = mne.Epochs(raw, qrs, 999, tmin=-0.1,
@@ -140,8 +144,8 @@ for subj in subjlist:
             epochs.save(respath + fname_epochs)
 
     # Now save overall onset N100
-    epochs = mne.Epochs(raw, eves, condlists, tmin=-0.4, proj=True,
-                        tmax=1.0, baseline=(-0.2, 0.0), name='onset',
+    epochs = mne.Epochs(raw, eves, event_id=condlists, tmin=-0.4,
+                        proj=True, tmax=1.0, baseline=(-0.2, 0.0),
                         reject=dict(grad=5000e-13, mag=5e-12))
     evokeds += [epochs.average(), ]
     if saveEpochs:

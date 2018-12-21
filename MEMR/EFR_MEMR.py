@@ -9,14 +9,14 @@ import pylab as pl
 
 # Adding Files and locations
 # froot = '/home/hari/Documents/PythonCodes/MEMR/'
-froot = '/autofs/cluster/transcend/hari/MEMR/'
-
+# froot = '/autofs/cluster/transcend/hari/MEMR/'
+froot = '/home/hari/Data/MEMR/'
 
 # subjlist = ['I52', 'I54', 'I13', 'I14', 'I56', 'I53', 'I55', 'I41', 'I56',
-#            'I51', 'I03']
-subjlist = ['I08', 'I33']
+#            'I51', 'I03', 'I08', 'I33']
+subjlist = ['I61', ]
 earlist = ['left', 'right']
-
+cond = 2  # 1 is standard.. done for most subjects
 overwriteOld = True
 for subj in subjlist:
     for ear in earlist:
@@ -25,8 +25,10 @@ for subj in subjlist:
         # These are so that the generated files are organized better
         respath = fpath + 'RES/'
 
-        cond = 1
-        condstem = '_223Hz_EFR'
+        if cond == 1:
+            condstem = '_223Hz_EFR'
+        else:
+            condstem = '_223Hz_EFR_newmod'
         print 'Running Subject', subj, 'Condition', cond
 
         save_raw_name = subj + '_' + ear + condstem + '_alltrial.mat'

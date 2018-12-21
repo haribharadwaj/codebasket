@@ -6,17 +6,19 @@ import fnmatch
 import pylab as pl
 
 # Adding Files and locations
-froot = '/cluster/transcend/hari/MEMR/'
+# froot = '/cluster/transcend/hari/MEMR/'
+froot = '/home/hari/Data/MEMR/'
 # froot = '/Users/Hari/Documents/Data/MEMR/ABR/'
 # froot = '/home/hari/Documents/PythonCodes/MEMR'
 
-subjlist = ['I08', ]
-ear = 'left'
+subjlist = ['I61', ]
+ear = 'right'
 MLR = False
 if MLR:
     conds = [[3, 6]]
 else:
-    conds = [[2, 5], [3, 6]]
+    # conds = [[2, 5], [3, 6]]
+    conds = [[3, 6]]
 
 for subj in subjlist:
 
@@ -87,6 +89,7 @@ ax = pl.gca()
 ax.tick_params(labelsize=16)
 if not MLR:
     # pl.legend(('Condensation', 'Rarefaction'), loc='best')
-    pl.legend(('80 dB peSPL', '100 dB peSPL'), loc='best')
+    # pl.legend(('80 dB peSPL', '100 dB peSPL'), loc='best')
+    pl.legend(('100 dB peSPL', ), loc='best')
 pl.show()
 mne.write_evokeds(fpath + subj + '_' + ear + '_strict-ave.fif', abrs)
