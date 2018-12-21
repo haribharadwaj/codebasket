@@ -15,12 +15,18 @@ froot = '/home/hari/Data/ObjectFormation/'
 
 # subjlist = ['095801', '096603']  # Need to use mask for trigger channel
 # subjlist = ['054401', ]  # This crashed when finding blinks...
-subjlist = ['035201', '038301', '038302', '039001', '042201', '092002',
-            '096301', '096302', '053001', '030801', '032901', '032902',
-            '013703', '014002', '063101', '075401', '010401', '011302',
-            '096901', '096902', '097201', '097301', '097601', '097701',
-            '098001', '098002', '098101', '098501', '010401']
 
+# Done
+# subjlist = ['035201', '038301', '038302', '039001', '042201', '092002',
+#            '096301', '096302', '053001', '030801', '032901', '032902',
+#            '013703', '014002', '063101', '075401', '011302', '010401',
+#            '096901', '096902', '097201', '097301', '097601', '097701',
+#            '098001', '098002', '098101', '098501']
+
+subjlist = ['011201', '011202', '011302', '048102', '052402', '052901',
+            '052902', '082601', '082802', '082901', '085701', '086901',
+            '087401', '089401', '089402', '092301', '093101', '093302',
+            '093901', '097901']
 para = 'object'
 epochs = []
 sss = True
@@ -33,8 +39,10 @@ saveAve = True
 for subj in subjlist:
 
     fpath = froot + subj + '/'
-    visit = fnmatch.filter(os.listdir(fpath), '?')[0]
-    fpath += visit + '/'
+    visits = fnmatch.filter(os.listdir(fpath), '?')
+    if len(visits) > 0:
+        visit = visits[0]
+        fpath += visit + '/'
     # These are so that the generated files are organized better
     respath = fpath + 'RES/'
     if (not os.path.isdir(respath)):
