@@ -27,14 +27,21 @@ asdlist = ['010401', '030801', '035201', '053001', '063101', '075401',
            '095801', '097201', '097301', '097601', '097701', '098001',
            '098002', '098101', '098501']
 
+tdage = [16, 15, 15, 15, 16, 14, 11, 12, 10, 15, 17, 10, 10, 9, 11, 7, 17,
+         15, 16, 9, 17, 17, 8, 10, 15, 12]
+
+asdage = [16, 17, 12, 12, 15, 12, 10, 15, 17, 17, 14, 10, 7, 16, 12, 15, 16,
+          12, 12, 13, 16]
+
 
 subjlist = tdlist + asdlist
+age = tdage + asdage
 
 nsubjs = len(subjlist)
 coh07summary = np.zeros((nsubjs, 1401))
 coh14summary = np.zeros((nsubjs, 1401))
 coh20summary = np.zeros((nsubjs, 1401))
-
+normfacs = np.zeros(nsubjs)
 ncomps = 3
 combinecomps = True
 
@@ -71,6 +78,7 @@ for k, subj in enumerate(subjlist):
     else:
         normfac = np.max(np.abs(y[:, 0]))
 
+    normfacs[k] = normfac
     t = ref.times
     coh07 = pca.transform(evokeds[0].data.T)
     coh14 = pca.transform(evokeds[1].data.T)
