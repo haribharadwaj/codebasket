@@ -31,16 +31,18 @@ froot = 'D:/DATA/ABR/'
 # subjlist = ['S057', 'S064', 'S084', 'S078', 'S024', 'S026', 'S028', 'S011',
 #            'S025', 'S027', 'S034', 'S037', 'S039', 'S046', 'S043', 'S049',
 #            'S052', 'S053', 'S153', 'S150', 'S107', 'S050', 'S114',
-#            'S077', 'S059']
+#            'S077', 'S059', 'S073', 'S074', 'S083', 'S155', 'S158', 'S160',
+#            'S162', 'S159', 'S061', 'S157', 'S166', 'S108', 'S052', 'S046',
+#            'S088', 'S130', 'S069', 'S147', 'S076', 'S075', 'S125', 'S091',
+#            'S051', 'S042', 'SM', 'S115', 'S134', 'S068', 'S148']
 
-subjlist = ['S073', 'S074', 'S083', 'S155', 'S158', 'S160', 'S162', 'S159',
-            'S061', 'S157', 'S166', 'S108', 'S052', 'S046', 'S088', 'S130',
-            'S069', 'S147', 'S076', 'S075', 'S125', 'S091', 'S051', 'S042',
-            'SM', 'S115', 'S134', 'S068', 'S148']
+subjlist = ['S040', ]
 
 # Redo S040 -- has both High-pass and regular clicks
 
-# One big file..grr: 'S111', 'S072'
+# S162_R, S157_R, S088_R, S075_R, S068_R needs to be done separately
+
+# One big file..grr.. ignore for now: 'S111', 'S072'
 
 earlist = ['L', 'R']
 
@@ -55,16 +57,16 @@ for subj in subjlist:
         #        names = ['_R_soft', '_R_moderate', '_R_loud']
         if ear == 'L':
             conds = [[6, 12], ]
-            names = ['_L_loud', ]
+            names = ['_L_BB_loud', ]
         else:
             conds = [[96, 192], ]
-            names = ['_R_loud']
+            names = ['_R_BB_loud']
         print 'Running Subject', subj, ear, 'ear'
         for ind, cond in enumerate(conds):
             name = names[ind]
             print 'Doing condition ', cond
             fpath = froot + '/' + subj + '/'
-            bdfs = fnmatch.filter(os.listdir(fpath), subj + '_ABR*.bdf')
+            bdfs = fnmatch.filter(os.listdir(fpath), subj + '_ABR+*.bdf')
 
             if len(bdfs) >= 1:
                 for k, bdf in enumerate(bdfs):
