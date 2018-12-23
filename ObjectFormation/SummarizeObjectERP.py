@@ -10,6 +10,7 @@ import mne
 import pylab as pl
 from sklearn.decomposition import PCA
 from scipy.signal import savgol_filter as sg
+from scipy import io
 
 
 def mad(data, axis=None):
@@ -42,9 +43,11 @@ coh07summary = np.zeros((nsubjs, 1401))
 coh14summary = np.zeros((nsubjs, 1401))
 coh20summary = np.zeros((nsubjs, 1401))
 normfacs = np.zeros(nsubjs)
-ncomps = 3
+varexps = np.zeros(nsubjs)
+ncomps = 4
 combinecomps = True
-
+saveRes = True
+zscore = True
 for k, subj in enumerate(subjlist):
     print 'Loading subject', subj
     fname = './' + subj + '_sss_object_collapse-ave.fif'
@@ -58,7 +61,15 @@ for k, subj in enumerate(subjlist):
         evokeds[1].decimate(decim)
         evokeds[2].decimate(decim)
 
-    start, stop = ref.time_as_index([-0.1, 0.5])
+    if zscore:
+        bstart, bstop = ref.time_as_index([-0.25, 0.])
+        bmean = ref.data[:, bstart:bstop].mean(axis=1)
+        bstd = ref.data[:, bstart:bstop].std(axis=1)
+        ref.data = (ref.data.T - bmean).T
+        ref.data = (ref.data.T / bstd).T
+
+    start, stop = ref.time_as_index([-0.4, 1.0])
+
     x = ref.data[:, start:stop]
     tref = ref.times[start:stop]
     pca = PCA(n_components=ncomps)
@@ -72,6 +83,7 @@ for k, subj in enumerate(subjlist):
 
     if varexp < 0.6:
         print 'Warning! Variance Explained is less than 60% !'
+    varexps[k] = varexp
 
     if combinecomps:
         normfac = np.max((y ** 2.).sum(axis=1)) ** 0.5
@@ -80,12 +92,36 @@ for k, subj in enumerate(subjlist):
 
     normfacs[k] = normfac
     t = ref.times
-    coh07 = pca.transform(evokeds[0].data.T)
-    coh14 = pca.transform(evokeds[1].data.T)
-    coh20 = pca.transform(evokeds[2].data.T)
+
+    if zscore:
+        x0 = evokeds[0]
+        bstart, bstop = x0.time_as_index([-0.25, 0.])
+        bmean = x0.data[:, bstart:bstop].mean(axis=1)
+        bstd = x0.data[:, bstart:bstop].std(axis=1)
+        x0.data = (x0.data.T - bmean).T
+        x0.data = (x0.data.T / bstd).T
+        coh07 = pca.transform(x0.data.T)
+        x1 = evokeds[1]
+        bstart, bstop = x1.time_as_index([-0.25, 0.])
+        bmean = x1.data[:, bstart:bstop].mean(axis=1)
+        bstd = x1.data[:, bstart:bstop].std(axis=1)
+        x1.data = (x1.data.T - bmean).T
+        x1.data = (x1.data.T / bstd).T
+        coh14 = pca.transform(x1.data.T)
+        x2 = evokeds[2]
+        bstart, bstop = x2.time_as_index([-0.25, 0.])
+        bmean = x2.data[:, bstart:bstop].mean(axis=1)
+        bstd = x2.data[:, bstart:bstop].std(axis=1)
+        x2.data = (x2.data.T - bmean).T
+        x2.data = (x2.data.T / bstd).T
+        coh20 = pca.transform(x2.data.T)
+    else:
+        coh07 = pca.transform(evokeds[0].data.T)
+        coh14 = pca.transform(evokeds[1].data.T)
+        coh20 = pca.transform(evokeds[2].data.T)
 
     if combinecomps:
-        filtlen = 15
+        filtlen = 31
         filtord = 2
         coh07summary[k, :] = sg((coh07 ** 2.).sum(axis=1) ** 0.5 / normfac,
                                 filtlen, filtord)
@@ -97,6 +133,23 @@ for k, subj in enumerate(subjlist):
         coh07summary[k, :] = coh07[:, 0] / normfac
         coh14summary[k, :] = coh14[:, 0] / normfac
         coh20summary[k, :] = coh20[:, 0] / normfac
+
+# Z-score results once again
+bmean = coh07summary[:, t < 0].mean(axis=1)
+bstd = coh07summary[:, t < 0].std(axis=1)
+coh07summary = (coh07summary.T - bmean).T
+coh07summary = (coh07summary.T / bstd).T
+
+bmean = coh14summary[:, t < 0].mean(axis=1)
+bstd = coh14summary[:, t < 0].std(axis=1)
+coh14summary = (coh14summary.T - bmean).T
+coh14summary = (coh14summary.T / bstd).T
+
+bmean = coh20summary[:, t < 0].mean(axis=1)
+bstd = coh20summary[:, t < 0].std(axis=1)
+coh20summary = (coh20summary.T - bmean).T
+coh20summary = (coh20summary.T / bstd).T
+
 
 m7 = coh07summary.mean(axis=0)
 e7 = coh07summary.std(axis=0) / (nsubjs ** 0.5)
@@ -119,4 +172,26 @@ pl.ylabel('Evoked Response (normalized)', fontsize=16)
 pl.xlim((-0.15, 1.0))
 ax = pl.gca()
 ax.tick_params(labelsize=14)
+pl.show()
+
+if saveRes:
+    mdict = dict(c7=coh07summary, c14=coh14summary, c20=coh20summary, t=t,
+                 subjlist=subjlist, ntd=26, nasd=21, age=age,
+                 normfacs=normfacs, varexps=varexps)
+    io.savemat('ERPsummary_zscore.mat', mdict)
+
+# Plot individual groups
+pl.figure()
+pl.subplot(311)
+pl.plot(t, np.median(coh07summary[:26, ], axis=0))
+pl.plot(t, np.median(coh07summary[26:, ], axis=0))
+pl.ylim((-1, 8))
+pl.subplot(312)
+pl.plot(t, np.median(coh14summary[:26, ], axis=0))
+pl.plot(t, np.median(coh14summary[26:, ], axis=0))
+pl.ylim((-1, 8))
+pl.subplot(313)
+pl.plot(t, np.median(coh20summary[:26, ], axis=0))
+pl.plot(t, np.median(coh20summary[26:, ], axis=0))
+pl.ylim((-1, 8))
 pl.show()
