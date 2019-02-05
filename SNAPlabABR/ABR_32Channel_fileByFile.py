@@ -34,15 +34,18 @@ froot = 'D:/DATA/ABR/'
 #            'S077', 'S059', 'S073', 'S074', 'S083', 'S155', 'S158', 'S160',
 #            'S162', 'S159', 'S061', 'S157', 'S166', 'S108', 'S052', 'S046',
 #            'S088', 'S130', 'S069', 'S147', 'S076', 'S075', 'S125', 'S091',
-#            'S051', 'S042', 'SM', 'S115', 'S134', 'S068', 'S148']
+#            'S051', 'S042', 'SM', 'S115', 'S134', 'S068', 'S148', 'S152',
+#            'S165', 'S172', 'S179', 'S177', 'S163', 'S060','S019', 'S020',
+#            'S077', 'S032', 'S072']
 
-subjlist = ['S040', ]
-
-# Redo S040 -- has both High-pass and regular clicks
+# Redo S040 -- has both High-pass and regular clicks, also S034
 
 # S162_R, S157_R, S088_R, S075_R, S068_R needs to be done separately
 
-# One big file..grr.. ignore for now: 'S111', 'S072'
+# One big file..grr.. ignore for now: 'S111', 'S072', 'S032'
+
+# New subjects
+subjlist = ['S111', ]
 
 earlist = ['L', 'R']
 
@@ -57,16 +60,16 @@ for subj in subjlist:
         #        names = ['_R_soft', '_R_moderate', '_R_loud']
         if ear == 'L':
             conds = [[6, 12], ]
-            names = ['_L_BB_loud', ]
+            names = ['_L_loud', ]
         else:
             conds = [[96, 192], ]
-            names = ['_R_BB_loud']
+            names = ['_R_loud']
         print 'Running Subject', subj, ear, 'ear'
         for ind, cond in enumerate(conds):
             name = names[ind]
             print 'Doing condition ', cond
             fpath = froot + '/' + subj + '/'
-            bdfs = fnmatch.filter(os.listdir(fpath), subj + '_ABR+*.bdf')
+            bdfs = fnmatch.filter(os.listdir(fpath), subj + '_ABR*.bdf')
 
             if len(bdfs) >= 1:
                 for k, bdf in enumerate(bdfs):
