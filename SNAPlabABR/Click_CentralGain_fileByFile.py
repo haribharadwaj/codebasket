@@ -29,28 +29,29 @@ def bayesave(x, trialdim=0, timedim=1, method='mean', smoothtrials=19):
 # Adding Files and locations
 froot = 'D:/DATA/ABR/'
 
-# Done!
-# subjlist = ['SM', ]
 
-subjlist = ['S111', 'S160', 'S155', 'S061', 'S046', 'S166', 'S108', 'S159',
-            'S107', 'S115', 'S073', 'S074', 'S091', 'SM']
+subjlist = ['S072', 'S032', 'S077', 'S177', 'S179', 'S172', 'S165', 'S152',
+            'S060', 'S147', 'S091', 'S076', 'S051', 'S125', 'S083', 'S153',
+            'S150', 'S158', 'S160', 'S159', 'S061', 'S111', 'S160', 'S155',
+            'S061', 'S046', 'S166', 'S108', 'S159', 'S107', 'S115', 'S073',
+            'S074', 'S091', 'SM']
 
 earlist = ['L', 'R']
 
 for subj in subjlist:
     for ear in earlist:
-        #    if ear == 'L':
-        #        conds = [[3, 9], [5, 10], [6, 12]]
-        #        names = ['_L_soft', '_L_moderate', '_L_loud']
-        #    else:
-        #        conds = [[48, 144], [80, 160], [96, 192]]
-        #        names = ['_R_soft', '_R_moderate', '_R_loud']
         if ear == 'L':
-            conds = [[6, 12], ]
-            names = ['_L_loud', ]
+            conds = [[3, 9], [5, 10]]
+            names = ['_L_soft', '_L_moderate']
         else:
-            conds = [[96, 192], ]
-            names = ['_R_loud']
+            conds = [[48, 144], [80, 160]]
+            names = ['_R_soft', '_R_moderate']
+        #        if ear == 'L':
+        #            conds = [[6, 12], ]
+        #            names = ['_L_loud', ]
+        #        else:
+        #            conds = [[96, 192], ]
+        #            names = ['_R_loud']
         print 'Running Subject', subj, ear, 'ear'
         for ind, cond in enumerate(conds):
             name = names[ind]
@@ -110,13 +111,15 @@ for subj in subjlist:
 
             y = x[goods, :, :].mean(axis=0) - x[refchan, :, :]
 
-            params = dict(Fs=raw.info['sfreq'], tapers=[4, 9],
+            params = dict(Fs=raw.info['sfreq'], tapers=[4, 7],
                           fpass=[1, 4000], itc=0)
             plv, f = mtplv(y, params)
             ph, f_ph = mtphase(y, params)
 
+            tdresp = np.median(y, axis=0) * 1.0e6  # Just time domain average
+
             # Make dictionary and save
-            mdict = dict(t=t, x=y, f=f, f_ph=f_ph, ph=ph, plv=plv)
+            mdict = dict(t=t, x=tdresp, f=f, f_ph=f_ph, ph=ph, plv=plv)
             savepath = froot + '/CentralGainResults/'
             savename = subj + name + '_CentralGain.mat'
             savemat(savepath + savename, mdict)
