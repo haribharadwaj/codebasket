@@ -26,33 +26,24 @@ def bayesave(x, trialdim=0, timedim=1, method='mean', smoothtrials=19):
     return ave
 
 
+# NOTE: THIS IS EARPLUG DATA CODE.. NOT REGULAR CENTRAL GAIN CODE!!!!
 # Adding Files and locations
-froot = 'D:/DATA/ABR/'
+froot = 'D:/DATA/ABR/Earplug/'
 
-# Done: ['S072', 'S032', 'S077', 'S177', 'S179', 'S172', 'S165', 'S152',
-#        'S060', 'S147', 'S091', 'S076', 'S051', 'S125', 'S083', 'S153',
-#            'S150', 'S158', 'S160', 'S159', 'S061', 'S111', 'S160', 'S155',
-#            'S061', 'S046', 'S166', 'S108', 'S159', 'S107', 'S115', 'S073',
-#            'S074', 'S091', 'SM', 'S049', 'S025', 'S011', 'S037', 'S039', 
-#            'S043', 'S052', 'S046', 'S050', 'S053''S012', 'S018', 'S017', 
-#             'S019', 'S001', 'S020', 'S024', 'S026', 'S028', 'S027''S148',
-#            'S034', 'S042', 'S057', 'S064', 
-#             'S134', 'S130', 'S114', 'S086', 'S084', 'S078''S075', 
-#           'S069', 'S157', 'S031', 'S163',  'S215', 'S068', 'S088']
-subjlist = ['S217', 'S213']
-
-# Crashed: ['S059', 'S040',]
+# NOTE: THIS IS EARPLUG DATA CODE.. NOT REGULAR CENTRAL GAIN CODE!!!!
+subjlist = ['S001E1', 'S001E2']
+# NOTE: THIS IS EARPLUG DATA CODE.. NOT REGULAR CENTRAL GAIN CODE!!!!
 
 earlist = ['L', 'R']
 
 for subj in subjlist:
     for ear in earlist:
         if ear == 'L':
-            conds = [[3, 9], [5, 10], [6, 12]]
-            names = ['_L_soft', '_L_moderate', '_L_loud']
+            conds = [[6, 10], [9, 12]]
+            names = ['_L_moderate', '_L_loud']
         else:
-            conds = [[48, 144], [80, 160], [96, 192]]
-            names = ['_R_soft', '_R_moderate', '_R_loud']
+            conds = [[96, 160], [144, 192]]
+            names = ['_R_moderate', '_R_loud']
 
         print 'Running Subject', subj, ear, 'ear'
         for ind, cond in enumerate(conds):

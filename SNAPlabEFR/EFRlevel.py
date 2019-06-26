@@ -10,7 +10,7 @@ import pylab as pl
 # Adding Files and locations
 froot = 'D:/DATA/EFRlevel/'
 
-subjlist = ['S137', ]
+subjlist = ['S168', 'S170', 'S171', 'S186']
 
 condlist = [[1, 5], [2, 6], [3, 7], [4, 8], 1, 2, 3, 4]
 condnames = ['55dB', '65dB', '75dB', '85dB', '55dBpos', '65dBpos',
@@ -42,11 +42,8 @@ for subj in subjlist:
             for k, edfname in enumerate(bdfs):
                 # Load data and read event channel
                 (raw, eves) = bs.importbdf(fpath + edfname, nchans=34,
-                                           refchans=['EXG1', 'EXG2'],
-                                           mask=None)
+                                           refchans=['EXG1', 'EXG2'])
 
-                eves[:, 1] = np.mod(eves[:, 1], 256)
-                eves[:, 2] = np.mod(eves[:, 2], 256)
                 # raw.set_channel_types({'EXG3': 'eeg', 'EXG4': 'eeg'})
                 raw.info['bads'] += ['A1', 'A2', 'A30', 'A7', 'A6', 'A24',
                                      'A28', 'A29', 'A3', 'A11', 'A15', 'A16',
@@ -114,7 +111,7 @@ for subj in subjlist:
         if not os.path.isfile(respath + save_raw_name):
             io.savemat(respath + save_raw_name, dict(x=x, subj=subj))
 
-        plotStuff = True
+        plotStuff = False
         if plotStuff:
             pl.figure()
             pl.plot(f, plv.T, linewidth=2)

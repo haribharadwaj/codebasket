@@ -8,7 +8,9 @@ import pylab as pl
 # Adding Files and locations
 froot = 'D:/DATA/ABR/'
 
-subjlist = ['S050', ]
+# Done: S049, 
+# Crashed: S040,
+subjlist = ['S052','S046','S050','S053','S088','S069']
 
 conds = [[3, 9], [5, 10], [6, 12], [48, 144], [80, 160], [96, 192]]
 

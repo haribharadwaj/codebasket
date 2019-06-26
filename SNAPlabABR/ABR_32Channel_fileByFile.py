@@ -36,7 +36,9 @@ froot = 'D:/DATA/ABR/'
 #            'S088', 'S130', 'S069', 'S147', 'S076', 'S075', 'S125', 'S091',
 #            'S051', 'S042', 'SM', 'S115', 'S134', 'S068', 'S148', 'S152',
 #            'S165', 'S172', 'S179', 'S177', 'S163', 'S060','S019', 'S020',
-#            'S077', 'S032', 'S072']
+#            'S077', 'S032', 'S072'.  MAYBE THE REST CHECK WHEN YOU HAVE ACCESS
+#              'S150', 'S107', 'S050', 'S114', 'S077', 
+#           'S059', 'S073', 'S074', 'S083', 'S155', 'S158']
 
 # Redo S040 -- has both High-pass and regular clicks, also S034
 
@@ -45,25 +47,26 @@ froot = 'D:/DATA/ABR/'
 # One big file..grr.. ignore for now: 'S111', 'S072', 'S032'
 
 # New subjects
-subjlist = ['S111', ]
+# S153 failed
+subjlist = ['S068', 'S088', 'S215', 'S217', 'S213']
 
 earlist = ['L', 'R']
 
 
 for subj in subjlist:
     for ear in earlist:
-        #    if ear == 'L':
-        #        conds = [[3, 9], [5, 10], [6, 12]]
-        #        names = ['_L_soft', '_L_moderate', '_L_loud']
-        #    else:
-        #        conds = [[48, 144], [80, 160], [96, 192]]
-        #        names = ['_R_soft', '_R_moderate', '_R_loud']
         if ear == 'L':
-            conds = [[6, 12], ]
-            names = ['_L_loud', ]
+            conds = [[3, 9], [5, 10]]
+            names = ['_L_soft', '_L_moderate']
         else:
-            conds = [[96, 192], ]
-            names = ['_R_loud']
+            conds = [[48, 144], [80, 160]]
+            names = ['_R_soft', '_R_moderate']
+        #        if ear == 'L':
+        #            conds = [[6, 12], ]
+        #            names = ['_L_loud', ]
+        #        else:
+        #            conds = [[96, 192], ]
+        #            names = ['_R_loud']
         print 'Running Subject', subj, ear, 'ear'
         for ind, cond in enumerate(conds):
             name = names[ind]
