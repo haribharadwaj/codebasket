@@ -6,18 +6,20 @@ import os
 import fnmatch
 from mne.time_frequency import tfr_multitaper
 import numpy as np
+import pylab as pl
 
 # Adding Files and locations
-froot = 'D:/DATA/Inhibition/'
+froot = '/home/hari/Data/Inhibition/'
 
 subjlist = ['S160', ]
 
 condlist = [[1, 5], [2, 6], [3, 7], [4, 8]]
 condnames = ['nopre', 'same', 'low', 'high']
-overwriteOld = True
+doITC = True
 for subj in subjlist:
     evokeds = []
     itcs = []
+    powers = []
     # Load data and read event channel
     fpath = froot + subj + '/'
     bdfs = fnmatch.filter(os.listdir(fpath), subj +
@@ -29,7 +31,7 @@ for subj in subjlist:
     evelist = []
     for k, rawname in enumerate(bdfs):
         rawtemp, evestemp = bs.importbdf(fpath + rawname, verbose='DEBUG',
-                                         refchans=None)
+                                         refchans=None, exclude=[])
         rawlist += [rawtemp, ]
         evelist += [evestemp, ]
     raw, eves = mne.concatenate_raws(rawlist, events_list=evelist)
@@ -60,20 +62,54 @@ for subj in subjlist:
 
         condname = condnames[c]
         # Epoching events of type
+        tmin = -0.9
         epochs = mne.Epochs(
-            raw, eves, cond, tmin=-0.3, proj=True,
-            tmax=1.8, baseline=(-0.3, 0.0),
-            reject=dict(eeg=200e-6))  # 200 regular, 50 strict
+            raw, eves, cond, tmin=tmin, proj=True,
+            tmax=1.8, baseline=(-0.5, 0.0),
+            reject=dict(eeg=100e-6))
         evoked = epochs.average()
         evokeds += [evoked, ]
-        freqs = np.arange(2., 80., 1.)
-        n_cycles = freqs * 0.2
-        power, itc = tfr_multitaper(epochs, freqs, n_cycles,
-                                    time_bandwidth=2.0, n_jobs=-1)
-        itc.apply_baseline(baseline=(-0.3, 0))
-        itcs += [itc, ]
+
+        if doITC:
+            # Compute evoked response using ITC
+            freqs = np.arange(1., 30., 1.)
+            n_cycles = freqs * 0.2
+            picks = [30, 31]
+            power, itc = tfr_multitaper(epochs, freqs, n_cycles, picks=picks,
+                                        time_bandwidth=2.0, n_jobs=-1)
+            itc.apply_baseline(baseline=(-0.7, 0))
+            power.apply_baseline(baseline=(-0.7, 0), mode='logratio')
+            itcs += [itc, ]
+            powers += [power, ]
 
     resname = fpath + subj + '_inh-ave.fif'
     mne.write_evokeds(resname, evokeds)
-    resnameitc = fpath + subj + '_inh_itc-tfr.h5'
-    mne.time_frequency.write_tfrs(resnameitc, itcs)
+
+    if doITC:
+        resnameitc = fpath + subj + '_inh_itc-tfr.h5'
+        mne.time_frequency.write_tfrs(resnameitc, itcs, overwrite=True)
+        resnamepow = fpath + subj + '_inh_pow-tfr.h5'
+        mne.time_frequency.write_tfrs(resnamepow, powers, overwrite=True)
+
+    # Plot single channel evoked responses for all conditions
+    t = evoked.times
+    x = np.zeros((t.shape[0], len(condnames)))
+    ch = 31
+    for k in range(len(condnames)):
+        x[:, k] = evokeds[k].data[ch, :] * 1.0e6
+    pl.plot(t, x)
+    pl.xlabel('Time (s)')
+    pl.ylabel('Evoked Response (uV)')
+    pl.legend(condnames)
+
+    t = itc.times  # Just in case
+    fselect = freqs < 10.
+    y = np.zeros((t.shape[0], len(condnames)))
+    ch = 0
+    for k in range(len(condnames)):
+        y[:, k] = itcs[k].data[ch, fselect, :].squeeze().mean(axis=0)
+    pl.figure()
+    pl.plot(t, y)
+    pl.xlabel('Time (s)')
+    pl.ylabel('ITC (baseline subtracted)')
+    pl.legend(condnames)
