@@ -77,8 +77,8 @@ for subj in subjlist:
             picks = [30, 31]
             power, itc = tfr_multitaper(epochs, freqs, n_cycles, picks=picks,
                                         time_bandwidth=4.0, n_jobs=-1)
-            itc.apply_baseline(baseline=(-0.7, 0))
-            power.apply_baseline(baseline=(-0.7, 0), mode='logratio')
+            itc.apply_baseline(baseline=(-0.5, 0))
+            power.apply_baseline(baseline=(-0.5, 0), mode='logratio')
             itcs += [itc, ]
             powers += [power, ]
 
@@ -103,11 +103,11 @@ for subj in subjlist:
     pl.legend(condnames)
 
     t = itc.times  # Just in case
-    fselect = freqs < 10.
+    fselect = freqs < 20.
     y = np.zeros((t.shape[0], len(condnames)))
-    ch = 1
     for k in range(len(condnames)):
-        y[:, k] = itcs[k].data[ch, fselect, :].squeeze().mean(axis=0)
+        perChan = itcs[k].data[:, fselect, :].mean(axis=1)
+        y[:, k] = perChan.mean(axis=0) ** 2.
     pl.figure()
     pl.plot(t, y)
     pl.xlabel('Time (s)')
