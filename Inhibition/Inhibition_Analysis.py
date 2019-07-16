@@ -11,7 +11,7 @@ import pylab as pl
 # Adding Files and locations
 froot = '/home/hari/Data/Inhibition/'
 
-subjlist = ['S160', ]
+subjlist = ['S001', ]
 
 condlist = [[1, 5], [2, 6], [3, 7], [4, 8]]
 condnames = ['nopre', 'same', 'low', 'high']
@@ -29,9 +29,28 @@ for subj in subjlist:
     # Load data and read event channel
     rawlist = []
     evelist = []
+
+    if subj == 'S001':
+        exclude = [u'B1', u'B2', u'B3', u'B4', u'B5', u'B6', u'B7', u'B8',
+                   u'B9', u'B10', u'B11', u'B12', u'B13', u'B14', u'B15',
+                   u'B16', u'B17', u'B18', u'B19', u'B20', u'B21', u'B22',
+                   u'B23', u'B24', u'B25', u'B26', u'B27', u'B28', u'B29',
+                   u'B30', u'B31', u'B32', u'C1', u'C2', u'C3', u'C4', u'C5',
+                   u'C6', u'C7', u'C8', u'C9', u'C10', u'C11', u'C12', u'C13',
+                   u'C14', u'C15', u'C16', u'C17', u'C18', u'C19', u'C20',
+                   u'C21', u'C22', u'C23', u'C24', u'C25', u'C26', u'C27',
+                   u'C28', u'C29', u'C30', u'C31', u'C32', u'D1', u'D2',
+                   u'D3', u'D4', u'D5', u'D6', u'D7', u'D8', u'D9', u'D10',
+                   u'D11', u'D12', u'D13', u'D14', u'D15', u'D16', u'D17',
+                   u'D18', u'D19', u'D20', u'D21', u'D22', u'D23', u'D24',
+                   u'D25', u'D26', u'D27', u'D28', u'D29', u'D30', u'D31',
+                   u'D32']
+    else:
+        exclude = []
+
     for k, rawname in enumerate(bdfs):
         rawtemp, evestemp = bs.importbdf(fpath + rawname, verbose='DEBUG',
-                                         refchans=None, exclude=[])
+                                         refchans=None, exclude=exclude)
         rawlist += [rawtemp, ]
         evelist += [evestemp, ]
     raw, eves = mne.concatenate_raws(rawlist, events_list=evelist)
