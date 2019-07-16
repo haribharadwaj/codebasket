@@ -13,20 +13,21 @@ from mne.time_frequency import tfr_multitaper
 
 froot = '/home/hari/Data/ObjectFormation/'
 
-# subjlist = ['095801', '096603']  # Need to use mask for trigger channel
-# subjlist = ['054401', ]  # This crashed when finding blinks...
+
+
 # Data missing for '048102',
 # Done
 # subjlist = ['035201', '038301', '038302', '039001', '042201', '092002',
 #            '096301', '096302', '053001', '030801', '032901', '032902',
 #            '013703', '014002', '063101', '075401', '011302', '010401',
 #            '096901', '096902', '097201', '097301', '097601', '097701',
-#            '098001', '098002', '098101', '098501', '011201', '011202',]
+#            '098001', '098002', '098101', '098501', '011201', '011202',
+#            '052402', '052901',
+#            '052902', '082601', '082802', '082901', '085701', '086901',
+#            '087401', '089401', '089402', '092301', '093101', '093302',
+#            '093901', '095801', '096603']
 
-subjlist = ['052402', '052901',
-            '052902', '082601', '082802', '082901', '085701', '086901',
-            '087401', '089401', '089402', '092301', '093101', '093302',
-            '093901', '097901']
+subjlist = ['097901', '054401']  # SS failed.. so skipping
 para = 'object'
 epochs = []
 sss = True
@@ -68,11 +69,12 @@ for subj in subjlist:
         raws += [temp, ]
 
     raw = mne.concatenate_raws(raws)
-    eves = mne.find_events(raw, stim_channel='STI101', shortest_event=1)
+    eves = mne.find_events(raw, stim_channel='STI101', shortest_event=1,
+                           mask=255)
 
     if not sss:
         raw.info['bads'] += ['MEG1013', 'MEG1623', 'MEG2342', 'MEG2513',
-                             'MEG2542']
+                             'MEG2542', 'MEG1031', 'MEG1041', 'MEG2022']
     # Filter the data for ERPs
     raw.filter(l_freq=1.0, h_freq=90, picks=np.arange(0, 306, 1))
 
