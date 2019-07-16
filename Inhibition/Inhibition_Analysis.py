@@ -40,7 +40,7 @@ for subj in subjlist:
     raw.info['bads'] += []
 
     # Filter the data
-    raw.filter(l_freq=1.5, h_freq=90.)
+    raw.filter(l_freq=1.5, h_freq=40.)
 
     removeblinks = True
 
@@ -76,7 +76,7 @@ for subj in subjlist:
             n_cycles = freqs * 0.2
             picks = [30, 31]
             power, itc = tfr_multitaper(epochs, freqs, n_cycles, picks=picks,
-                                        time_bandwidth=2.0, n_jobs=-1)
+                                        time_bandwidth=4.0, n_jobs=-1)
             itc.apply_baseline(baseline=(-0.7, 0))
             power.apply_baseline(baseline=(-0.7, 0), mode='logratio')
             itcs += [itc, ]
@@ -105,7 +105,7 @@ for subj in subjlist:
     t = itc.times  # Just in case
     fselect = freqs < 10.
     y = np.zeros((t.shape[0], len(condnames)))
-    ch = 0
+    ch = 1
     for k in range(len(condnames)):
         y[:, k] = itcs[k].data[ch, fselect, :].squeeze().mean(axis=0)
     pl.figure()
