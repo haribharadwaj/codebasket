@@ -50,7 +50,8 @@ for subj in subjlist:
 
     for k, rawname in enumerate(bdfs):
         rawtemp, evestemp = bs.importbdf(fpath + rawname, verbose='DEBUG',
-                                         refchans=None, exclude=exclude)
+                                         refchans=['EXG1', 'EXG2'],
+                                         exclude=exclude)
         rawlist += [rawtemp, ]
         evelist += [evestemp, ]
     raw, eves = mne.concatenate_raws(rawlist, events_list=evelist)
@@ -113,7 +114,7 @@ for subj in subjlist:
     # Plot single channel evoked responses for all conditions
     t = evoked.times
     x = np.zeros((t.shape[0], len(condnames)))
-    ch = 31
+    ch = 30
     for k in range(len(condnames)):
         x[:, k] = evokeds[k].data[ch, :] * 1.0e6
     pl.plot(t, x)
@@ -122,7 +123,7 @@ for subj in subjlist:
     pl.legend(condnames)
 
     t = itc.times  # Just in case
-    fselect = freqs < 20.
+    fselect = freqs < 15.
     y = np.zeros((t.shape[0], len(condnames)))
     for k in range(len(condnames)):
         perChan = itcs[k].data[:, fselect, :].mean(axis=1)
@@ -131,4 +132,5 @@ for subj in subjlist:
     pl.plot(t, y)
     pl.xlabel('Time (s)')
     pl.ylabel('ITC (baseline subtracted)')
+    pl.xlim((-0.5, 1.5))
     pl.legend(condnames)

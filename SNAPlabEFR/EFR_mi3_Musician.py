@@ -4,11 +4,12 @@ import numpy as np
 from scipy import io
 import os
 import fnmatch
+import pylab as pl
 
 # Adding Files and locations
-froot = 'D:/DATA/Musicianship/'
+froot = '/home/hari/Data/Musicianship/Pilot/'
 
-subjlist = ['KW', ]
+subjlist = ['p4_pu', ]
 
 cond = [1, 2]
 
@@ -18,7 +19,7 @@ for subj in subjlist:
 
     # These are so that the generated files are organized better
     respath = fpath + 'RES/'
-    condname = 'mi'
+    condname = 'da'
 
     print 'Running Subject', subj, 'Condition', condname
 
@@ -38,7 +39,8 @@ for subj in subjlist:
         for k, edfname in enumerate(bdfs):
             # Load data and read event channel
             (raw, eves) = bs.importbdf(fpath + edfname, nchans=34,
-                                       refchans=['EXG1', 'EXG2'])
+                                       refchans=['EXG1', 'EXG2'],
+                                       exclude=[])
 
             raw.info['bads'] += ['A1', 'A2', 'A30', 'A7', 'A6', 'A24',
                                  'A28', 'A29', 'A3', 'A11', 'A15', 'A16',
@@ -70,3 +72,8 @@ for subj in subjlist:
                     x = np.concatenate((x, xtemp), axis=1)
             else:
                 continue
+    y = x.mean(axis=1)
+    t = epochs.times
+    pl.plot(t, y[-2, :]*1e6)
+    pl.xlabel('Time (s)')
+    pl.ylabel('Evoked Response (uV)')
