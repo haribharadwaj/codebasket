@@ -46,7 +46,7 @@ normfacs = np.zeros(nsubjs)
 varexps = np.zeros(nsubjs)
 ncomps = 4
 combinecomps = True
-saveRes = True
+saveRes = False
 zscore = True
 for k, subj in enumerate(subjlist):
     print 'Loading subject', subj

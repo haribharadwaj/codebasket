@@ -8,17 +8,17 @@ import pylab as pl
 
 
 # Adding Files and locations
-froot = 'D:/DATA/Saccade/'
+froot = '/Users/hari/Desktop/AntisaccadeTesting/'
 
 subj = 'BM'
 
 fpath = froot + subj + '/'
 
-print 'Running Subject', subj
+# print 'Running Subject', subj
 
 bdfs = fnmatch.filter(os.listdir(fpath), subj +
                       '*saccade*.bdf')
-print 'Viola!', len(bdfs),  'files found!'
+# print 'Viola!', len(bdfs),  'files found!'
 
 bdf = bdfs[-1]  # Use only the last one
 
@@ -92,6 +92,7 @@ io.savemat(resname, mdict)
 pl.plot(t, Pm, 'k', linewidth=2)
 pl.plot(t, Am, 'r', linewidth=2)
 pl.xlabel('Time (ms)')
-pl.ylabel('HEOG (mV)')
+pl.ylabel('Horizontal EOG (mV)')
+pl.legend(['Prosaccade', 'Antisaccade'], loc='lower right')
 pl.show()
 
