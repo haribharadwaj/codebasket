@@ -4,8 +4,6 @@ import os
 import fnmatch
 from anlffr.preproc import find_blinks
 from mne.preprocessing.ssp import compute_proj_epochs
-from mne.cov import compute_covariance
-from mne.time_frequency import tfr_multitaper
 
 # Adding Files and locations
 # froot = '/Users/hari/Documents/Data/ObjectFormation/'
@@ -32,10 +30,8 @@ epochs = []
 sss = True
 eog = False
 ekg = False
-doTFR = True
 saveEpochs = False
-saveCov = False
-saveAve = False
+saveAve = True
 for subj in subjlist:
 
     fpath = froot + subj + '/'
@@ -74,8 +70,10 @@ for subj in subjlist:
     if not sss:
         raw.info['bads'] += ['MEG1013', 'MEG1623', 'MEG2342', 'MEG2513',
                              'MEG2542', 'MEG1031', 'MEG1041', 'MEG2022']
-    # Filter the data for ERPs
-    raw.filter(l_freq=1.0, h_freq=90, picks=np.arange(0, 306, 1))
+    # ----------------------------------------
+    # Filter the data for ERPs..NO HP FILTER!!
+    raw.filter(l_freq=None, h_freq=90, picks=np.arange(0, 306, 1))
+    # ----------------------------------------
 
     # raw.apply_proj()
     fs = raw.info['sfreq']
@@ -138,18 +136,9 @@ for subj in subjlist:
                             reject=dict(grad=5000e-13, mag=5e-12))
         evokeds += [epochs.average(), ]
         fstem = subj + ssstag + '_' + para
-        if doTFR:
-            freqs = np.arange(5., 70., 1.)
-            n_cycles = freqs * 0.2
-            power, itc = tfr_multitaper(epochs, freqs, n_cycles,
-                                        time_bandwidth=2.0, n_jobs=-1)
-            fname_pow = fstem + '_pow_' + condstem + '-tfr.h5'
-            fname_itc = fstem + '_itc_' + condstem + '-tfr.h5'
-            power.save(respath + fname_pow, overwrite=True)
-            itc.save(respath + fname_itc, overwrite=True)
 
         if saveEpochs:
-            fname_epochs = fstem + '_' + condstem + '-epo.fif'
+            fname_epochs = fstem + '_' + condstem + '_NOHPFILTER-epo.fif'
             epochs.save(respath + fname_epochs)
 
     # Now save overall onset N100
@@ -158,15 +147,9 @@ for subj in subjlist:
                         reject=dict(grad=5000e-13, mag=5e-12))
     evokeds += [epochs.average(), ]
     if saveEpochs:
-            fname_epochs = fstem + '_onset-epo.fif'
+            fname_epochs = fstem + '_NOHPFILTER_onset-epo.fif'
             epochs.save(respath + fname_epochs)
 
     if saveAve:
-        avename = subj + ssstag + '_' + para + '_collapse-ave.fif'
+        avename = subj + ssstag + '_' + para + '_NOHPfilter-ave.fif'
         mne.write_evokeds(respath + avename, evokeds)
-
-    if saveCov:
-        # Compute covatiance
-        cov = compute_covariance(epochs, tmin=-0.2, tmax=0.0)
-        covname = subj + ssstag + '_' + para + '_collapse-cov.fif'
-        cov.save(respath + covname)

@@ -29,10 +29,8 @@ function [bm,env,delay] = gammatoneFast(x,cfs,fs,align)
 %   filter, i.e. DELAY(n)=0 if ALIGN=true. DELAY is a vector the same size
 %   as CFS.
 %
-%   Based on code written by ZZ Jin, adapted by DLW in Jan'07 and JF
-%   Woodruff in Nov'08
-% 
-%   Copyright 2016 University of Surrey.
+%   Loosely based on code written by ZZ Jin (U. Surrey)
+
 
     if nargin < 3
         fs = 16000; % default sampling frequency
