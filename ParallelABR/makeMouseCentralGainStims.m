@@ -1,3 +1,7 @@
+% Loading random generator seed and state so that anything generated
+% randomly will be regenerated with the same realization everytime
+load('s.mat');
+rng(s);
 % Mouse has high-frequency hearing + we intend to play 32kHz
 fs = 97656.25;
 dur = 1.0;
