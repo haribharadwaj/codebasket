@@ -1,4 +1,4 @@
-function [stim, fs] = texture_ERB(nfreqs, ngroup, rho, seq, fs,...
+function [stim, fs, flist] = texture_ERB(nfreqs, ngroup, rho, seq, fs,...
     dur, playstim)
 % USAGE:
 %   [stim, fs] = texture_ERB(nfreqs, ngroup, rho, seq, fs,...
@@ -87,13 +87,16 @@ bw = 20;
 % The above two together gives 4 to 24 Hz envelop
 
 z = 0;
+flist = zeros(1, nfreqs);
 for k = 1:nfreqs
     env = makeNBNoiseFFT(bw, envrate, dur, fs, rise, 0)';
     env = env.*(env > 0);
     env = filter(b,1,env);
     env = env(1:numel(t));
-    x = env .* sin(2*pi*invcams(cams(f1) + spacing_ERBs*(k-1))*t);
+    fcarr = invcams(cams(f1) + spacing_ERBs*(k-1));
+    x = env .* sin(2*pi*fcarr*t);
     z = z + x;
+    flist(k) = fcarr;
 end
 z = rampsound(z, fs, rise);
 z = z / rms(z);
