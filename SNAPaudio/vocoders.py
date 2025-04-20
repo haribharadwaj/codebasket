@@ -412,3 +412,64 @@ def noisevocode(x, fs, nfilts=24):
     # Sum across channels to produce the final noise-vocoded output.
     nv = np.sum(np.column_stack(vocoded_channels), axis=1)
     return nv
+
+
+def speech_shaped_noise(fs, dur, ramp):
+    """
+    Generate ANSI/ASA S3.5‑1997 speech‑shaped noise.
+
+    Parameters
+    ----------
+    fs : float
+        Sampling rate in Hz.
+    dur : float
+        Duration in seconds.
+    ramp : float
+        Cos² ramp length in seconds.
+
+    Returns
+    -------
+    x : ndarray
+        Noise signal (N,), random phase, matching LTASS from ANSI/ASA S3.5‑1997.
+
+    Notes
+    -----
+    1/3-octave band levels (dB rel. 1kHz=0) from ANSI/ASA S3.5‑1997:
+       31.5Hz: -28.7 | 63Hz: -18.7 | 125Hz: -12.5 | 250Hz: -5.5
+       500Hz: -1.5  | 1000Hz: 0.0  | 2000Hz: -2.4  | 4000Hz: -6.8
+       8000Hz: -12.3| 16000Hz: -22.7
+
+    Reference
+    ---------
+    ANSI/ASA S3.5-1997 (R2007); Pavlovic, C.V. (1987)
+    """
+    N = int(round(dur * fs))
+
+    f_centers = np.array([31.5, 63, 125, 250, 500,
+                          1000, 2000, 4000, 8000, 16000])
+    levels_dB = np.array([-28.7, -18.7, -12.5, -5.5, -1.5,
+                          0.0, -2.4, -6.8, -12.3, -22.7])
+
+    f = np.arange(N) * (fs / N)
+    mag_dB = np.interp(f, f_centers, levels_dB,
+                       left=levels_dB[0], right=levels_dB[-1])
+    mag = 10**(mag_dB/20)
+
+    half = N // 2
+    phi = np.random.rand(half+1) * 2 * np.pi
+
+    spec = np.zeros(N, dtype=complex)
+    spec[:half+1] = mag[:half+1] * np.exp(1j * phi)
+    spec[half+1:] = np.conj(spec[1:half][::-1])
+
+    x = np.real(np.fft.ifft(spec))
+
+    ramp_s = int(round(ramp * fs))
+    if ramp_s > 0 and 2 * ramp_s < N:
+        t = np.arange(ramp_s) / ramp_s
+        env = np.ones(N)
+        env[:ramp_s] = np.sin(np.pi/2 * t)**2
+        env[-ramp_s:] = np.cos(np.pi/2 * t)**2
+        x *= env
+
+    return x
