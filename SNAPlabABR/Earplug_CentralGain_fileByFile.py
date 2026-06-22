@@ -31,8 +31,8 @@ def bayesave(x, trialdim=0, timedim=1, method='mean', smoothtrials=19):
 froot = '/Users/HMB105/Library/CloudStorage/Dropbox/Data_Testing/Earplug_ABRs/'
 
 # NOTE: THIS IS EARPLUG DATA CODE.. NOT REGULAR CENTRAL GAIN CODE!!!!
-# Done: ['E002', 'E004', 'E005', 'E006', 'E012', 'E014','E022', 'E025', 'Hari'
-subjlist = ['E007']
+subjlist = ['E002', 'E004', 'E005', 'E006', 'E012', 'E014','E022', 'E025',
+            'Hari', 'E007']
 
 earlist = ['L', 'R']
 
